@@ -258,6 +258,11 @@ final class AppState: ObservableObject {
     private var toastDismissTask: Task<Void, Never>?
     private let securityService: SecurityService
     private var backend: BackendAPI
+    private static let logTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        return formatter
+    }()
     private let passkeyService: LocalPasskeyService
     private let selectedChainStorageKey = "cpcash.selected.chain.id"
 
@@ -1892,7 +1897,13 @@ final class AppState: ObservableObject {
         }
 
         for attempt in 1 ... 3 {
+            if Task.isCancelled {
+                throw CancellationError()
+            }
             try await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000)
+            if Task.isCancelled {
+                throw CancellationError()
+            }
             let detail = try await backend.order.receivingShow(orderSN: serial)
             if detail.status == 1 {
                 if let resolved = detail.orderSn, !resolved.isEmpty {
@@ -2394,6 +2405,9 @@ final class AppState: ObservableObject {
 
         var attempt = 0
         while attempt < 15 {
+            if Task.isCancelled {
+                throw CancellationError()
+            }
             let detail = try await backend.order.receivingShow(orderSN: serial)
             if detail.status == 1, let orderSN = detail.orderSn, !orderSN.isEmpty {
                 return orderSN
@@ -2403,6 +2417,9 @@ final class AppState: ObservableObject {
             }
             attempt += 1
             try await Task.sleep(nanoseconds: 2_000_000_000)
+            if Task.isCancelled {
+                throw CancellationError()
+            }
         }
         throw ReceiveFlowError.traceOrderCreationFailed
     }
@@ -2431,8 +2448,6 @@ final class AppState: ObservableObject {
     }
 
     private func log(_ message: String) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        logs.append("[\(formatter.string(from: Date()))] \(message)")
+        logs.append("[\(Self.logTimeFormatter.string(from: Date()))] \(message)")
     }
 }

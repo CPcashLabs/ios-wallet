@@ -11,6 +11,11 @@ struct SettingsView: View {
     @State private var receiptNotify = false
     @State private var backupNotify = false
     @State private var networkSheetVisible = false
+    @State private var didSyncNotifyToggles = false
+    @State private var transferNotifyTask: Task<Void, Never>?
+    @State private var rewardNotifyTask: Task<Void, Never>?
+    @State private var receiptNotifyTask: Task<Void, Never>?
+    @State private var backupNotifyTask: Task<Void, Never>?
 
     var body: some View {
         AdaptiveReader { widthClass in
@@ -80,24 +85,56 @@ struct SettingsView: View {
                     .presentationDetents([.medium])
             }
             .task {
+                didSyncNotifyToggles = false
                 await state.loadExchangeRates()
                 await state.refreshNetworkOptions()
                 transferNotify = state.transferEmailNotify
                 rewardNotify = state.rewardEmailNotify
                 receiptNotify = state.receiptEmailNotify
                 backupNotify = state.backupWalletNotify
+                didSyncNotifyToggles = true
             }
             .onChange(of: transferNotify) { _, value in
-                Task { await state.setTransferEmailNotify(value) }
+                guard didSyncNotifyToggles else { return }
+                transferNotifyTask?.cancel()
+                transferNotifyTask = Task {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    guard !Task.isCancelled else { return }
+                    await state.setTransferEmailNotify(value)
+                }
             }
             .onChange(of: rewardNotify) { _, value in
-                Task { await state.setRewardEmailNotify(value) }
+                guard didSyncNotifyToggles else { return }
+                rewardNotifyTask?.cancel()
+                rewardNotifyTask = Task {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    guard !Task.isCancelled else { return }
+                    await state.setRewardEmailNotify(value)
+                }
             }
             .onChange(of: receiptNotify) { _, value in
-                Task { await state.setReceiptEmailNotify(value) }
+                guard didSyncNotifyToggles else { return }
+                receiptNotifyTask?.cancel()
+                receiptNotifyTask = Task {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    guard !Task.isCancelled else { return }
+                    await state.setReceiptEmailNotify(value)
+                }
             }
             .onChange(of: backupNotify) { _, value in
-                Task { await state.setBackupWalletNotify(value) }
+                guard didSyncNotifyToggles else { return }
+                backupNotifyTask?.cancel()
+                backupNotifyTask = Task {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    guard !Task.isCancelled else { return }
+                    await state.setBackupWalletNotify(value)
+                }
+            }
+            .onDisappear {
+                transferNotifyTask?.cancel()
+                rewardNotifyTask?.cancel()
+                receiptNotifyTask?.cancel()
+                backupNotifyTask?.cancel()
             }
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
@@ -215,5 +252,11 @@ struct SettingsView: View {
         .frame(minHeight: 64)
         .padding(.horizontal, 14)
         .contentShape(Rectangle())
+    }
+}
+
+#Preview("SettingsView") {
+    NavigationStack {
+        SettingsView(state: AppState()) { _ in }
     }
 }

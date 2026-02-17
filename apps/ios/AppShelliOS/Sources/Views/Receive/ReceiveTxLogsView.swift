@@ -16,9 +16,9 @@ struct ReceiveTxLogsView: View {
                         .padding(.horizontal, widthClass.horizontalPadding)
                 } else {
                     ScrollView {
-                        VStack(spacing: 10) {
-                            ForEach(Array(state.receiveTraceChildren.enumerated()), id: \.offset) { _, item in
-                                row(item)
+                        LazyVStack(spacing: 10) {
+                            ForEach(txRows) { row in
+                                self.row(row.item)
                             }
                         }
                         .padding(.horizontal, widthClass.horizontalPadding)
@@ -35,6 +35,13 @@ struct ReceiveTxLogsView: View {
             .task {
                 await state.loadReceiveTraceChildren(orderSN: orderSN)
             }
+        }
+    }
+
+    private var txRows: [ReceiveTxRow] {
+        Array(state.receiveTraceChildren.enumerated()).map { index, item in
+            let seed = item.orderSn ?? item.receiveAddress ?? "tx"
+            return ReceiveTxRow(id: "\(seed)-\(index)", item: item)
         }
     }
 
@@ -56,4 +63,9 @@ struct ReceiveTxLogsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
+}
+
+private struct ReceiveTxRow: Identifiable {
+    let id: String
+    let item: TraceChildItem
 }

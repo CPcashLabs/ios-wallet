@@ -25,9 +25,9 @@ struct TotalAssetsView: View {
                                 .padding(.vertical, 40)
                         } else {
                             VStack(spacing: 0) {
-                                ForEach(Array(filteredCoins.enumerated()), id: \.offset) { index, coin in
-                                    coinRow(coin, widthClass: widthClass)
-                                    if index < filteredCoins.count - 1 {
+                                ForEach(coinRows) { row in
+                                    coinRow(row.coin, widthClass: widthClass)
+                                    if row.index < coinRows.count - 1 {
                                         Divider()
                                             .padding(.leading, 54)
                                     }
@@ -171,31 +171,15 @@ struct TotalAssetsView: View {
 
     @ViewBuilder
     private func coinIcon(_ coin: CoinItem) -> some View {
-        if let url = resolvedLogoURL(coin.coinLogo) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case let .success(image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                default:
-                    coinFallbackIcon(coin)
-                }
-            }
-            .frame(width: 34, height: 34)
-            .clipShape(Circle())
-        } else {
+        RemoteImageView(
+            rawURL: coin.coinLogo,
+            baseURL: state.environment.baseURL,
+            contentMode: .fill
+        ) {
             coinFallbackIcon(coin)
         }
-    }
-
-    private func resolvedLogoURL(_ raw: String?) -> URL? {
-        guard let raw, !raw.isEmpty else { return nil }
-        if let absolute = URL(string: raw), absolute.scheme != nil {
-            return absolute
-        }
-        let trimmed = raw.hasPrefix("/") ? String(raw.dropFirst()) : raw
-        return state.environment.baseURL.appendingPathComponent(trimmed)
+        .frame(width: 34, height: 34)
+        .clipShape(Circle())
     }
 
     private func coinFallbackIcon(_ coin: CoinItem) -> some View {
@@ -220,6 +204,14 @@ struct TotalAssetsView: View {
             }
         }
         return source.sorted { coinBalance($0) > coinBalance($1) }
+    }
+
+    private var coinRows: [AssetCoinRow] {
+        Array(filteredCoins.enumerated()).map { index, coin in
+            let code = coin.coinCode ?? coin.code ?? coin.coinSymbol ?? "coin"
+            let chain = coin.chainName ?? "-"
+            return AssetCoinRow(id: "\(code)-\(chain)-\(index)", index: index, coin: coin)
+        }
     }
 
     private var currencyRate: Double {
@@ -304,4 +296,10 @@ struct TotalAssetsView: View {
         }
         return sign * integer / pow(10, Double(precision))
     }
+}
+
+private struct AssetCoinRow: Identifiable {
+    let id: String
+    let index: Int
+    let coin: CoinItem
 }

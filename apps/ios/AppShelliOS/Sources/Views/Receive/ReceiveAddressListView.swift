@@ -17,9 +17,9 @@ struct ReceiveAddressListView: View {
                         .padding(.horizontal, widthClass.horizontalPadding)
                 } else {
                     ScrollView {
-                        VStack(spacing: 10) {
-                            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                                itemCard(item)
+                        LazyVStack(spacing: 10) {
+                            ForEach(addressRows) { row in
+                                itemCard(row.item)
                             }
                         }
                         .padding(.horizontal, widthClass.horizontalPadding)
@@ -54,6 +54,13 @@ struct ReceiveAddressListView: View {
 
     private var isLoading: Bool {
         state.isLoading(validity == .valid ? "receive.home" : "receive.invalid")
+    }
+
+    private var addressRows: [ReceiveAddressRow] {
+        Array(items.enumerated()).map { index, item in
+            let seed = item.orderSn ?? item.address ?? "receive"
+            return ReceiveAddressRow(id: "\(seed)-\(index)", item: item)
+        }
     }
 
     private func itemCard(_ item: TraceOrderItem) -> some View {
@@ -147,8 +154,17 @@ struct ReceiveAddressListView: View {
 
     private func formatTimestamp(_ milliseconds: Int) -> String {
         let date = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000.0)
+        return Self.dateFormatter.string(from: date)
+    }
+
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
+        return formatter
+    }()
+}
+
+private struct ReceiveAddressRow: Identifiable {
+    let id: String
+    let item: TraceOrderItem
 }

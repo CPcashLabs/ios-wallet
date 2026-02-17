@@ -210,9 +210,9 @@ struct TransferAddressView: View {
                     .padding(.top, 16)
             } else {
                 VStack(spacing: 0) {
-                    ForEach(Array(filteredRecentContacts.enumerated()), id: \.offset) { index, item in
-                        recentRow(item, widthClass: widthClass)
-                        if index < filteredRecentContacts.count - 1 {
+                    ForEach(recentContactRows) { row in
+                        recentRow(row.item, widthClass: widthClass)
+                        if row.index < recentContactRows.count - 1 {
                             Divider()
                                 .padding(.leading, 48)
                         }
@@ -227,9 +227,9 @@ struct TransferAddressView: View {
                     .padding(.top, 16)
             } else {
                 VStack(spacing: 0) {
-                    ForEach(Array(filteredAddressBooks.enumerated()), id: \.offset) { index, item in
-                        addressBookRow(item, widthClass: widthClass)
-                        if index < filteredAddressBooks.count - 1 {
+                    ForEach(addressBookRows) { row in
+                        addressBookRow(row.item, widthClass: widthClass)
+                        if row.index < addressBookRows.count - 1 {
                             Divider()
                                 .padding(.leading, 48)
                         }
@@ -360,6 +360,20 @@ struct TransferAddressView: View {
         return !exists
     }
 
+    private var recentContactRows: [TransferRecentRow] {
+        Array(filteredRecentContacts.enumerated()).map { index, item in
+            let seed = item.address ?? item.walletAddress ?? "recent"
+            return TransferRecentRow(id: "\(seed)-\(index)", index: index, item: item)
+        }
+    }
+
+    private var addressBookRows: [TransferAddressBookRow] {
+        Array(filteredAddressBooks.enumerated()).map { index, item in
+            let seed = item.id.map(String.init) ?? (item.walletAddress ?? "book")
+            return TransferAddressBookRow(id: "\(seed)-\(index)", index: index, item: item)
+        }
+    }
+
     private func chainIconName(_ address: String) -> String {
         address.uppercased().hasPrefix("T") ? "chain_tron" : "chain_evm"
     }
@@ -444,8 +458,30 @@ struct TransferAddressView: View {
         guard let ts else { return "-" }
         let seconds: TimeInterval = ts > 1_000_000_000_000 ? TimeInterval(ts) / 1000 : TimeInterval(ts)
         let date = Date(timeIntervalSince1970: seconds)
+        return Self.dateFormatter.string(from: date)
+    }
+
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
+        return formatter
+    }()
+}
+
+private struct TransferRecentRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: TransferReceiveContact
+}
+
+private struct TransferAddressBookRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: AddressBookItem
+}
+
+#Preview("TransferAddressView") {
+    NavigationStack {
+        TransferAddressView(state: AppState(), onNext: {})
     }
 }

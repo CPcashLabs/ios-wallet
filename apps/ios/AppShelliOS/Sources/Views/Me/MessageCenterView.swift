@@ -17,10 +17,10 @@ struct MessageCenterView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 0) {
-                            ForEach(Array(state.messageList.enumerated()), id: \.offset) { index, item in
-                                messageRow(item)
+                            ForEach(messageRows) { row in
+                                messageRow(row.item)
                                     .onAppear {
-                                        if index == state.messageList.count - 1,
+                                        if row.index == messageRows.count - 1,
                                            !state.messageLastPage,
                                            !state.isLoading("me.message.list")
                                         {
@@ -61,6 +61,13 @@ struct MessageCenterView: View {
             .task {
                 await state.loadMessages(page: 1, append: false)
             }
+        }
+    }
+
+    private var messageRows: [MessageRow] {
+        Array(state.messageList.enumerated()).map { index, item in
+            let id = item.id.map(String.init) ?? "\(item.createdAt ?? 0)"
+            return MessageRow(id: "\(id)-\(index)", index: index, item: item)
         }
     }
 
@@ -109,4 +116,10 @@ struct MessageCenterView: View {
             return "系统消息"
         }
     }
+}
+
+private struct MessageRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: MessageItem
 }

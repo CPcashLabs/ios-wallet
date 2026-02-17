@@ -62,16 +62,8 @@ struct BillStatisticsView: View {
             }
             .navigationTitle("统计")
             .navigationBarTitleDisplayMode(.inline)
-            .task {
+            .task(id: reloadTrigger) {
                 await reload()
-            }
-            .onChange(of: preset) { _, _ in
-                Task { await reload() }
-            }
-            .onChange(of: selectedMonth) { _, _ in
-                if preset == .monthly {
-                    Task { await reload() }
-                }
             }
         }
     }
@@ -139,7 +131,8 @@ struct BillStatisticsView: View {
                 EmptyStateView(asset: "bill_no_data", title: "暂无数据")
                     .padding(.vertical, 16)
             } else {
-                ForEach(Array(state.billAddressAggList.enumerated()), id: \.offset) { index, item in
+                ForEach(addressRows) { row in
+                    let item = row.item
                     Button {
                         if let onAddressTap, let address = item.adversaryAddress {
                             onAddressTap(address)
@@ -167,7 +160,7 @@ struct BillStatisticsView: View {
                     }
                     .buttonStyle(.pressFeedback)
 
-                    if index < state.billAddressAggList.count - 1 {
+                    if row.index < addressRows.count - 1 {
                         Divider()
                     }
                 }
@@ -201,6 +194,20 @@ struct BillStatisticsView: View {
         await state.loadBillAddressAggregate(range: range)
     }
 
+    private var reloadTrigger: String {
+        if preset == .monthly {
+            return "\(preset.rawValue)|\(selectedMonth.timeIntervalSinceReferenceDate)"
+        }
+        return preset.rawValue
+    }
+
+    private var addressRows: [BillStatisticsRow] {
+        Array(state.billAddressAggList.enumerated()).map { index, item in
+            let seed = item.adversaryAddress ?? item.name ?? "addr"
+            return BillStatisticsRow(id: "\(seed)-\(index)", index: index, item: item)
+        }
+    }
+
     private func shortAddress(_ value: String) -> String {
         guard value.count > 14 else { return value }
         return "\(value.prefix(8))...\(value.suffix(4))"
@@ -213,4 +220,10 @@ struct BillStatisticsView: View {
         }
         return value.description
     }
+}
+
+private struct BillStatisticsRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: BillAddressAggregateItem
 }

@@ -23,8 +23,10 @@ struct ReceiveAddressDeleteView: View {
                     if filteredInvalidItems.isEmpty {
                         EmptyStateView(asset: "bill_no_data", title: "暂无失效地址")
                     } else {
-                        ForEach(Array(filteredInvalidItems.enumerated()), id: \.offset) { _, item in
-                            row(item)
+                        LazyVStack(spacing: 12) {
+                            ForEach(deleteRows) { row in
+                                self.row(row.item)
+                            }
                         }
                     }
                 }
@@ -50,6 +52,13 @@ struct ReceiveAddressDeleteView: View {
             case .business:
                 return orderType.contains("LONG")
             }
+        }
+    }
+
+    private var deleteRows: [ReceiveDeleteRow] {
+        Array(filteredInvalidItems.enumerated()).map { index, item in
+            let seed = item.orderSn ?? item.receiveAddress ?? "delete"
+            return ReceiveDeleteRow(id: "\(seed)-\(index)", item: item)
         }
     }
 
@@ -86,4 +95,9 @@ struct ReceiveAddressDeleteView: View {
         .padding(12)
         .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
+}
+
+private struct ReceiveDeleteRow: Identifiable {
+    let id: String
+    let item: TraceOrderItem
 }

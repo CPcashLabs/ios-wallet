@@ -12,17 +12,17 @@ struct UserGuideView: View {
         FullscreenScaffold(backgroundStyle: .globalImage) {
             ScrollView {
                 VStack(spacing: 12) {
-                    ForEach(Array(guides.enumerated()), id: \.offset) { index, item in
+                    ForEach(guideRows) { row in
                         HStack(spacing: 12) {
                             Circle()
                                 .fill(ThemeTokens.cpPrimary.opacity(0.15))
                                 .frame(width: 26, height: 26)
                                 .overlay {
-                                    Text("\(index + 1)")
+                                    Text("\(row.index + 1)")
                                         .font(.system(size: 13, weight: .semibold))
                                         .foregroundStyle(ThemeTokens.cpPrimary)
                                 }
-                            Text(item)
+                            Text(row.title)
                                 .font(.system(size: 15))
                                 .foregroundStyle(ThemeTokens.title)
                             Spacer()
@@ -38,4 +38,16 @@ struct UserGuideView: View {
         .navigationTitle("用户指南")
         .navigationBarTitleDisplayMode(.inline)
     }
+
+    private var guideRows: [GuideRow] {
+        Array(guides.enumerated()).map { index, title in
+            GuideRow(id: "\(index)-\(title)", index: index, title: title)
+        }
+    }
+}
+
+private struct GuideRow: Identifiable {
+    let id: String
+    let index: Int
+    let title: String
 }

@@ -7,6 +7,8 @@ struct PersonalView: View {
     @State private var nickname = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var uploadingAvatar = false
+    @State private var avatarUploadTask: Task<Void, Never>?
+    @State private var saveNicknameTask: Task<Void, Never>?
 
     var body: some View {
         AdaptiveReader { widthClass in
@@ -66,7 +68,10 @@ struct PersonalView: View {
                         }
 
                         Button {
-                            Task { await state.updateNickname(nickname) }
+                            saveNicknameTask?.cancel()
+                            saveNicknameTask = Task {
+                                await state.updateNickname(nickname)
+                            }
                         } label: {
                             Text("保存")
                                 .font(.system(size: 16, weight: .semibold))
@@ -87,39 +92,36 @@ struct PersonalView: View {
             }
             .onChange(of: selectedPhotoItem) { _, newValue in
                 guard let newValue else { return }
-                Task {
+                avatarUploadTask?.cancel()
+                avatarUploadTask = Task {
                     uploadingAvatar = true
                     defer {
                         uploadingAvatar = false
                         selectedPhotoItem = nil
                     }
                     if let data = try? await newValue.loadTransferable(type: Data.self) {
+                        guard !Task.isCancelled else { return }
                         await state.updateAvatar(fileData: data, fileName: "avatar.jpg", mimeType: "image/jpeg")
                     } else {
+                        guard !Task.isCancelled else { return }
                         state.showInfoToast("头像读取失败，请重试")
                     }
                 }
+            }
+            .onDisappear {
+                avatarUploadTask?.cancel()
+                saveNicknameTask?.cancel()
             }
         }
     }
 
     private var avatar: some View {
-        Group {
-            if let url = resolvedAvatarURL
-            {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        avatarFallback
-                    }
-                }
-            } else {
-                avatarFallback
-            }
+        RemoteImageView(
+            rawURL: state.meProfile?.avatar,
+            baseURL: state.environment.baseURL,
+            contentMode: .fill
+        ) {
+            avatarFallback
         }
         .frame(width: 38, height: 38)
         .clipShape(Circle())
@@ -148,16 +150,5 @@ struct PersonalView: View {
         let value = state.activeAddress
         guard value.count > 14 else { return value }
         return "\(value.prefix(8))...\(value.suffix(4))"
-    }
-
-    private var resolvedAvatarURL: URL? {
-        guard let raw = state.meProfile?.avatar?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
-            return nil
-        }
-        if let absolute = URL(string: raw), absolute.scheme != nil {
-            return absolute
-        }
-        let trimmed = raw.hasPrefix("/") ? String(raw.dropFirst()) : raw
-        return state.environment.baseURL.appendingPathComponent(trimmed)
     }
 }

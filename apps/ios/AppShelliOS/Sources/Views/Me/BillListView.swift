@@ -110,14 +110,8 @@ struct BillListView: View {
                 }
                 .presentationDetents([.medium, .large])
             }
-            .task {
+            .task(id: reloadTriggerKey) {
                 await reload(reset: true)
-            }
-            .onChange(of: selectedTab) { _, _ in
-                Task { await reload(reset: true) }
-            }
-            .onChange(of: state.billAddressFilter) { _, _ in
-                Task { await reload(reset: true) }
             }
         }
     }
@@ -201,9 +195,10 @@ struct BillListView: View {
 
             Divider()
 
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                billRow(item, widthClass: widthClass)
-                if index < items.count - 1 {
+            let rows = sectionRows(items)
+            ForEach(rows) { row in
+                billRow(row.item, widthClass: widthClass)
+                if row.index < rows.count - 1 {
                     Divider().padding(.leading, 60)
                 }
             }
@@ -318,22 +313,22 @@ struct BillListView: View {
         groupedMap.keys.sorted(by: >)
     }
 
+    private var reloadTriggerKey: String {
+        "\(selectedTab.rawValue)|\(state.billAddressFilter ?? "")"
+    }
+
     private func monthKey(_ timestamp: Int?) -> String {
         guard let timestamp else { return "未知月份" }
         let seconds: TimeInterval = timestamp > 1_000_000_000_000 ? TimeInterval(timestamp) / 1000 : TimeInterval(timestamp)
         let date = Date(timeIntervalSince1970: seconds)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM"
-        return formatter.string(from: date)
+        return Self.monthFormatter.string(from: date)
     }
 
     private func timeText(_ timestamp: Int?) -> String {
         guard let timestamp else { return "-" }
         let seconds: TimeInterval = timestamp > 1_000_000_000_000 ? TimeInterval(timestamp) / 1000 : TimeInterval(timestamp)
         let date = Date(timeIntervalSince1970: seconds)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter.string(from: date)
+        return Self.timeFormatter.string(from: date)
     }
 
     private func orderTypeTitle(_ orderType: String?) -> String {
@@ -425,5 +420,37 @@ struct BillListView: View {
         default:
             return ThemeTokens.danger
         }
+    }
+
+    private func sectionRows(_ items: [OrderSummary]) -> [BillSectionRow] {
+        Array(items.enumerated()).map { index, item in
+            let createdSeed = item.createdAt.map(String.init) ?? "row"
+            let seed = item.orderSn ?? createdSeed
+            return BillSectionRow(id: "\(seed)-\(index)", index: index, item: item)
+        }
+    }
+
+    private static let monthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        return formatter
+    }()
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter
+    }()
+}
+
+private struct BillSectionRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: OrderSummary
+}
+
+#Preview("BillListView") {
+    NavigationStack {
+        BillListView(state: AppState())
     }
 }

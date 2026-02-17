@@ -413,3 +413,9 @@ struct ReceiveHomeView: View {
         return "-- \(state.receiveDomainState.selectedSendCoinName)"
     }
 }
+
+#Preview("ReceiveHomeView") {
+    NavigationStack {
+        ReceiveHomeView(state: AppState()) { _ in }
+    }
+}

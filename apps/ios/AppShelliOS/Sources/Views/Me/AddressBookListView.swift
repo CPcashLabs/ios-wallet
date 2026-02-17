@@ -1,3 +1,4 @@
+import BackendAPI
 import SwiftUI
 
 struct AddressBookListView: View {
@@ -17,8 +18,9 @@ struct AddressBookListView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     } else {
                         ScrollView {
-                            VStack(spacing: 10) {
-                                ForEach(Array(state.addressBooks.enumerated()), id: \.offset) { _, item in
+                            LazyVStack(spacing: 10) {
+                                ForEach(addressBookRows) { row in
+                                    let item = row.item
                                     Button {
                                         navigate(.addressBookEdit(id: item.id.map(String.init)))
                                     } label: {
@@ -79,4 +81,16 @@ struct AddressBookListView: View {
             }
         }
     }
+
+    private var addressBookRows: [AddressBookRow] {
+        Array(state.addressBooks.enumerated()).map { index, item in
+            let id = item.id.map(String.init) ?? (item.walletAddress ?? "addr")
+            return AddressBookRow(id: "\(id)-\(index)", item: item)
+        }
+    }
+}
+
+private struct AddressBookRow: Identifiable {
+    let id: String
+    let item: AddressBookItem
 }

@@ -1,3 +1,4 @@
+import BackendAPI
 import SwiftUI
 
 struct SettingUnitView: View {
@@ -14,7 +15,8 @@ struct SettingUnitView: View {
                 } else {
                     ScrollView {
                         SectionCard {
-                            ForEach(Array(state.exchangeRates.enumerated()), id: \.offset) { index, item in
+                            ForEach(currencyRows) { row in
+                                let item = row.item
                                 Button {
                                     currentCurrency = item.currency ?? ""
                                 } label: {
@@ -35,7 +37,7 @@ struct SettingUnitView: View {
                                 }
                                 .buttonStyle(.plain)
 
-                                if index < state.exchangeRates.count - 1 {
+                                if row.index < currencyRows.count - 1 {
                                     Divider().padding(.leading, 14)
                                 }
                             }
@@ -65,4 +67,17 @@ struct SettingUnitView: View {
             }
         }
     }
+
+    private var currencyRows: [CurrencyRow] {
+        Array(state.exchangeRates.enumerated()).map { index, item in
+            let seed = item.currency ?? "USD"
+            return CurrencyRow(id: "\(seed)-\(index)", index: index, item: item)
+        }
+    }
+}
+
+private struct CurrencyRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: ExchangeRateItem
 }

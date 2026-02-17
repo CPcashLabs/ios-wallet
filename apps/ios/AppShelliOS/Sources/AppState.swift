@@ -256,22 +256,30 @@ final class AppState: ObservableObject {
     }
 
     private var toastDismissTask: Task<Void, Never>?
-    private let securityService: SecurityService
-    private var backend: BackendAPI
+    private let securityService: SecurityServing
+    private let backendFactory: (EnvironmentConfig) -> BackendServing
+    private var backend: BackendServing
     private static let logTimeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
         return formatter
     }()
-    private let passkeyService: LocalPasskeyService
+    private let passkeyService: PasskeyServing
+    private let clock: AppClock
+    private let idGenerator: AppIDGenerator
+    private let appLogger: AppLogger
     private let selectedChainStorageKey = "cpcash.selected.chain.id"
 
-    init() {
+    init(dependencies: AppDependencies = .live()) {
         let env = EnvironmentConfig.default
         environment = env
-        securityService = StubSecurityCore()
-        backend = BackendAPI(environment: env)
-        passkeyService = LocalPasskeyService()
+        securityService = dependencies.securityService
+        backendFactory = dependencies.backendFactory
+        backend = dependencies.backendFactory(env)
+        passkeyService = dependencies.passkeyService
+        clock = dependencies.clock
+        idGenerator = dependencies.idGenerator
+        appLogger = dependencies.logger
     }
 
     deinit {
@@ -744,7 +752,7 @@ final class AppState: ObservableObject {
 
             let proxyNetworks = cpList.map { item in
                 TransferNetworkItem(
-                    id: "proxy:\(item.chainName ?? UUID().uuidString)",
+                    id: "proxy:\(item.chainName ?? idGenerator.makeID())",
                     name: item.chainName ?? "-",
                     logoURL: item.chainLogo,
                     chainColor: item.chainColor ?? "#1677FF",
@@ -1129,7 +1137,7 @@ final class AppState: ObservableObject {
 
             let proxyNetworks = cpList.map { item in
                 ReceiveNetworkItem(
-                    id: "proxy:\(item.chainName ?? UUID().uuidString)",
+                    id: "proxy:\(item.chainName ?? idGenerator.makeID())",
                     name: item.chainName ?? "-",
                     logoURL: item.chainLogo,
                     chainColor: item.chainColor ?? "#1677FF",
@@ -1610,7 +1618,7 @@ final class AppState: ObservableObject {
             next = .development
         }
         environment = next
-        backend = BackendAPI(environment: next)
+        backend = backendFactory(next)
         log("Debug 环境切换完成: \(next.tag.rawValue) -> \(next.baseURL.absoluteString)")
     }
     #endif
@@ -1629,21 +1637,21 @@ final class AppState: ObservableObject {
             )
         )
 
-        let token = try await backend.auth.signIn(
+        _ = try await backend.auth.signIn(
             signature: signature.value,
             address: address.value,
             message: message
         )
-        log("登录成功，token 前缀: \(token.accessToken.prefix(14))...")
+        log("登录成功，token 已更新")
         isAuthenticated = true
-        approvalSessionState = .unlocked(lastVerifiedAt: Date())
+        approvalSessionState = .unlocked(lastVerifiedAt: clock.now)
         loginErrorKind = nil
         showToast("登录成功", theme: .success)
         await refreshHomeData()
     }
 
     private func beginLoginFlow() -> Bool {
-        let now = Date()
+        let now = clock.now
         if loginBusy {
             log("登录请求已忽略: 当前请求仍在执行")
             return false
@@ -1745,7 +1753,7 @@ final class AppState: ObservableObject {
     }
 
     private func loginMessage(address: String) -> String {
-        let loginTime = Int(Date().timeIntervalSince1970 * 1000)
+        let loginTime = Int(clock.now.timeIntervalSince1970 * 1000)
         let payload: [String: String] = [
             "address": address,
             "login_time": String(loginTime),
@@ -2086,7 +2094,7 @@ final class AppState: ObservableObject {
 
     func billRangeForPreset(_ preset: BillPresetRange, selectedMonth: Date = Date()) -> BillTimeRange {
         let calendar = Calendar(identifier: .gregorian)
-        let now = Date()
+        let now = clock.now
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -2448,6 +2456,8 @@ final class AppState: ObservableObject {
     }
 
     private func log(_ message: String) {
-        logs.append("[\(Self.logTimeFormatter.string(from: Date()))] \(message)")
+        let entry = "[\(Self.logTimeFormatter.string(from: clock.now))] \(message)"
+        logs.append(entry)
+        appLogger.log(entry)
     }
 }

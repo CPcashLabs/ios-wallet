@@ -19,7 +19,8 @@ private enum BillTab: String, CaseIterable {
 }
 
 struct BillListView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
+    @ObservedObject var uiStore: UIStore
     var onShowStatistics: (() -> Void)? = nil
     var onSelectOrder: ((String) -> Void)? = nil
 
@@ -35,11 +36,11 @@ struct BillListView: View {
                 VStack(spacing: 0) {
                     topBar(widthClass: widthClass)
 
-                    if state.isLoading(.meBillList) && state.billList.isEmpty {
+                    if meStore.isLoading(.meBillList) && meStore.billList.isEmpty {
                         skeletonList(widthClass: widthClass)
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .padding(.top, 14)
-                    } else if state.billList.isEmpty {
+                    } else if meStore.billList.isEmpty {
                         EmptyStateView(asset: "bill_no_data", title: "暂无数据")
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .padding(.top, 30)
@@ -51,7 +52,7 @@ struct BillListView: View {
                                     sectionCard(title: key, items: groupedMap[key] ?? [], widthClass: widthClass)
                                 }
 
-                                if !state.billLastPage {
+                                if !meStore.billLastPage {
                                     HStack {
                                         Spacer()
                                         if isLoadingMore {
@@ -98,10 +99,10 @@ struct BillListView: View {
                     onShowStatistics?()
                 }
                 Button("导出交易记录") {
-                    state.showInfoToast("导出功能开发中")
+                    uiStore.showInfoToast("导出功能开发中")
                 }
                 Button("标签管理") {
-                    state.showInfoToast("标签管理开发中")
+                    uiStore.showInfoToast("标签管理开发中")
                 }
             }
             .sheet(isPresented: $showFilterSheet) {
@@ -151,12 +152,12 @@ struct BillListView: View {
         .padding(.horizontal, widthClass.horizontalPadding)
         .padding(.top, 8)
         .overlay(alignment: .bottomLeading) {
-            if let address = state.billAddressFilter, !address.isEmpty {
+            if let address = meStore.billAddressFilter, !address.isEmpty {
                 HStack(spacing: 6) {
                     Image(systemName: "mappin.and.ellipse")
                     Text(shortAddress(address))
                     Button {
-                        state.setBillAddressFilter(nil)
+                        meStore.setBillAddressFilter(nil)
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                     }
@@ -278,25 +279,25 @@ struct BillListView: View {
     private func reload(reset: Bool) async {
         let range: BillTimeRange?
         if let preset = filterDraft.rangePreset {
-            range = state.billRangeForPreset(preset)
+            range = meStore.billRangeForPreset(preset)
         } else {
             range = nil
         }
-        let page = reset ? 1 : max(1, state.billCurrentPage + 1)
+        let page = reset ? 1 : max(1, meStore.billCurrentPage + 1)
         let filter = BillFilter(
             page: page,
             perPage: 20,
             orderType: selectedTab.orderType,
             orderTypeList: filterDraft.showCompletedOnly ? ["COMPLETED"] : [],
-            otherAddress: state.billAddressFilter,
+            otherAddress: meStore.billAddressFilter,
             categoryIds: filterDraft.categoryIds,
             range: range
         )
-        await state.loadBillList(filter: filter, append: !reset)
+        await meStore.loadBillList(filter: filter, append: !reset)
     }
 
     private func loadMoreIfNeeded() async {
-        guard !state.billLastPage else { return }
+        guard !meStore.billLastPage else { return }
         guard !isLoadingMore else { return }
         isLoadingMore = true
         await reload(reset: false)
@@ -304,7 +305,7 @@ struct BillListView: View {
     }
 
     private var groupedMap: [String: [OrderSummary]] {
-        Dictionary(grouping: state.billList) { item in
+        Dictionary(grouping: meStore.billList) { item in
             monthKey(item.createdAt)
         }
     }
@@ -314,7 +315,7 @@ struct BillListView: View {
     }
 
     private var reloadTriggerKey: String {
-        "\(selectedTab.rawValue)|\(state.billAddressFilter ?? "")"
+        "\(selectedTab.rawValue)|\(meStore.billAddressFilter ?? "")"
     }
 
     private func monthKey(_ timestamp: Int?) -> String {
@@ -433,6 +434,7 @@ private struct BillSectionRow: Identifiable {
 
 #Preview("BillListView") {
     NavigationStack {
-        BillListView(state: AppState())
+        let appState = AppState()
+        BillListView(meStore: MeStore(appState: appState), uiStore: UIStore(appState: appState))
     }
 }

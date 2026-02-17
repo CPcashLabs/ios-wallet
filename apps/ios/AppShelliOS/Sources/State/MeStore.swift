@@ -15,6 +15,8 @@ final class MeStore: ObservableObject {
     @Published private(set) var billList: [OrderSummary]
     @Published private(set) var billStats: BillStatisticsSummary?
     @Published private(set) var billAddressAggList: [BillAddressAggregateItem]
+    @Published private(set) var billCurrentPage: Int
+    @Published private(set) var billLastPage: Bool
     @Published private(set) var exchangeRates: [ExchangeRateItem]
     @Published private(set) var selectedCurrency: String
     @Published private(set) var transferEmailNotify: Bool
@@ -33,6 +35,8 @@ final class MeStore: ObservableObject {
         billList = appState.billList
         billStats = appState.billStats
         billAddressAggList = appState.billAddressAggList
+        billCurrentPage = appState.billCurrentPage
+        billLastPage = appState.billLastPage
         exchangeRates = appState.exchangeRates
         selectedCurrency = appState.selectedCurrency
         transferEmailNotify = appState.transferEmailNotify
@@ -68,6 +72,10 @@ final class MeStore: ObservableObject {
         await appState.loadBillAddressAggregate(range: range, page: page, perPage: perPage)
     }
 
+    func billRangeForPreset(_ preset: BillPresetRange, selectedMonth: Date = Date()) -> BillTimeRange {
+        appState.billRangeForPreset(preset, selectedMonth: selectedMonth)
+    }
+
     func updateNickname(_ nickname: String) async {
         await appState.updateNickname(nickname)
     }
@@ -78,6 +86,14 @@ final class MeStore: ObservableObject {
 
     func setBillAddressFilter(_ address: String?) {
         appState.setBillAddressFilter(address)
+    }
+
+    func isLoading(_ key: LoadKey) -> Bool {
+        appState.isLoading(key)
+    }
+
+    func errorMessage(_ key: LoadKey) -> String? {
+        appState.errorMessage(key)
     }
 
     func loadExchangeRates() async {
@@ -135,6 +151,14 @@ final class MeStore: ObservableObject {
 
         appState.$billAddressAggList
             .sink { [weak self] in self?.billAddressAggList = $0 }
+            .store(in: &cancellables)
+
+        appState.$billCurrentPage
+            .sink { [weak self] in self?.billCurrentPage = $0 }
+            .store(in: &cancellables)
+
+        appState.$billLastPage
+            .sink { [weak self] in self?.billLastPage = $0 }
             .store(in: &cancellables)
 
         appState.$exchangeRates

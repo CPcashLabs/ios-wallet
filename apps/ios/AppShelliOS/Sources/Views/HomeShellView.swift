@@ -154,7 +154,8 @@ struct HomeShellView: View {
 
                 case .billList:
                     hideTabBar(BillListView(
-                        state: state,
+                        meStore: appStore.meStore,
+                        uiStore: appStore.uiStore,
                         onShowStatistics: {
                             pushHomeRoute(.billStatistics)
                         },
@@ -163,8 +164,8 @@ struct HomeShellView: View {
                         }
                     ))
                 case .billStatistics:
-                    hideTabBar(BillStatisticsView(state: state) { address in
-                        state.setBillAddressFilter(address)
+                    hideTabBar(BillStatisticsView(meStore: appStore.meStore) { address in
+                        appStore.meStore.setBillAddressFilter(address)
                         pushHomeRoute(.billList)
                     })
                 case let .orderDetail(orderSN):
@@ -205,32 +206,40 @@ struct HomeShellView: View {
                         pushMeRoute(nestedRoute)
                     }
                 case .settings:
-                    hideTabBar(SettingsView(state: state) { nestedRoute in
+                    hideTabBar(SettingsView(
+                        meStore: appStore.meStore,
+                        sessionStore: appStore.sessionStore,
+                        uiStore: appStore.uiStore
+                    ) { nestedRoute in
                         pushMeRoute(nestedRoute)
                     })
                 case .billList:
-                    hideTabBar(BillListView(state: state) {
+                    hideTabBar(BillListView(meStore: appStore.meStore, uiStore: appStore.uiStore) {
                         pushMeRoute(.billStatistics)
                     } onSelectOrder: { orderSN in
                         pushMeRoute(.orderDetail(orderSN: orderSN))
                     })
                 case .billStatistics:
-                    hideTabBar(BillStatisticsView(state: state) { address in
-                        state.setBillAddressFilter(address)
+                    hideTabBar(BillStatisticsView(meStore: appStore.meStore) { address in
+                        appStore.meStore.setBillAddressFilter(address)
                         pushMeRoute(.billList)
                     })
                 case let .orderDetail(orderSN):
                     hideTabBar(OrderDetailView(state: state, orderSN: orderSN))
                 case .personal:
-                    hideTabBar(PersonalView(state: state))
+                    hideTabBar(PersonalView(
+                        meStore: appStore.meStore,
+                        sessionStore: appStore.sessionStore,
+                        uiStore: appStore.uiStore
+                    ))
                 case .addressBookList:
-                    hideTabBar(AddressBookListView(state: state) { nestedRoute in
+                    hideTabBar(AddressBookListView(meStore: appStore.meStore) { nestedRoute in
                         pushMeRoute(nestedRoute)
                     })
                 case let .addressBookEdit(id):
                     hideTabBar(AddressBookEditView(state: state, editingId: id))
                 case .settingUnit:
-                    hideTabBar(SettingUnitView(state: state))
+                    hideTabBar(SettingUnitView(meStore: appStore.meStore))
                 case .totalAssets:
                     hideTabBar(TotalAssetsView(state: state))
                 case .invite:

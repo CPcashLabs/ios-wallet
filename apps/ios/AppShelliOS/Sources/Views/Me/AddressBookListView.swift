@@ -2,17 +2,17 @@ import BackendAPI
 import SwiftUI
 
 struct AddressBookListView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
     let navigate: (MeRoute) -> Void
 
     var body: some View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading(.meAddressbookList) {
+                    if meStore.isLoading(.meAddressbookList) {
                         ProgressView("加载地址簿...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if state.addressBooks.isEmpty {
+                    } else if meStore.addressBooks.isEmpty {
                         EmptyStateView(asset: "bill_no_data", title: "还未添加任何地址簿")
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -77,13 +77,13 @@ struct AddressBookListView: View {
                 .buttonStyle(.pressFeedback)
             }
             .task {
-                await state.loadAddressBooks()
+                await meStore.loadAddressBooks()
             }
         }
     }
 
     private var addressBookRows: [AddressBookRow] {
-        Array(state.addressBooks.enumerated()).map { index, item in
+        Array(meStore.addressBooks.enumerated()).map { index, item in
             let id = item.id.map(String.init) ?? (item.walletAddress ?? "addr")
             return AddressBookRow(id: "\(id)-\(index)", item: item)
         }

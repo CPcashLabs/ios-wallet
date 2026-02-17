@@ -5,69 +5,41 @@ import Foundation
 @MainActor
 final class ReceiveStore: ObservableObject {
     private let appState: AppState
-    private var appStateChanges: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
+
+    @Published private(set) var receiveDomainState: ReceiveDomainState
+    @Published private(set) var receiveSelectNetworks: [ReceiveNetworkItem]
+    @Published private(set) var receiveNormalNetworks: [ReceiveNetworkItem]
+    @Published private(set) var receiveProxyNetworks: [ReceiveNetworkItem]
+    @Published private(set) var receiveSelectedNetworkId: String?
+    @Published private(set) var individualTraceOrder: TraceOrderItem?
+    @Published private(set) var businessTraceOrder: TraceOrderItem?
+    @Published private(set) var receiveRecentValid: [TraceOrderItem]
+    @Published private(set) var receiveRecentInvalid: [TraceOrderItem]
+    @Published private(set) var receiveTraceChildren: [TraceChildItem]
+    @Published private(set) var individualTraceDetail: TraceShowDetail?
+    @Published private(set) var businessTraceDetail: TraceShowDetail?
+    @Published private(set) var receiveShareDetail: ReceiveOrderDetail?
+    @Published private(set) var receiveExpiryConfig: ReceiveExpiryConfig
 
     init(appState: AppState) {
         self.appState = appState
-        appStateChanges = appState.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
-    }
+        receiveDomainState = appState.receiveDomainState
+        receiveSelectNetworks = appState.receiveSelectNetworks
+        receiveNormalNetworks = appState.receiveNormalNetworks
+        receiveProxyNetworks = appState.receiveProxyNetworks
+        receiveSelectedNetworkId = appState.receiveSelectedNetworkId
+        individualTraceOrder = appState.individualTraceOrder
+        businessTraceOrder = appState.businessTraceOrder
+        receiveRecentValid = appState.receiveRecentValid
+        receiveRecentInvalid = appState.receiveRecentInvalid
+        receiveTraceChildren = appState.receiveTraceChildren
+        individualTraceDetail = appState.individualTraceDetail
+        businessTraceDetail = appState.businessTraceDetail
+        receiveShareDetail = appState.receiveShareDetail
+        receiveExpiryConfig = appState.receiveExpiryConfig
 
-    var receiveDomainState: ReceiveDomainState {
-        appState.receiveDomainState
-    }
-
-    var receiveSelectNetworks: [ReceiveNetworkItem] {
-        appState.receiveSelectNetworks
-    }
-
-    var receiveNormalNetworks: [ReceiveNetworkItem] {
-        appState.receiveNormalNetworks
-    }
-
-    var receiveProxyNetworks: [ReceiveNetworkItem] {
-        appState.receiveProxyNetworks
-    }
-
-    var receiveSelectedNetworkId: String? {
-        appState.receiveSelectedNetworkId
-    }
-
-    var individualTraceOrder: TraceOrderItem? {
-        appState.individualTraceOrder
-    }
-
-    var businessTraceOrder: TraceOrderItem? {
-        appState.businessTraceOrder
-    }
-
-    var receiveRecentValid: [TraceOrderItem] {
-        appState.receiveRecentValid
-    }
-
-    var receiveRecentInvalid: [TraceOrderItem] {
-        appState.receiveRecentInvalid
-    }
-
-    var receiveTraceChildren: [TraceChildItem] {
-        appState.receiveTraceChildren
-    }
-
-    var individualTraceDetail: TraceShowDetail? {
-        appState.individualTraceDetail
-    }
-
-    var businessTraceDetail: TraceShowDetail? {
-        appState.businessTraceDetail
-    }
-
-    var receiveShareDetail: ReceiveOrderDetail? {
-        appState.receiveShareDetail
-    }
-
-    var receiveExpiryConfig: ReceiveExpiryConfig {
-        appState.receiveExpiryConfig
+        bind()
     }
 
     func loadReceiveSelectNetwork() async {
@@ -124,5 +96,63 @@ final class ReceiveStore: ObservableObject {
 
     func updateReceiveExpiry(duration: Int) async {
         await appState.updateReceiveExpiry(duration: duration)
+    }
+
+    private func bind() {
+        appState.$receiveDomainState
+            .sink { [weak self] in self?.receiveDomainState = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveSelectNetworks
+            .sink { [weak self] in self?.receiveSelectNetworks = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveNormalNetworks
+            .sink { [weak self] in self?.receiveNormalNetworks = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveProxyNetworks
+            .sink { [weak self] in self?.receiveProxyNetworks = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveSelectedNetworkId
+            .sink { [weak self] in self?.receiveSelectedNetworkId = $0 }
+            .store(in: &cancellables)
+
+        appState.$individualTraceOrder
+            .sink { [weak self] in self?.individualTraceOrder = $0 }
+            .store(in: &cancellables)
+
+        appState.$businessTraceOrder
+            .sink { [weak self] in self?.businessTraceOrder = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveRecentValid
+            .sink { [weak self] in self?.receiveRecentValid = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveRecentInvalid
+            .sink { [weak self] in self?.receiveRecentInvalid = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveTraceChildren
+            .sink { [weak self] in self?.receiveTraceChildren = $0 }
+            .store(in: &cancellables)
+
+        appState.$individualTraceDetail
+            .sink { [weak self] in self?.individualTraceDetail = $0 }
+            .store(in: &cancellables)
+
+        appState.$businessTraceDetail
+            .sink { [weak self] in self?.businessTraceDetail = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveShareDetail
+            .sink { [weak self] in self?.receiveShareDetail = $0 }
+            .store(in: &cancellables)
+
+        appState.$receiveExpiryConfig
+            .sink { [weak self] in self?.receiveExpiryConfig = $0 }
+            .store(in: &cancellables)
     }
 }

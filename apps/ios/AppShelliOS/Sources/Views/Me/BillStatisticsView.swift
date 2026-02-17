@@ -22,7 +22,7 @@ private enum StatsPreset: String, CaseIterable {
 }
 
 struct BillStatisticsView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
     var onAddressTap: ((String) -> Void)? = nil
 
     @State private var preset: StatsPreset = .today
@@ -95,12 +95,12 @@ struct BillStatisticsView: View {
                 .foregroundStyle(ThemeTokens.secondary)
 
             HStack(spacing: 30) {
-                metricItem("支出(USDT)", valueText(state.billStats?.paymentAmount), widthClass: widthClass)
-                metricItem("收入(USDT)", valueText(state.billStats?.receiptAmount), widthClass: widthClass)
+                metricItem("支出(USDT)", valueText(meStore.billStats?.paymentAmount), widthClass: widthClass)
+                metricItem("收入(USDT)", valueText(meStore.billStats?.receiptAmount), widthClass: widthClass)
             }
             HStack(spacing: 30) {
-                metricItem("手续费(USDT)", valueText(state.billStats?.fee), widthClass: widthClass)
-                metricItem("交易数", String(state.billStats?.transactions ?? 0), widthClass: widthClass)
+                metricItem("手续费(USDT)", valueText(meStore.billStats?.fee), widthClass: widthClass)
+                metricItem("交易数", String(meStore.billStats?.transactions ?? 0), widthClass: widthClass)
             }
         }
     }
@@ -124,10 +124,10 @@ struct BillStatisticsView: View {
 
             Divider()
 
-            if state.isLoading(.meBillAggregate) {
+            if meStore.isLoading(.meBillAggregate) {
                 ProgressView("加载中")
                     .padding(.vertical, 22)
-            } else if state.billAddressAggList.isEmpty {
+            } else if meStore.billAddressAggList.isEmpty {
                 EmptyStateView(asset: "bill_no_data", title: "暂无数据")
                     .padding(.vertical, 16)
             } else {
@@ -189,9 +189,9 @@ struct BillStatisticsView: View {
     }
 
     private func reload() async {
-        let range = state.billRangeForPreset(preset.billPreset, selectedMonth: selectedMonth)
-        await state.loadBillStatistics(range: range)
-        await state.loadBillAddressAggregate(range: range)
+        let range = meStore.billRangeForPreset(preset.billPreset, selectedMonth: selectedMonth)
+        await meStore.loadBillStatistics(range: range)
+        await meStore.loadBillAddressAggregate(range: range)
     }
 
     private var reloadTrigger: String {
@@ -202,7 +202,7 @@ struct BillStatisticsView: View {
     }
 
     private var addressRows: [BillStatisticsRow] {
-        Array(state.billAddressAggList.enumerated()).map { index, item in
+        Array(meStore.billAddressAggList.enumerated()).map { index, item in
             let seed = item.adversaryAddress ?? item.name ?? "addr"
             return BillStatisticsRow(id: "\(seed)-\(index)", index: index, item: item)
         }

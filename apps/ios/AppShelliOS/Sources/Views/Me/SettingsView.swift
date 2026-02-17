@@ -2,7 +2,9 @@ import SwiftUI
 import UIKit
 
 struct SettingsView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var uiStore: UIStore
     let navigate: (MeRoute) -> Void
 
     @AppStorage("settings.darkMode") private var darkMode = false
@@ -39,11 +41,11 @@ struct SettingsView: View {
 
                             Divider().padding(.leading, 48)
 
-                            navRow(icon: "globe", title: "语言", note: "简体中文") { state.showInfoToast("语言切换开发中") }
+                            navRow(icon: "globe", title: "语言", note: "简体中文") { uiStore.showInfoToast("语言切换开发中") }
                             Divider().padding(.leading, 48)
-                            navRow(icon: "slider.horizontal.3", title: "节点") { state.showInfoToast("节点设置开发中") }
+                            navRow(icon: "slider.horizontal.3", title: "节点") { uiStore.showInfoToast("节点设置开发中") }
                             Divider().padding(.leading, 48)
-                            navRow(icon: "settings_network", title: "网络", note: state.selectedChainName) {
+                            navRow(icon: "settings_network", title: "网络", note: sessionStore.selectedChainName) {
                                 networkSheetVisible = true
                             }
                             Divider().padding(.leading, 48)
@@ -55,7 +57,7 @@ struct SettingsView: View {
                             Divider().padding(.leading, 48)
                             toggleRow(icon: "me_wallet_backup", title: "备份通知", isOn: $backupNotify)
                             Divider().padding(.leading, 48)
-                            navRow(icon: "dollarsign.circle", title: "货币单位", note: state.selectedCurrency) { navigate(.settingUnit) }
+                            navRow(icon: "dollarsign.circle", title: "货币单位", note: meStore.selectedCurrency) { navigate(.settingUnit) }
                         }
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
@@ -64,7 +66,7 @@ struct SettingsView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Button {
-                    state.signOutToLogin()
+                    sessionStore.signOutToLogin()
                 } label: {
                     Text("退出登录")
                         .font(.system(size: 16, weight: .semibold))
@@ -86,12 +88,12 @@ struct SettingsView: View {
             }
             .task {
                 didSyncNotifyToggles = false
-                await state.loadExchangeRates()
-                await state.refreshNetworkOptions()
-                transferNotify = state.transferEmailNotify
-                rewardNotify = state.rewardEmailNotify
-                receiptNotify = state.receiptEmailNotify
-                backupNotify = state.backupWalletNotify
+                await meStore.loadExchangeRates()
+                await sessionStore.refreshNetworkOptions()
+                transferNotify = meStore.transferEmailNotify
+                rewardNotify = meStore.rewardEmailNotify
+                receiptNotify = meStore.receiptEmailNotify
+                backupNotify = meStore.backupWalletNotify
                 didSyncNotifyToggles = true
             }
             .onChange(of: transferNotify) { _, value in
@@ -100,7 +102,7 @@ struct SettingsView: View {
                 transferNotifyTask = Task {
                     try? await Task.sleep(nanoseconds: 250_000_000)
                     guard !Task.isCancelled else { return }
-                    await state.setTransferEmailNotify(value)
+                    await meStore.setTransferEmailNotify(value)
                 }
             }
             .onChange(of: rewardNotify) { _, value in
@@ -109,7 +111,7 @@ struct SettingsView: View {
                 rewardNotifyTask = Task {
                     try? await Task.sleep(nanoseconds: 250_000_000)
                     guard !Task.isCancelled else { return }
-                    await state.setRewardEmailNotify(value)
+                    await meStore.setRewardEmailNotify(value)
                 }
             }
             .onChange(of: receiptNotify) { _, value in
@@ -118,7 +120,7 @@ struct SettingsView: View {
                 receiptNotifyTask = Task {
                     try? await Task.sleep(nanoseconds: 250_000_000)
                     guard !Task.isCancelled else { return }
-                    await state.setReceiptEmailNotify(value)
+                    await meStore.setReceiptEmailNotify(value)
                 }
             }
             .onChange(of: backupNotify) { _, value in
@@ -127,7 +129,7 @@ struct SettingsView: View {
                 backupNotifyTask = Task {
                     try? await Task.sleep(nanoseconds: 250_000_000)
                     guard !Task.isCancelled else { return }
-                    await state.setBackupWalletNotify(value)
+                    await meStore.setBackupWalletNotify(value)
                 }
             }
             .onDisappear {
@@ -144,9 +146,9 @@ struct SettingsView: View {
     private var networkSheet: some View {
         NavigationStack {
             List {
-                ForEach(state.networkOptions) { option in
+                ForEach(sessionStore.networkOptions) { option in
                     Button {
-                        state.selectNetwork(chainId: option.chainId)
+                        sessionStore.selectNetwork(chainId: option.chainId)
                         networkSheetVisible = false
                     } label: {
                         HStack(spacing: 12) {
@@ -166,7 +168,7 @@ struct SettingsView: View {
 
                             Spacer()
 
-                            if option.chainId == state.selectedChainId {
+                            if option.chainId == sessionStore.selectedChainId {
                                 Image("settings_radio_checked")
                                     .resizable()
                                     .scaledToFit()
@@ -257,6 +259,11 @@ struct SettingsView: View {
 
 #Preview("SettingsView") {
     NavigationStack {
-        SettingsView(state: AppState()) { _ in }
+        let appState = AppState()
+        SettingsView(
+            meStore: MeStore(appState: appState),
+            sessionStore: SessionStore(appState: appState),
+            uiStore: UIStore(appState: appState)
+        ) { _ in }
     }
 }

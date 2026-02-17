@@ -2,7 +2,7 @@ import BackendAPI
 import SwiftUI
 
 struct SettingUnitView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
 
     @State private var currentCurrency = ""
 
@@ -10,7 +10,7 @@ struct SettingUnitView: View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading(.meSettingsRates) {
+                    if meStore.isLoading(.meSettingsRates) {
                         ProgressView("加载中...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
@@ -55,22 +55,22 @@ struct SettingUnitView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("保存") {
                         if !currentCurrency.isEmpty {
-                            state.saveCurrencyUnit(currency: currentCurrency)
+                            meStore.saveCurrencyUnit(currency: currentCurrency)
                         }
                     }
                 }
             }
             .task {
-                await state.loadExchangeRates()
+                await meStore.loadExchangeRates()
                 if currentCurrency.isEmpty {
-                    currentCurrency = state.selectedCurrency
+                    currentCurrency = meStore.selectedCurrency
                 }
             }
         }
     }
 
     private var currencyRows: [CurrencyRow] {
-        Array(state.exchangeRates.enumerated()).map { index, item in
+        Array(meStore.exchangeRates.enumerated()).map { index, item in
             let seed = item.currency ?? "USD"
             return CurrencyRow(id: "\(seed)-\(index)", index: index, item: item)
         }

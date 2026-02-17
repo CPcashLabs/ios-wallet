@@ -2,7 +2,9 @@ import PhotosUI
 import SwiftUI
 
 struct PersonalView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var uiStore: UIStore
 
     @State private var nickname = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -59,7 +61,7 @@ struct PersonalView: View {
                                 Text("邮箱")
                                     .font(.system(size: widthClass.bodySize + 1))
                                 Spacer()
-                                Text(state.meProfile?.email ?? "未绑定")
+                                Text(meStore.profile?.email ?? "未绑定")
                                     .font(.system(size: widthClass.footnoteSize))
                                     .foregroundStyle(ThemeTokens.secondary)
                             }
@@ -70,7 +72,7 @@ struct PersonalView: View {
                         Button {
                             saveNicknameTask?.cancel()
                             saveNicknameTask = Task {
-                                await state.updateNickname(nickname)
+                                await meStore.updateNickname(nickname)
                             }
                         } label: {
                             Text("保存")
@@ -88,7 +90,7 @@ struct PersonalView: View {
             .navigationTitle("个人信息")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                nickname = state.meProfile?.nickname ?? ""
+                nickname = meStore.profile?.nickname ?? ""
             }
             .onChange(of: selectedPhotoItem) { _, newValue in
                 guard let newValue else { return }
@@ -101,10 +103,10 @@ struct PersonalView: View {
                     }
                     if let data = try? await newValue.loadTransferable(type: Data.self) {
                         guard !Task.isCancelled else { return }
-                        await state.updateAvatar(fileData: data, fileName: "avatar.jpg", mimeType: "image/jpeg")
+                        await meStore.updateAvatar(fileData: data, fileName: "avatar.jpg", mimeType: "image/jpeg")
                     } else {
                         guard !Task.isCancelled else { return }
-                        state.showInfoToast("头像读取失败，请重试")
+                        uiStore.showInfoToast("头像读取失败，请重试")
                     }
                 }
             }
@@ -117,8 +119,8 @@ struct PersonalView: View {
 
     private var avatar: some View {
         RemoteImageView(
-            rawURL: state.meProfile?.avatar,
-            baseURL: state.environment.baseURL,
+            rawURL: meStore.profile?.avatar,
+            baseURL: sessionStore.environment.baseURL,
             contentMode: .fill
         ) {
             avatarFallback
@@ -140,14 +142,14 @@ struct PersonalView: View {
         Circle()
             .fill(ThemeTokens.cpPrimary.opacity(0.2))
             .overlay {
-                Text(String((state.meProfile?.nickname ?? "U").prefix(1)).uppercased())
+                Text(String((meStore.profile?.nickname ?? "U").prefix(1)).uppercased())
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(ThemeTokens.cpPrimary)
             }
     }
 
     private var shortAddress: String {
-        let value = state.activeAddress
+        let value = sessionStore.activeAddress
         guard value.count > 14 else { return value }
         return "\(value.prefix(8))...\(value.suffix(4))"
     }

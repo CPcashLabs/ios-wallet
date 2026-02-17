@@ -24,7 +24,15 @@ final class UIStore: ObservableObject {
         appState.isLoading(key)
     }
 
+    func isLoading(_ key: LoadKey) -> Bool {
+        appState.isLoading(key)
+    }
+
     func errorMessage(_ key: String) -> String? {
+        appState.errorMessage(key)
+    }
+
+    func errorMessage(_ key: LoadKey) -> String? {
         appState.errorMessage(key)
     }
 

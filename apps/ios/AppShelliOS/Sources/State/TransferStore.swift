@@ -5,45 +5,29 @@ import Foundation
 @MainActor
 final class TransferStore: ObservableObject {
     private let appState: AppState
-    private var appStateChanges: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
+
+    @Published private(set) var transferDomainState: TransferDomainState
+    @Published private(set) var transferSelectNetworks: [TransferNetworkItem]
+    @Published private(set) var transferNormalNetworks: [TransferNetworkItem]
+    @Published private(set) var transferProxyNetworks: [TransferNetworkItem]
+    @Published private(set) var transferSelectedNetworkId: String?
+    @Published private(set) var transferDraft: TransferDraft
+    @Published private(set) var transferRecentContacts: [TransferReceiveContact]
+    @Published private(set) var addressBooks: [AddressBookItem]
 
     init(appState: AppState) {
         self.appState = appState
-        appStateChanges = appState.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
-    }
+        transferDomainState = appState.transferDomainState
+        transferSelectNetworks = appState.transferSelectNetworks
+        transferNormalNetworks = appState.transferNormalNetworks
+        transferProxyNetworks = appState.transferProxyNetworks
+        transferSelectedNetworkId = appState.transferSelectedNetworkId
+        transferDraft = appState.transferDraft
+        transferRecentContacts = appState.transferRecentContacts
+        addressBooks = appState.addressBooks
 
-    var transferDomainState: TransferDomainState {
-        appState.transferDomainState
-    }
-
-    var transferSelectNetworks: [TransferNetworkItem] {
-        appState.transferSelectNetworks
-    }
-
-    var transferNormalNetworks: [TransferNetworkItem] {
-        appState.transferNormalNetworks
-    }
-
-    var transferProxyNetworks: [TransferNetworkItem] {
-        appState.transferProxyNetworks
-    }
-
-    var transferSelectedNetworkId: String? {
-        appState.transferSelectedNetworkId
-    }
-
-    var transferDraft: TransferDraft {
-        appState.transferDraft
-    }
-
-    var transferRecentContacts: [TransferReceiveContact] {
-        appState.transferRecentContacts
-    }
-
-    var addressBooks: [AddressBookItem] {
-        appState.addressBooks
+        bind()
     }
 
     func loadTransferSelectNetwork() async {
@@ -96,5 +80,39 @@ final class TransferStore: ObservableObject {
 
     func executeTransferPayment() async -> Bool {
         await appState.executeTransferPayment()
+    }
+
+    private func bind() {
+        appState.$transferDomainState
+            .sink { [weak self] in self?.transferDomainState = $0 }
+            .store(in: &cancellables)
+
+        appState.$transferSelectNetworks
+            .sink { [weak self] in self?.transferSelectNetworks = $0 }
+            .store(in: &cancellables)
+
+        appState.$transferNormalNetworks
+            .sink { [weak self] in self?.transferNormalNetworks = $0 }
+            .store(in: &cancellables)
+
+        appState.$transferProxyNetworks
+            .sink { [weak self] in self?.transferProxyNetworks = $0 }
+            .store(in: &cancellables)
+
+        appState.$transferSelectedNetworkId
+            .sink { [weak self] in self?.transferSelectedNetworkId = $0 }
+            .store(in: &cancellables)
+
+        appState.$transferDraft
+            .sink { [weak self] in self?.transferDraft = $0 }
+            .store(in: &cancellables)
+
+        appState.$transferRecentContacts
+            .sink { [weak self] in self?.transferRecentContacts = $0 }
+            .store(in: &cancellables)
+
+        appState.$addressBooks
+            .sink { [weak self] in self?.addressBooks = $0 }
+            .store(in: &cancellables)
     }
 }

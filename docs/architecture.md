@@ -70,3 +70,52 @@
   - 底部固定操作统一通过 `safeAreaInset(edge: .bottom)` 注入
 - 背景层统一走 `GlobalFullscreenBackground`，确保全面屏与横竖屏一致
 - 避免双层容器：页面内部不再叠加路由层 `fullscreenScaffold`，防止导航层与 safe area 叠压
+
+## iOS 分层边界（AppShelliOS）
+- `Sources/Views`：仅负责渲染、交互和路由触发，不承载业务编排
+- `Sources/State`：Store 负责页面态聚合与发布（`@Published` 最小字段原则）
+- `Sources/Domain/UseCases`：领域编排层，承接 `AppState` 对外能力并组织流程
+- `Sources/Data`：Repository/Service 适配层，隔离后端与链路访问细节
+- `Sources/Infrastructure`：依赖注入、格式化、错误映射、日志等基础能力
+
+> 兼容策略：`AppState` 仍对外保持原方法与语义，内部逐步委派到 UseCase，不允许业务行为漂移。
+
+## 依赖注入约定
+- 统一入口：`AppDependencies`
+- 协议边界：
+  - `BackendServing`
+  - `SecurityServing`
+  - `PasskeyServing`
+  - `AppClock`
+  - `AppIDGenerator`
+  - `AppLogger`
+- `AppState` 必须支持注入构造，同时保留默认 `init()` 的线上行为一致性
+- 单测优先注入假时钟/假 ID/假日志，避免依赖系统时间与副作用
+
+## 并发与任务生命周期规范
+- 禁止在 UI 关键路径使用阻塞式等待（如信号量阻塞网络）
+- `onChange + Task` 需具备取消策略（`task(id:)` 或显式 `Task` 句柄）
+- 可延迟行为使用可取消 `Task.sleep`，不使用不可取消的 `DispatchQueue.main.asyncAfter`
+- 长流程与轮询必须检查 `Task.isCancelled`
+- UI 状态写入必须在 `@MainActor` 边界内完成
+
+## 死代码清理准入规则
+- 删除动作必须满足“双重准入”：
+  1. 全仓引用扫描为 0（`rg` 证据）
+  2. 三道门禁全部通过：`make swift-build`、`make swift-test`、`make ios-build`
+- 删除提交需独立 commit，确保可单独回滚
+- 对迁移期兼容层，先收敛调用方再删除旧入口，禁止跨阶段混删
+
+## 日志与敏感信息规范
+- 日志默认最小化，禁止输出完整地址、完整交易哈希、token 等敏感值
+- 地址/哈希统一脱敏后记录（前后缀保留，中间打码）
+- 错误日志优先结构化短消息，避免直接透传底层原始异常文本到用户面
+
+## iOS 测试基线
+- iOS 测试目标：`AppShelliOSTests`
+- 命令入口：`make ios-test`
+- CI 需同时执行：
+  - `make swift-build`
+  - `make swift-test`
+  - `make ios-build`
+  - `make ios-test`

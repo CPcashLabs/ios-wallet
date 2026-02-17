@@ -269,6 +269,11 @@ final class AppState: ObservableObject {
     private let idGenerator: AppIDGenerator
     private let appLogger: AppLogger
     private let selectedChainStorageKey = "cpcash.selected.chain.id"
+    private lazy var sessionUseCase = SessionUseCase(appState: self)
+    private lazy var meUseCase = MeUseCase(appState: self)
+    private lazy var billUseCase = BillUseCase(appState: self)
+    private lazy var transferUseCase = TransferUseCase(appState: self)
+    private lazy var receiveUseCase = ReceiveUseCase(appState: self)
 
     init(dependencies: AppDependencies) {
         let env = EnvironmentConfig.default
@@ -291,6 +296,10 @@ final class AppState: ObservableObject {
     }
 
     func boot() {
+        sessionUseCase.boot()
+    }
+
+    func bootImpl() {
         do {
             let address = try securityService.activeAddress()
             activeAddress = address.value
@@ -309,6 +318,10 @@ final class AppState: ObservableObject {
     }
 
     func refreshPasskeyAccounts() {
+        sessionUseCase.refreshPasskeyAccounts()
+    }
+
+    func refreshPasskeyAccountsImpl() {
         passkeyAccounts = passkeyService.accounts()
         if selectedPasskeyRawId.isEmpty {
             selectedPasskeyRawId = passkeyAccounts.first?.rawId ?? ""
@@ -316,6 +329,10 @@ final class AppState: ObservableObject {
     }
 
     func registerPasskey(displayName: String) async {
+        await sessionUseCase.registerPasskey(displayName: displayName)
+    }
+
+    func registerPasskeyImpl(displayName: String) async {
         guard beginLoginFlow() else { return }
         defer { endLoginFlow() }
 
@@ -335,6 +352,10 @@ final class AppState: ObservableObject {
     }
 
     func loginWithPasskey(rawId: String?) async {
+        await sessionUseCase.loginWithPasskey(rawId: rawId)
+    }
+
+    func loginWithPasskeyImpl(rawId: String?) async {
         guard beginLoginFlow() else { return }
         defer { endLoginFlow() }
 
@@ -375,6 +396,10 @@ final class AppState: ObservableObject {
     }
 
     func loadMeRootData() async {
+        await meUseCase.loadMeRootData()
+    }
+
+    func loadMeRootDataImpl() async {
         setLoading(LoadKey.meRoot, true)
         defer { setLoading(LoadKey.meRoot, false) }
 
@@ -402,6 +427,10 @@ final class AppState: ObservableObject {
     }
 
     func loadMessages(page: Int, append: Bool) async {
+        await meUseCase.loadMessages(page: page, append: append)
+    }
+
+    func loadMessagesImpl(page: Int, append: Bool) async {
         guard !isLoading(LoadKey.meMessageList) else { return }
         setLoading(LoadKey.meMessageList, true)
         defer { setLoading(LoadKey.meMessageList, false) }
@@ -448,6 +477,10 @@ final class AppState: ObservableObject {
     }
 
     func loadAddressBooks() async {
+        await meUseCase.loadAddressBooks()
+    }
+
+    func loadAddressBooksImpl() async {
         setLoading(LoadKey.meAddressbookList, true)
         defer { setLoading(LoadKey.meAddressbookList, false) }
         do {
@@ -509,6 +542,10 @@ final class AppState: ObservableObject {
     }
 
     func loadBillList(filter: BillFilter, append: Bool = false) async {
+        await billUseCase.loadBillList(filter: filter, append: append)
+    }
+
+    func loadBillListImpl(filter: BillFilter, append: Bool = false) async {
         setLoading(LoadKey.meBillList, true)
         defer { setLoading(LoadKey.meBillList, false) }
         do {
@@ -532,6 +569,10 @@ final class AppState: ObservableObject {
     }
 
     func setBillAddressFilter(_ address: String?) {
+        billUseCase.setBillAddressFilter(address)
+    }
+
+    func setBillAddressFilterImpl(_ address: String?) {
         let normalized = address?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let normalized, !normalized.isEmpty {
             billAddressFilter = normalized
@@ -541,6 +582,10 @@ final class AppState: ObservableObject {
     }
 
     func loadBillStatistics(range: BillTimeRange) async {
+        await billUseCase.loadBillStatistics(range: range)
+    }
+
+    func loadBillStatisticsImpl(range: BillTimeRange) async {
         setLoading(LoadKey.meBillStat, true)
         defer { setLoading(LoadKey.meBillStat, false) }
         do {
@@ -553,6 +598,10 @@ final class AppState: ObservableObject {
     }
 
     func loadBillAddressAggregate(range: BillTimeRange, page: Int = 1, perPage: Int = 50) async {
+        await billUseCase.loadBillAddressAggregate(range: range, page: page, perPage: perPage)
+    }
+
+    func loadBillAddressAggregateImpl(range: BillTimeRange, page: Int = 1, perPage: Int = 50) async {
         setLoading(LoadKey.meBillAggregate, true)
         defer { setLoading(LoadKey.meBillAggregate, false) }
         do {
@@ -567,6 +616,10 @@ final class AppState: ObservableObject {
     }
 
     func updateNickname(_ nickname: String) async {
+        await meUseCase.updateNickname(nickname)
+    }
+
+    func updateNicknameImpl(_ nickname: String) async {
         do {
             try await backend.profile.update(request: ProfileUpdateRequest(nickname: nickname, avatar: nil))
             meProfile = try await backend.auth.currentUser()
@@ -580,6 +633,10 @@ final class AppState: ObservableObject {
     }
 
     func updateAvatar(fileData: Data, fileName: String = "avatar.jpg", mimeType: String = "image/jpeg") async {
+        await meUseCase.updateAvatar(fileData: fileData, fileName: fileName, mimeType: mimeType)
+    }
+
+    func updateAvatarImpl(fileData: Data, fileName: String = "avatar.jpg", mimeType: String = "image/jpeg") async {
         setLoading(LoadKey.meProfileAvatar, true)
         defer { setLoading(LoadKey.meProfileAvatar, false) }
         do {
@@ -602,6 +659,10 @@ final class AppState: ObservableObject {
     }
 
     func loadExchangeRates() async {
+        await meUseCase.loadExchangeRates()
+    }
+
+    func loadExchangeRatesImpl() async {
         setLoading(LoadKey.meSettingsRates, true)
         defer { setLoading(LoadKey.meSettingsRates, false) }
         do {
@@ -696,6 +757,10 @@ final class AppState: ObservableObject {
     }
 
     func loadTransferSelectNetwork() async {
+        await transferUseCase.loadTransferSelectNetwork()
+    }
+
+    func loadTransferSelectNetworkImpl() async {
         setLoading(LoadKey.transferSelectNetwork, true)
         defer { setLoading(LoadKey.transferSelectNetwork, false) }
 
@@ -902,6 +967,10 @@ final class AppState: ObservableObject {
     }
 
     func loadTransferAddressCandidates() async {
+        await transferUseCase.loadTransferAddressCandidates()
+    }
+
+    func loadTransferAddressCandidatesImpl() async {
         let sendChain = selectedChainId == 199 ? "BTT" : "BTT_TEST"
         let recvChain = transferDomainState.selectedPayChain
         do {
@@ -919,6 +988,10 @@ final class AppState: ObservableObject {
     }
 
     func prepareTransferPayment(amountText: String, note: String) async -> Bool {
+        await transferUseCase.prepareTransferPayment(amountText: amountText, note: note)
+    }
+
+    func prepareTransferPaymentImpl(amountText: String, note: String) async -> Bool {
         let address = transferDraft.recipientAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         guard isValidTransferAddress(address) else {
             showToast("地址格式错误", theme: .error)
@@ -979,6 +1052,10 @@ final class AppState: ObservableObject {
     }
 
     func executeTransferPayment() async -> Bool {
+        await transferUseCase.executeTransferPayment()
+    }
+
+    func executeTransferPaymentImpl() async -> Bool {
         guard case .unlocked = approvalSessionState else {
             showToast("登录会话失效，请重新登录", theme: .error)
             return false
@@ -1083,6 +1160,10 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveSelectNetwork() async {
+        await receiveUseCase.loadReceiveSelectNetwork()
+    }
+
+    func loadReceiveSelectNetworkImpl() async {
         setLoading(LoadKey.receiveSelectNetwork, true)
         defer { setLoading(LoadKey.receiveSelectNetwork, false) }
 
@@ -1224,6 +1305,10 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveHome(autoCreateIfMissing: Bool = true) async {
+        await receiveUseCase.loadReceiveHome(autoCreateIfMissing: autoCreateIfMissing)
+    }
+
+    func loadReceiveHomeImpl(autoCreateIfMissing: Bool = true) async {
         setLoading(LoadKey.receiveHome, true)
         defer { setLoading(LoadKey.receiveHome, false) }
 
@@ -1348,6 +1433,10 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveAddresses(validity: ReceiveAddressValidityState) async {
+        await receiveUseCase.loadReceiveAddresses(validity: validity)
+    }
+
+    func loadReceiveAddressesImpl(validity: ReceiveAddressValidityState) async {
         receiveDomainState.validityStatus = validity
         switch validity {
         case .valid:
@@ -1405,6 +1494,10 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveTraceChildren(orderSN: String, page: Int = 1, perPage: Int = 20) async {
+        await receiveUseCase.loadReceiveTraceChildren(orderSN: orderSN, page: page, perPage: perPage)
+    }
+
+    func loadReceiveTraceChildrenImpl(orderSN: String, page: Int = 1, perPage: Int = 20) async {
         setLoading(LoadKey.receiveChildren, true)
         defer { setLoading(LoadKey.receiveChildren, false) }
         do {
@@ -1418,6 +1511,10 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveShare(orderSN: String) async {
+        await receiveUseCase.loadReceiveShare(orderSN: orderSN)
+    }
+
+    func loadReceiveShareImpl(orderSN: String) async {
         setLoading(LoadKey.receiveShare, true)
         defer { setLoading(LoadKey.receiveShare, false) }
         do {
@@ -1430,6 +1527,10 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveExpiryConfig() async {
+        await receiveUseCase.loadReceiveExpiryConfig()
+    }
+
+    func loadReceiveExpiryConfigImpl() async {
         do {
             let config = try await backend.settings.traceExpiryCollection()
             if !config.durations.isEmpty {
@@ -1443,6 +1544,10 @@ final class AppState: ObservableObject {
     }
 
     func updateReceiveExpiry(duration: Int) async {
+        await receiveUseCase.updateReceiveExpiry(duration: duration)
+    }
+
+    func updateReceiveExpiryImpl(duration: Int) async {
         do {
             try await backend.settings.updateTraceExpiryMark(duration: duration)
             receiveExpiryConfig = ReceiveExpiryConfig(
@@ -1578,6 +1683,10 @@ final class AppState: ObservableObject {
     }
 
     func signOutToLogin() {
+        sessionUseCase.signOutToLogin()
+    }
+
+    func signOutToLoginImpl() {
         isAuthenticated = false
         approvalSessionState = .locked
         backend.executor.clearToken()
@@ -1612,6 +1721,10 @@ final class AppState: ObservableObject {
 
     #if DEBUG
     func cycleEnvironmentForDebug() {
+        sessionUseCase.cycleEnvironmentForDebug()
+    }
+
+    func cycleEnvironmentForDebugImpl() {
         let next: EnvironmentConfig
         switch environment.tag {
         case .development:
@@ -2097,6 +2210,10 @@ final class AppState: ObservableObject {
     }
 
     func billRangeForPreset(_ preset: BillPresetRange, selectedMonth: Date = Date()) -> BillTimeRange {
+        billUseCase.billRangeForPreset(preset, selectedMonth: selectedMonth)
+    }
+
+    func billRangeForPresetImpl(_ preset: BillPresetRange, selectedMonth: Date = Date()) -> BillTimeRange {
         let calendar = Calendar(identifier: .gregorian)
         let now = clock.now
         let formatter = DateFormatter()
@@ -2183,41 +2300,7 @@ final class AppState: ObservableObject {
     }
 
     private func simplifyError(_ error: Error) -> String {
-        if let backendError = error as? BackendAPIError {
-            switch backendError {
-            case .unauthorized:
-                return "登录状态失效，请重新登录"
-            case .httpStatus:
-                return "网络请求失败，请稍后重试"
-            case let .serverError(_, message):
-                return message
-            case .invalidURL, .invalidEnvironmentHost, .emptyData:
-                return "服务响应异常，请稍后重试"
-            }
-        }
-        if error is URLError {
-            return "网络连接失败"
-        }
-        let lowered = String(describing: error).lowercased()
-        if lowered.contains("insufficient funds") || lowered.contains("gas required exceeds allowance") {
-            return "余额不足或 Gas 不足"
-        }
-        if lowered.contains("token contract missing") || lowered.contains("invalid token contract") {
-            return "币种配置异常，请重新选择网络后再试"
-        }
-        if lowered.contains("invalid recipient") || lowered.contains("invalid to address") {
-            return "收款地址无效"
-        }
-        if lowered.contains("nonce too low") || lowered.contains("replacement transaction underpriced") {
-            return "交易重复提交，请稍后重试"
-        }
-        if lowered.contains("user rejected") || lowered.contains("user deny") || lowered.contains("cancelled") {
-            return "用户取消支付"
-        }
-        if lowered.contains("timeout") || lowered.contains("timed out") || lowered.contains("rpc") {
-            return "链路繁忙，请稍后重试"
-        }
-        return "操作失败，请稍后重试"
+        AppErrorMapper.message(for: error)
     }
 
     private func transferPaymentFailureMessage(_ error: Error) -> String {

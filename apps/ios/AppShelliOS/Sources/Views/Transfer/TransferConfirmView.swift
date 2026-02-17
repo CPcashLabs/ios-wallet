@@ -1,0 +1,164 @@
+import SwiftUI
+
+struct TransferConfirmView: View {
+    @ObservedObject var state: AppState
+    let onSuccess: () -> Void
+
+    @State private var lastTapAt: Date?
+
+    var body: some View {
+        AdaptiveReader { widthClass in
+            FullscreenScaffold(backgroundStyle: .globalImage) {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        summaryCard(widthClass: widthClass)
+                    }
+                    .padding(.horizontal, widthClass.horizontalPadding)
+                    .padding(.top, 14)
+                    .padding(.bottom, 120)
+                }
+            }
+            .navigationTitle("确认转账")
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                bottomButton(widthClass: widthClass)
+            }
+        }
+    }
+
+    private func summaryCard(widthClass: DeviceWidthClass) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Spacer()
+                Text(totalAmountText)
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(ThemeTokens.title)
+                Spacer()
+            }
+
+            Text(state.transferDomainState.selectedPayChain)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(ThemeTokens.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            row("To", recipientText)
+            row("Amount receiving", amountReceivingText)
+            if let fee = feeText {
+                row("Fee", fee)
+            }
+            row("Payment Method", "Balance")
+            if !noteText.isEmpty {
+                row("Transfer Note", noteText)
+            }
+
+            if state.transferDraft.mode == .proxy {
+                row("OrderSN", state.transferDraft.orderSN ?? "-")
+            }
+        }
+        .padding(14)
+        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+    }
+
+    private func row(_ title: String, _ value: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(title)
+                .font(.system(size: 13))
+                .foregroundStyle(ThemeTokens.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(ThemeTokens.title)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(3)
+                .truncationMode(.middle)
+        }
+    }
+
+    private func bottomButton(widthClass: DeviceWidthClass) -> some View {
+        VStack(spacing: 0) {
+            Divider()
+            Button {
+                guard !state.isLoading("transfer.pay") else { return }
+                let now = Date()
+                if let lastTapAt, now.timeIntervalSince(lastTapAt) < 2 {
+                    return
+                }
+                self.lastTapAt = now
+                Task {
+                    let ok = await state.executeTransferPayment()
+                    if ok {
+                        onSuccess()
+                    }
+                }
+            } label: {
+                HStack {
+                    Spacer()
+                    if state.isLoading("transfer.pay") {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("Confirm")
+                            .font(.system(size: widthClass.bodySize + 2, weight: .semibold))
+                            .foregroundStyle(Color.white)
+                    }
+                    Spacer()
+                }
+                .frame(height: widthClass.metrics.buttonHeight)
+                .background(ThemeTokens.cpPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: widthClass.metrics.buttonHeight / 2, style: .continuous))
+                .padding(.horizontal, widthClass.horizontalPadding)
+                .padding(.top, 10)
+                .padding(.bottom, 10)
+                .background(.ultraThinMaterial)
+            }
+            .buttonStyle(.pressFeedback)
+            .disabled(state.isLoading("transfer.pay"))
+        }
+    }
+
+    private var noteText: String {
+        state.transferDraft.note
+    }
+
+    private var recipientText: String {
+        if let detail = state.transferDraft.orderDetail,
+           let to = detail.receiveAddress ?? detail.depositAddress,
+           !to.isEmpty {
+            return shortAddress(to)
+        }
+        return shortAddress(state.transferDraft.recipientAddress)
+    }
+
+    private var amountReceivingText: String {
+        if let detail = state.transferDraft.orderDetail,
+           let recv = detail.recvEstimateAmount?.description ?? detail.recvAmount?.description {
+            return "\(recv) \(detail.recvCoinName ?? state.transferDomainState.selectedRecvCoinName)"
+        }
+        return "\(state.transferDraft.amountText) \(state.transferDomainState.selectedRecvCoinName)"
+    }
+
+    private var totalAmountText: String {
+        if let detail = state.transferDraft.orderDetail,
+           let send = detail.sendEstimateAmount?.description ?? detail.sendAmount?.description {
+            return "\(send) \(detail.sendCoinName ?? state.transferDomainState.selectedSendCoinName)"
+        }
+        return "\(state.transferDraft.amountText) \(state.transferDomainState.selectedSendCoinName)"
+    }
+
+    private var feeText: String? {
+        guard let detail = state.transferDraft.orderDetail,
+              let fee = detail.sendEstimateFeeAmount?.description,
+              fee != "0", !fee.isEmpty else {
+            return nil
+        }
+        return "+ \(fee) \(detail.sendCoinName ?? state.transferDomainState.selectedSendCoinName)"
+    }
+
+    private func shortAddress(_ value: String) -> String {
+        guard value.count > 14 else { return value }
+        return "\(value.prefix(8))...\(value.suffix(6))"
+    }
+}

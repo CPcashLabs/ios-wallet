@@ -1,0 +1,232 @@
+import SwiftUI
+
+struct TransferAmountView: View {
+    @ObservedObject var state: AppState
+    let onNext: () -> Void
+
+    @State private var amountText = ""
+    @State private var noteText = ""
+    @State private var showPairPicker = false
+    @State private var showCoinPicker = false
+    @State private var nextTriggered = false
+
+    var body: some View {
+        AdaptiveReader { widthClass in
+            FullscreenScaffold(backgroundStyle: .globalImage) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        addressCard(widthClass: widthClass)
+                        amountCard(widthClass: widthClass)
+                        noteCard(widthClass: widthClass)
+                    }
+                    .padding(.horizontal, widthClass.horizontalPadding)
+                    .padding(.top, 14)
+                    .padding(.bottom, 120)
+                }
+            }
+            .navigationTitle("Send")
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                bottomButton(widthClass: widthClass)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .task {
+                if amountText.isEmpty {
+                    amountText = state.transferDraft.amountText
+                }
+                if noteText.isEmpty {
+                    noteText = state.transferDraft.note
+                }
+            }
+            .confirmationDialog("选择币种", isPresented: $showCoinPicker, titleVisibility: .visible) {
+                ForEach(state.transferDomainState.availableNormalCoins, id: \.coinCode) { coin in
+                    let title = coin.coinSymbol ?? coin.coinName ?? coin.coinCode ?? "-"
+                    Button(title) {
+                        if let coinCode = coin.coinCode {
+                            Task { await state.selectTransferNormalCoin(coinCode: coinCode) }
+                        }
+                    }
+                }
+            }
+            .confirmationDialog("选择交易对", isPresented: $showPairPicker, titleVisibility: .visible) {
+                ForEach(pairOptions, id: \.id) { option in
+                    Button(option.title) {
+                        state.selectTransferPair(sendCoinCode: option.sendCoinCode, recvCoinCode: option.recvCoinCode)
+                    }
+                }
+            }
+        }
+    }
+
+    private func addressCard(widthClass: DeviceWidthClass) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(state.transferDomainState.selectedPayChain)
+                .font(.system(size: widthClass.bodySize + 1, weight: .semibold))
+                .foregroundStyle(ThemeTokens.title)
+            Text(shortAddress(state.transferDraft.recipientAddress))
+                .font(.system(size: widthClass.bodySize))
+                .foregroundStyle(ThemeTokens.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+    }
+
+    private func amountCard(widthClass: DeviceWidthClass) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Transfer Amount")
+                .font(.system(size: widthClass.bodySize + 1, weight: .medium))
+                .foregroundStyle(ThemeTokens.title)
+
+            HStack(spacing: 8) {
+                TextField("0.00", text: $amountText)
+                    .keyboardType(.decimalPad)
+                    .font(.system(size: widthClass.titleSize + 8, weight: .semibold))
+                    .foregroundStyle(ThemeTokens.title)
+                Text(state.transferDomainState.selectedCoinSymbol)
+                    .font(.system(size: widthClass.bodySize + 1, weight: .medium))
+                    .foregroundStyle(ThemeTokens.secondary)
+            }
+
+            Divider()
+
+            if state.transferDomainState.selectedIsNormalChannel {
+                Button {
+                    showCoinPicker = true
+                } label: {
+                    pickerRow(title: "Coin", value: state.transferDomainState.selectedCoinSymbol)
+                }
+                .buttonStyle(.plain)
+            } else if !pairOptions.isEmpty {
+                Button {
+                    showPairPicker = true
+                } label: {
+                    pickerRow(title: "Pair", value: state.transferDomainState.selectedPairLabel)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text(minimumHint)
+                .font(.system(size: widthClass.footnoteSize))
+                .foregroundStyle(ThemeTokens.secondary)
+        }
+        .padding(12)
+        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+    }
+
+    private func noteCard(widthClass: DeviceWidthClass) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Transfer Note")
+                .font(.system(size: widthClass.bodySize + 1, weight: .medium))
+                .foregroundStyle(ThemeTokens.title)
+            TextField("add note", text: $noteText, axis: .vertical)
+                .lineLimit(3)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .font(.system(size: widthClass.bodySize))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+                .background(Color.black.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .padding(12)
+        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+    }
+
+    private func bottomButton(widthClass: DeviceWidthClass) -> some View {
+        VStack(spacing: 0) {
+            Divider()
+            Button {
+                guard !nextTriggered else { return }
+                nextTriggered = true
+                Task {
+                    let ok = await state.prepareTransferPayment(amountText: amountText, note: noteText)
+                    if ok {
+                        await MainActor.run {
+                            onNext()
+                        }
+                    }
+                    await MainActor.run {
+                        nextTriggered = false
+                    }
+                }
+            } label: {
+                HStack {
+                    Spacer()
+                    if state.isLoading("transfer.prepare") {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("Next")
+                            .font(.system(size: widthClass.bodySize + 2, weight: .semibold))
+                            .foregroundStyle(Color.white)
+                    }
+                    Spacer()
+                }
+                .frame(height: widthClass.metrics.buttonHeight)
+                .background(canSubmit ? ThemeTokens.cpPrimary : ThemeTokens.cpPrimary.opacity(0.45))
+                .clipShape(RoundedRectangle(cornerRadius: widthClass.metrics.buttonHeight / 2, style: .continuous))
+                .padding(.horizontal, widthClass.horizontalPadding)
+                .padding(.top, 10)
+                .padding(.bottom, 10)
+                .background(.ultraThinMaterial)
+            }
+            .buttonStyle(.pressFeedback)
+            .disabled(!canSubmit || state.isLoading("transfer.prepare") || nextTriggered)
+        }
+    }
+
+    private var pairOptions: [(id: String, title: String, sendCoinCode: String, recvCoinCode: String)] {
+        var seen = Set<String>()
+        var result: [(id: String, title: String, sendCoinCode: String, recvCoinCode: String)] = []
+        for pair in state.transferDomainState.availablePairs {
+            let sendCode = pair.sendCoinCode ?? ""
+            let recvCode = pair.recvCoinCode ?? ""
+            guard !sendCode.isEmpty, !recvCode.isEmpty else { continue }
+            let key = "\(sendCode)->\(recvCode)"
+            if seen.contains(key) { continue }
+            seen.insert(key)
+            let sendName = pair.sendCoinSymbol ?? pair.sendCoinName ?? sendCode
+            let recvName = pair.recvCoinSymbol ?? pair.recvCoinName ?? recvCode
+            result.append((id: key, title: "\(sendName) / \(recvName)", sendCoinCode: sendCode, recvCoinCode: recvCode))
+        }
+        return result
+    }
+
+    private var minimumHint: String {
+        if let order = state.transferDraft.orderDetail,
+           let min = order.sendAmount?.stringValue, !min.isEmpty {
+            return "当前金额: \(min) \(state.transferDomainState.selectedCoinSymbol)"
+        }
+        return "请确认金额与网络一致"
+    }
+
+    private var canSubmit: Bool {
+        let text = amountText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, let value = Decimal(string: text), value > 0 else {
+            return false
+        }
+        return !state.transferDraft.recipientAddress.isEmpty
+    }
+
+    private func pickerRow(title: String, value: String) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(.system(size: 13))
+                .foregroundStyle(ThemeTokens.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(ThemeTokens.title)
+            Image(systemName: "chevron.down")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(ThemeTokens.tertiary)
+        }
+    }
+
+    private func shortAddress(_ value: String) -> String {
+        guard value.count > 14 else { return value }
+        return "\(value.prefix(8))...\(value.suffix(6))"
+    }
+}

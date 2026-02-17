@@ -253,7 +253,6 @@ struct HomeShellView: View {
 
     private func hideTabBar<Content: View>(_ content: Content) -> some View {
         content
-            .fullscreenScaffold(backgroundStyle: .globalImage)
             .toolbar(.hidden, for: .tabBar)
     }
 

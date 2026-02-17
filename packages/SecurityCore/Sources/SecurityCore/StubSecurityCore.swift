@@ -65,4 +65,34 @@ public final class StubSecurityCore: SecurityService {
         let rpcHash = try rpc.sendRawTransaction(signed.rawTransactionHex)
         return TxHash(rpcHash)
     }
+
+    public func signAndSendTransactionAsync(_ req: SendTxRequest) async throws -> TxHash {
+        let privateKey = try keyStore.loadPrivateKeyData()
+        let rpc = try EVMRPCClient(chainId: req.chainId)
+
+        let nonce = try await rpc.nextNonce(address: req.from.value)
+        let gasPrice = try await rpc.gasPrice()
+        let gasLimit: String
+        if let value = req.gasLimit, !value.isEmpty {
+            gasLimit = value
+        } else {
+            gasLimit = try await rpc.estimateGas(
+                from: req.from.value,
+                to: req.to.value,
+                value: req.value,
+                data: req.data
+            )
+        }
+
+        let signed = try txSigner.signLegacyTransaction(
+            req,
+            privateKey: privateKey,
+            nonce: nonce,
+            gasPrice: req.maxFeePerGas ?? gasPrice,
+            gasLimit: gasLimit
+        )
+
+        let rpcHash = try await rpc.sendRawTransaction(signed.rawTransactionHex)
+        return TxHash(rpcHash)
+    }
 }

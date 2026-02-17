@@ -52,8 +52,18 @@ struct EVMRPCClient {
         return try decimalQuantity(fromHexQuantity: result)
     }
 
+    func nextNonce(address: String) async throws -> String {
+        let result = try await callAsync(method: "eth_getTransactionCount", params: [address, "pending"])
+        return try decimalQuantity(fromHexQuantity: result)
+    }
+
     func gasPrice() throws -> String {
         let result = try call(method: "eth_gasPrice", params: [])
+        return try decimalQuantity(fromHexQuantity: result)
+    }
+
+    func gasPrice() async throws -> String {
+        let result = try await callAsync(method: "eth_gasPrice", params: [])
         return try decimalQuantity(fromHexQuantity: result)
     }
 
@@ -70,9 +80,27 @@ struct EVMRPCClient {
         return try decimalQuantity(fromHexQuantity: result)
     }
 
+    func estimateGas(from: String, to: String, value: String, data: String?) async throws -> String {
+        var txObject: [String: String] = [
+            "from": from,
+            "to": to,
+            "value": hexQuantity(fromDecimalQuantity: value),
+        ]
+        if let data, !data.isEmpty {
+            txObject["data"] = data.hasPrefix("0x") ? data : "0x" + data
+        }
+        let result = try await callAsync(method: "eth_estimateGas", params: [txObject])
+        return try decimalQuantity(fromHexQuantity: result)
+    }
+
     func sendRawTransaction(_ rawTransactionHex: String) throws -> String {
         let value = rawTransactionHex.hasPrefix("0x") ? rawTransactionHex : "0x" + rawTransactionHex
         return try call(method: "eth_sendRawTransaction", params: [value])
+    }
+
+    func sendRawTransaction(_ rawTransactionHex: String) async throws -> String {
+        let value = rawTransactionHex.hasPrefix("0x") ? rawTransactionHex : "0x" + rawTransactionHex
+        return try await callAsync(method: "eth_sendRawTransaction", params: [value])
     }
 
     private func call(method: String, params: [Any]) throws -> String {
@@ -108,6 +136,37 @@ struct EVMRPCClient {
         }
         guard let data = callbackData,
               let http = callbackResponse as? HTTPURLResponse,
+              (200 ... 299).contains(http.statusCode)
+        else {
+            throw EVMRPCError.invalidResponse
+        }
+
+        let envelope = try JSONDecoder().decode(RPCEnvelope.self, from: data)
+        if let error = envelope.error {
+            throw EVMRPCError.rpcFailure(code: error.code, message: error.message)
+        }
+        guard let result = envelope.result else {
+            throw EVMRPCError.invalidResponse
+        }
+        return result
+    }
+
+    private func callAsync(method: String, params: [Any]) async throws -> String {
+        let payload: [String: Any] = [
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params,
+        ]
+        let requestData = try JSONSerialization.data(withJSONObject: payload)
+
+        var request = URLRequest(url: rpcURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = requestData
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse,
               (200 ... 299).contains(http.statusCode)
         else {
             throw EVMRPCError.invalidResponse

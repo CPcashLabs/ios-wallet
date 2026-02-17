@@ -14,6 +14,7 @@ struct TransferAddressView: View {
     @State private var selectedTab: TransferAddressTab = .recent
     @State private var scannerPresented = false
     @State private var nextTriggered = false
+    @State private var nextResetTask: Task<Void, Never>?
 
     private var validationMessage: String? {
         state.transferAddressValidationMessage(addressInput)
@@ -112,6 +113,9 @@ struct TransferAddressView: View {
                     addressInput = sanitized
                 }
                 state.updateTransferRecipientAddress(sanitized)
+            }
+            .onDisappear {
+                nextResetTask?.cancel()
             }
         }
     }
@@ -346,7 +350,10 @@ struct TransferAddressView: View {
         guard !nextTriggered else { return }
         nextTriggered = true
         onNext()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+        nextResetTask?.cancel()
+        nextResetTask = Task {
+            try? await Task.sleep(nanoseconds: 450_000_000)
+            guard !Task.isCancelled else { return }
             nextTriggered = false
         }
     }

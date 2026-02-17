@@ -264,6 +264,8 @@ final class AppState: ObservableObject {
         formatter.dateFormat = "HH:mm:ss"
         return formatter
     }()
+    private static let evmAddressRegex = try! NSRegularExpression(pattern: "0x[a-fA-F0-9]{40}")
+    private static let txHashRegex = try! NSRegularExpression(pattern: "0x[a-fA-F0-9]{64}")
     private let passkeyService: PasskeyServing
     private let clock: AppClock
     private let idGenerator: AppIDGenerator
@@ -1073,7 +1075,7 @@ final class AppState: ObservableObject {
             }
 
             let payChainId = resolveTransferChainId(for: payment.chainName)
-            let txHash = try securityService.signAndSendTransaction(
+            let txHash = try await securityService.signAndSendTransactionAsync(
                 SendTxRequest(
                     source: .system(name: "wallet_transfer"),
                     from: from,
@@ -1630,7 +1632,7 @@ final class AppState: ObservableObject {
             let from = try securityService.activeAddress()
             let source = RequestSource.system(name: "wallet_transfer")
 
-            let txHash = try securityService.signAndSendTransaction(
+            let txHash = try await securityService.signAndSendTransactionAsync(
                 SendTxRequest(
                     source: source,
                     from: from,
@@ -2563,8 +2565,37 @@ final class AppState: ObservableObject {
     }
 
     private func log(_ message: String) {
-        let entry = "[\(Self.logTimeFormatter.string(from: clock.now))] \(message)"
+        let sanitized = redactSensitiveLog(message)
+        let entry = "[\(Self.logTimeFormatter.string(from: clock.now))] \(sanitized)"
         logs.append(entry)
         appLogger.log(entry)
+    }
+
+    private func redactSensitiveLog(_ message: String) -> String {
+        var text = message
+        text = redact(text, regex: Self.txHashRegex, leading: 10, trailing: 6, threshold: 20)
+        text = redact(text, regex: Self.evmAddressRegex, leading: 8, trailing: 4, threshold: 12)
+        return text
+    }
+
+    private func redact(_ value: String, regex: NSRegularExpression, leading: Int, trailing: Int, threshold: Int) -> String {
+        let matches = regex.matches(in: value, range: NSRange(value.startIndex..., in: value))
+        guard !matches.isEmpty else { return value }
+
+        var output = value
+        for match in matches.reversed() {
+            guard let range = Range(match.range, in: output) else { continue }
+            let raw = String(output[range])
+            output.replaceSubrange(
+                range,
+                with: AddressFormatter.shortened(
+                    raw,
+                    leading: leading,
+                    trailing: trailing,
+                    threshold: threshold
+                )
+            )
+        }
+        return output
     }
 }

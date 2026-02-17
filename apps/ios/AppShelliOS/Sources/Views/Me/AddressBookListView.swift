@@ -83,9 +83,17 @@ struct AddressBookListView: View {
     }
 
     private var addressBookRows: [AddressBookRow] {
-        Array(meStore.addressBooks.enumerated()).map { index, item in
-            let id = item.id.map(String.init) ?? (item.walletAddress ?? "addr")
-            return AddressBookRow(id: "\(id)-\(index)", item: item)
+        let seeds = meStore.addressBooks.map { item in
+            StableRowID.make(
+                item.id.map(String.init),
+                item.walletAddress,
+                item.name,
+                fallback: "address-book-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(meStore.addressBooks, ids)).map { pair in
+            AddressBookRow(id: pair.1, item: pair.0)
         }
     }
 }

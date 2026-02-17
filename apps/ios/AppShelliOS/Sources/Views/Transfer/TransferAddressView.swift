@@ -30,10 +30,24 @@ struct TransferAddressView: View {
         addressInput.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
+    private var addressBookCandidates: [AddressBookItem] {
+        state.transferAddressBookCandidates()
+    }
+
+    private var addressBookAliasByAddress: [String: String] {
+        addressBookCandidates.reduce(into: [:]) { partial, item in
+            let address = (item.walletAddress ?? "").lowercased()
+            let alias = (item.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !address.isEmpty, !alias.isEmpty else { return }
+            if partial[address] == nil {
+                partial[address] = alias
+            }
+        }
+    }
+
     private var filteredAddressBooks: [AddressBookItem] {
-        let source = state.transferAddressBookCandidates()
-        guard !keyword.isEmpty else { return source }
-        return source.filter { item in
+        guard !keyword.isEmpty else { return addressBookCandidates }
+        return addressBookCandidates.filter { item in
             let name = (item.name ?? "").lowercased()
             let address = (item.walletAddress ?? "").lowercased()
             return name.contains(keyword) || address.contains(keyword)
@@ -55,9 +69,7 @@ struct TransferAddressView: View {
         guard !keyword.isEmpty else { return valid }
         return valid.filter { item in
             let address = (item.address ?? "").lowercased()
-            let alias = (state.transferAddressBookCandidates().first {
-                ($0.walletAddress ?? "").caseInsensitiveCompare(item.address ?? "") == .orderedSame
-            }?.name ?? "").lowercased()
+            let alias = (addressBookAliasByAddress[address] ?? "").lowercased()
             return address.contains(keyword) || alias.contains(keyword)
         }
     }
@@ -108,7 +120,7 @@ struct TransferAddressView: View {
                 }
             }
             .onChange(of: addressInput) { _, value in
-                let sanitized = sanitizeAddressInput(value)
+                let sanitized = AddressInputParser.sanitize(value)
                 if sanitized != value {
                     addressInput = sanitized
                 }
@@ -247,9 +259,7 @@ struct TransferAddressView: View {
 
     private func recentRow(_ item: TransferReceiveContact, widthClass: DeviceWidthClass) -> some View {
         let address = item.address ?? ""
-        let bookName = state.transferAddressBookCandidates().first {
-            ($0.walletAddress ?? "").caseInsensitiveCompare(address) == .orderedSame
-        }?.name
+        let bookName = addressBookAliasByAddress[address.lowercased()]
         return Button {
             addressInput = address
             state.updateTransferRecipientAddress(address)
@@ -361,23 +371,39 @@ struct TransferAddressView: View {
     private var shouldShowAddAddressBook: Bool {
         let trimmed = addressInput.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, state.isValidTransferAddress(trimmed) else { return false }
-        let exists = state.transferAddressBookCandidates().contains {
+        let exists = addressBookCandidates.contains {
             ($0.walletAddress ?? "").caseInsensitiveCompare(trimmed) == .orderedSame
         }
         return !exists
     }
 
     private var recentContactRows: [TransferRecentRow] {
-        Array(filteredRecentContacts.enumerated()).map { index, item in
-            let seed = item.address ?? item.walletAddress ?? "recent"
-            return TransferRecentRow(id: "\(seed)-\(index)", index: index, item: item)
+        let seeds = filteredRecentContacts.map { item in
+            StableRowID.make(
+                item.address,
+                item.walletAddress,
+                item.createdAt.map(String.init),
+                fallback: "recent"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(filteredRecentContacts, ids).enumerated()).map { index, pair in
+            TransferRecentRow(id: pair.1, index: index, item: pair.0)
         }
     }
 
     private var addressBookRows: [TransferAddressBookRow] {
-        Array(filteredAddressBooks.enumerated()).map { index, item in
-            let seed = item.id.map(String.init) ?? (item.walletAddress ?? "book")
-            return TransferAddressBookRow(id: "\(seed)-\(index)", index: index, item: item)
+        let seeds = filteredAddressBooks.map { item in
+            StableRowID.make(
+                item.id.map(String.init),
+                item.walletAddress,
+                item.name,
+                fallback: "book"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(filteredAddressBooks, ids).enumerated()).map { index, pair in
+            TransferAddressBookRow(id: pair.1, index: index, item: pair.0)
         }
     }
 
@@ -385,52 +411,10 @@ struct TransferAddressView: View {
         address.uppercased().hasPrefix("T") ? "chain_tron" : "chain_evm"
     }
 
-    private func sanitizeAddressInput(_ raw: String) -> String {
-        raw
-            .replacingOccurrences(of: "\n", with: "")
-            .replacingOccurrences(of: "\r", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     private func normalizeScannedAddress(_ raw: String) -> String {
-        let compact = sanitizeAddressInput(raw)
-        if let queryStart = compact.firstIndex(of: "?"),
-           let parsed = URLComponents(string: String(compact[..<queryStart])),
-           let addressFromPath = parsed.path.split(separator: "/").last
-        {
-            let candidate = sanitizeAddressInput(String(addressFromPath))
-            if state.isValidTransferAddress(candidate) || state.detectAddressChainType(candidate) != nil {
-                return candidate
-            }
+        AddressInputParser.normalizeScannedAddress(raw) { candidate in
+            state.isValidTransferAddress(candidate) || state.detectAddressChainType(candidate) != nil
         }
-        if let components = URLComponents(string: compact), let queryItems = components.queryItems {
-            if let addressQuery = queryItems.first(where: { $0.name.lowercased() == "address" })?.value {
-                let candidate = sanitizeAddressInput(addressQuery)
-                if !candidate.isEmpty {
-                    return candidate
-                }
-            }
-        }
-        if let evm = compact.range(of: "(0x|0X)[a-fA-F0-9]{40}", options: .regularExpression) {
-            return sanitizeAddressInput(String(compact[evm]))
-        }
-        if let tron = compact.range(of: "T[a-zA-Z0-9]{33}", options: .regularExpression) {
-            return sanitizeAddressInput(String(compact[tron]))
-        }
-
-        var value = compact
-        if let schemeRange = value.range(of: "ethereum:", options: [.caseInsensitive, .anchored]) {
-            value = String(value[schemeRange.upperBound...])
-        } else if let schemeRange = value.range(of: "tron:", options: [.caseInsensitive, .anchored]) {
-            value = String(value[schemeRange.upperBound...])
-        }
-        if let queryIndex = value.firstIndex(of: "?") {
-            value = String(value[..<queryIndex])
-        }
-        if let chainIndex = value.firstIndex(of: "@") {
-            value = String(value[..<chainIndex])
-        }
-        return sanitizeAddressInput(value)
     }
 
     private func displayAddressTitle(bookName: String?, address: String) -> String {

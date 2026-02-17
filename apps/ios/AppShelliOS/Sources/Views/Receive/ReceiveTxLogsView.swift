@@ -40,9 +40,16 @@ struct ReceiveTxLogsView: View {
     }
 
     private var txRows: [ReceiveTxRow] {
-        Array(state.receiveTraceChildren.enumerated()).map { index, item in
-            let seed = item.orderSn ?? item.receiveAddress ?? "tx"
-            return ReceiveTxRow(id: "\(seed)-\(index)", item: item)
+        let seeds = state.receiveTraceChildren.map { item in
+            StableRowID.make(
+                item.orderSn,
+                item.receiveAddress,
+                fallback: "receive-tx-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(state.receiveTraceChildren, ids)).map { pair in
+            ReceiveTxRow(id: pair.1, item: pair.0)
         }
     }
 

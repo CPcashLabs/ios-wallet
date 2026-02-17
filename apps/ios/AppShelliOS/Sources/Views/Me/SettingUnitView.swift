@@ -70,9 +70,16 @@ struct SettingUnitView: View {
     }
 
     private var currencyRows: [CurrencyRow] {
-        Array(meStore.exchangeRates.enumerated()).map { index, item in
-            let seed = item.currency ?? "USD"
-            return CurrencyRow(id: "\(seed)-\(index)", index: index, item: item)
+        let seeds = meStore.exchangeRates.map { item in
+            StableRowID.make(
+                item.currency,
+                item.symbol,
+                fallback: "currency-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(meStore.exchangeRates, ids).enumerated()).map { index, pair in
+            CurrencyRow(id: pair.1, index: index, item: pair.0)
         }
     }
 }

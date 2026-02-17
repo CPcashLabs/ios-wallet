@@ -285,9 +285,17 @@ struct HomeView: View {
     }
 
     private var recentMessageRows: [RecentMessageRow] {
-        Array(homeStore.homeRecentMessages.enumerated()).map { index, item in
-            let itemID = item.id.map(String.init) ?? "row-\(index)"
-            return RecentMessageRow(id: itemID, index: index, item: item)
+        let seeds = homeStore.homeRecentMessages.map { item in
+            StableRowID.make(
+                item.id.map(String.init),
+                item.createdAt.map(String.init),
+                item.title,
+                fallback: "home-message-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(homeStore.homeRecentMessages, ids).enumerated()).map { index, pair in
+            RecentMessageRow(id: pair.1, index: index, item: pair.0)
         }
     }
 

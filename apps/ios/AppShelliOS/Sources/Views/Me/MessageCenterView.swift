@@ -3,6 +3,8 @@ import BackendAPI
 
 struct MessageCenterView: View {
     @ObservedObject var state: AppState
+    @State private var loadMoreTask: Task<Void, Never>?
+    @State private var paginationGate = PaginationGate()
 
     var body: some View {
         AdaptiveReader { widthClass in
@@ -25,9 +27,7 @@ struct MessageCenterView: View {
                                                !state.messageLastPage,
                                                !state.isLoading(.meMessageList)
                                             {
-                                                Task {
-                                                    await state.loadMessages(page: state.messagePage + 1, append: true)
-                                                }
+                                                triggerLoadMoreIfNeeded()
                                             }
                                         }
                                     Divider()
@@ -60,15 +60,48 @@ struct MessageCenterView: View {
                 }
             }
             .task {
+                paginationGate.reset()
                 await state.loadMessages(page: 1, append: false)
+            }
+            .onDisappear {
+                loadMoreTask?.cancel()
+                loadMoreTask = nil
+                paginationGate.reset()
             }
         }
     }
 
     private var messageRows: [MessageRow] {
-        Array(state.messageList.enumerated()).map { index, item in
-            let id = item.id.map(String.init) ?? "\(item.createdAt ?? 0)"
-            return MessageRow(id: "\(id)-\(index)", index: index, item: item)
+        let seeds = state.messageList.map { item in
+            StableRowID.make(
+                item.id.map(String.init),
+                item.createdAt.map(String.init),
+                item.title,
+                fallback: "message-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(state.messageList, ids).enumerated()).map { index, pair in
+            MessageRow(id: pair.1, index: index, item: pair.0)
+        }
+    }
+
+    private func triggerLoadMoreIfNeeded() {
+        guard !state.messageLastPage else { return }
+        guard !state.isLoading(.meMessageList) else { return }
+        let nextPage = max(1, state.messagePage + 1)
+        let token = "message.page.\(nextPage)"
+        guard paginationGate.begin(token: token) else { return }
+        guard loadMoreTask == nil else {
+            paginationGate.end(token: token)
+            return
+        }
+        loadMoreTask = Task { @MainActor in
+            defer {
+                paginationGate.end(token: token)
+                loadMoreTask = nil
+            }
+            await state.loadMessages(page: nextPage, append: true)
         }
     }
 

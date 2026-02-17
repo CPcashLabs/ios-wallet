@@ -57,9 +57,16 @@ struct ReceiveAddressDeleteView: View {
     }
 
     private var deleteRows: [ReceiveDeleteRow] {
-        Array(filteredInvalidItems.enumerated()).map { index, item in
-            let seed = item.orderSn ?? item.receiveAddress ?? "delete"
-            return ReceiveDeleteRow(id: "\(seed)-\(index)", item: item)
+        let seeds = filteredInvalidItems.map { item in
+            StableRowID.make(
+                item.orderSn,
+                item.receiveAddress,
+                fallback: "receive-delete-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(filteredInvalidItems, ids)).map { pair in
+            ReceiveDeleteRow(id: pair.1, item: pair.0)
         }
     }
 

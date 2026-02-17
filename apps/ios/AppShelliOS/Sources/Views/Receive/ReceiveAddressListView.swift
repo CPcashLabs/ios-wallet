@@ -58,9 +58,17 @@ struct ReceiveAddressListView: View {
     }
 
     private var addressRows: [ReceiveAddressRow] {
-        Array(items.enumerated()).map { index, item in
-            let seed = item.orderSn ?? item.address ?? "receive"
-            return ReceiveAddressRow(id: "\(seed)-\(index)", item: item)
+        let seeds = items.map { item in
+            StableRowID.make(
+                item.orderSn,
+                item.address,
+                item.receiveAddress,
+                fallback: "receive-address-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(items, ids)).map { pair in
+            ReceiveAddressRow(id: pair.1, item: pair.0)
         }
     }
 

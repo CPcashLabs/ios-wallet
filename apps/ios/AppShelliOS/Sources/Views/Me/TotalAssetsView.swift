@@ -9,6 +9,22 @@ private enum AssetSegment: String, CaseIterable {
 struct TotalAssetsView: View {
     @ObservedObject var state: AppState
 
+    private static let balanceFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 6
+        formatter.minimumFractionDigits = 0
+        return formatter
+    }()
+
+    private static let fractionalBalanceFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 6
+        formatter.minimumFractionDigits = 2
+        return formatter
+    }()
+
     @AppStorage("wallet.showBalance") private var showBalance = true
     @State private var selectedSegment: AssetSegment = .usdt
     @State private var refreshing = false
@@ -207,10 +223,18 @@ struct TotalAssetsView: View {
     }
 
     private var coinRows: [AssetCoinRow] {
-        Array(filteredCoins.enumerated()).map { index, coin in
-            let code = coin.coinCode ?? coin.code ?? coin.coinSymbol ?? "coin"
-            let chain = coin.chainName ?? "-"
-            return AssetCoinRow(id: "\(code)-\(chain)-\(index)", index: index, coin: coin)
+        let seeds = filteredCoins.map { coin in
+            StableRowID.make(
+                coin.coinCode,
+                coin.code,
+                coin.coinSymbol,
+                coin.chainName,
+                fallback: "coin-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(filteredCoins, ids).enumerated()).map { index, pair in
+            AssetCoinRow(id: pair.1, index: index, coin: pair.0)
         }
     }
 
@@ -266,10 +290,7 @@ struct TotalAssetsView: View {
 
     private func formatBalance(_ value: Double) -> String {
         if value == 0 { return "0" }
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 6
-        formatter.minimumFractionDigits = value < 1 ? 2 : 0
+        let formatter = value < 1 ? Self.fractionalBalanceFormatter : Self.balanceFormatter
         return formatter.string(from: NSNumber(value: value)) ?? String(value)
     }
 

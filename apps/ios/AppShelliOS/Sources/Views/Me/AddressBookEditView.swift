@@ -60,7 +60,7 @@ struct AddressBookEditView: View {
                         Button {
                             Task {
                                 let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-                                let cleanAddress = sanitizeAddress(walletAddress)
+                                let cleanAddress = AddressInputParser.sanitize(walletAddress)
                                 let chainType = resolvedChainType ?? initialChainType
                                 let success: Bool
                                 if let editingId {
@@ -126,14 +126,18 @@ struct AddressBookEditView: View {
             }
             .onAppear {
                 guard let editingId else { return }
-                if let item = state.addressBooks.first(where: { "\($0.id ?? -1)" == editingId }) {
+                Task {
+                    if state.addressBooks.isEmpty {
+                        await state.loadAddressBooks()
+                    }
+                    guard let item = state.addressBooks.first(where: { "\($0.id ?? -1)" == editingId }) else { return }
                     name = item.name ?? ""
                     walletAddress = item.walletAddress ?? ""
                     initialChainType = item.chainType ?? "EVM"
                 }
             }
             .onChange(of: walletAddress) { _, value in
-                let sanitized = sanitizeAddress(value)
+                let sanitized = AddressInputParser.sanitize(value)
                 if sanitized != value {
                     walletAddress = sanitized
                 }
@@ -146,14 +150,14 @@ struct AddressBookEditView: View {
     }
 
     private var invalidAddress: Bool {
-        let value = sanitizeAddress(walletAddress)
+        let value = AddressInputParser.sanitize(walletAddress)
         guard !value.isEmpty else { return false }
         return state.detectAddressChainType(value) == nil
     }
 
     private var saveDisabled: Bool {
         let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let cleanAddress = sanitizeAddress(walletAddress)
+        let cleanAddress = AddressInputParser.sanitize(walletAddress)
         return cleanName.isEmpty || cleanAddress.isEmpty || invalidAddress
     }
 
@@ -207,33 +211,9 @@ struct AddressBookEditView: View {
         }
     }
 
-    private func sanitizeAddress(_ raw: String) -> String {
-        raw
-            .replacingOccurrences(of: "\n", with: "")
-            .replacingOccurrences(of: "\r", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     private func normalizeScannedAddress(_ raw: String) -> String {
-        let text = sanitizeAddress(raw)
-        if let evm = text.range(of: "(0x|0X)[a-fA-F0-9]{40}", options: .regularExpression) {
-            return sanitizeAddress(String(text[evm]))
+        AddressInputParser.normalizeScannedAddress(raw) { candidate in
+            state.detectAddressChainType(candidate) != nil
         }
-        if let tron = text.range(of: "T[a-zA-Z0-9]{33}", options: .regularExpression) {
-            return sanitizeAddress(String(text[tron]))
-        }
-        var value = text
-        if let schemeRange = value.range(of: "ethereum:", options: [.caseInsensitive, .anchored]) {
-            value = String(value[schemeRange.upperBound...])
-        } else if let schemeRange = value.range(of: "tron:", options: [.caseInsensitive, .anchored]) {
-            value = String(value[schemeRange.upperBound...])
-        }
-        if let queryIndex = value.firstIndex(of: "?") {
-            value = String(value[..<queryIndex])
-        }
-        if let chainIndex = value.firstIndex(of: "@") {
-            value = String(value[..<chainIndex])
-        }
-        return sanitizeAddress(value)
     }
 }

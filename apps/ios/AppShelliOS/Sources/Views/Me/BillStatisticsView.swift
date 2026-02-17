@@ -202,9 +202,16 @@ struct BillStatisticsView: View {
     }
 
     private var addressRows: [BillStatisticsRow] {
-        Array(meStore.billAddressAggList.enumerated()).map { index, item in
-            let seed = item.adversaryAddress ?? item.name ?? "addr"
-            return BillStatisticsRow(id: "\(seed)-\(index)", index: index, item: item)
+        let seeds = meStore.billAddressAggList.map { item in
+            StableRowID.make(
+                item.adversaryAddress,
+                item.name,
+                fallback: "bill-stat-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(meStore.billAddressAggList, ids).enumerated()).map { index, pair in
+            BillStatisticsRow(id: pair.1, index: index, item: pair.0)
         }
     }
 

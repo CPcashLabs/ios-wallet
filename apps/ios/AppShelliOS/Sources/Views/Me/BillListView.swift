@@ -29,6 +29,9 @@ struct BillListView: View {
     @State private var showMoreSheet = false
     @State private var filterDraft = BillFilterDraft()
     @State private var isLoadingMore = false
+    @State private var sectionSnapshots: [BillSectionSnapshot] = []
+    @State private var loadMoreTask: Task<Void, Never>?
+    @State private var paginationGate = PaginationGate()
 
     var body: some View {
         AdaptiveReader { widthClass in
@@ -48,8 +51,8 @@ struct BillListView: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 12) {
-                                ForEach(groupedKeys, id: \.self) { key in
-                                    sectionCard(title: key, items: groupedMap[key] ?? [], widthClass: widthClass)
+                                ForEach(sectionSnapshots) { section in
+                                    sectionCard(section: section, widthClass: widthClass)
                                 }
 
                                 if !meStore.billLastPage {
@@ -66,7 +69,7 @@ struct BillListView: View {
                                     }
                                     .padding(.vertical, 8)
                                     .onAppear {
-                                        Task { await loadMoreIfNeeded() }
+                                        triggerLoadMoreIfNeeded()
                                     }
                                 } else {
                                     Text("没有更多了")
@@ -112,7 +115,15 @@ struct BillListView: View {
                 .presentationDetents([.medium, .large])
             }
             .task(id: reloadTriggerKey) {
+                if !meStore.billList.isEmpty {
+                    rebuildSectionSnapshots()
+                }
                 await reload(reset: true)
+            }
+            .onDisappear {
+                loadMoreTask?.cancel()
+                loadMoreTask = nil
+                paginationGate.reset()
             }
         }
     }
@@ -175,18 +186,18 @@ struct BillListView: View {
         }
     }
 
-    private func sectionCard(title: String, items: [OrderSummary], widthClass: DeviceWidthClass) -> some View {
+    private func sectionCard(section: BillSectionSnapshot, widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
-                Text(title)
+                Text(section.title)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(ThemeTokens.title)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("支出(USDT) \(formatSectionAmount(sectionExpense(items)))")
+                    Text("支出(USDT) \(formatSectionAmount(section.expense))")
                         .font(.system(size: widthClass.footnoteSize))
                         .foregroundStyle(ThemeTokens.secondary)
-                    Text("收入(USDT) \(formatSectionAmount(sectionIncome(items)))")
+                    Text("收入(USDT) \(formatSectionAmount(section.income))")
                         .font(.system(size: widthClass.footnoteSize))
                         .foregroundStyle(ThemeTokens.secondary)
                 }
@@ -196,7 +207,7 @@ struct BillListView: View {
 
             Divider()
 
-            let rows = sectionRows(items)
+            let rows = sectionRows(section.items)
             ForEach(rows) { row in
                 billRow(row.item, widthClass: widthClass)
                 if row.index < rows.count - 1 {
@@ -277,6 +288,11 @@ struct BillListView: View {
     }
 
     private func reload(reset: Bool) async {
+        if reset {
+            loadMoreTask?.cancel()
+            loadMoreTask = nil
+            paginationGate.reset()
+        }
         let range: BillTimeRange?
         if let preset = filterDraft.rangePreset {
             range = meStore.billRangeForPreset(preset)
@@ -294,6 +310,7 @@ struct BillListView: View {
             range: range
         )
         await meStore.loadBillList(filter: filter, append: !reset)
+        rebuildSectionSnapshots()
     }
 
     private func loadMoreIfNeeded() async {
@@ -304,14 +321,34 @@ struct BillListView: View {
         isLoadingMore = false
     }
 
-    private var groupedMap: [String: [OrderSummary]] {
-        Dictionary(grouping: meStore.billList) { item in
-            monthKey(item.createdAt)
+    private func triggerLoadMoreIfNeeded() {
+        let nextPage = max(1, meStore.billCurrentPage + 1)
+        let token = "bill.page.\(nextPage)"
+        guard paginationGate.begin(token: token) else { return }
+        guard loadMoreTask == nil else {
+            paginationGate.end(token: token)
+            return
+        }
+        loadMoreTask = Task { @MainActor in
+            defer {
+                paginationGate.end(token: token)
+                loadMoreTask = nil
+            }
+            await loadMoreIfNeeded()
         }
     }
 
-    private var groupedKeys: [String] {
-        groupedMap.keys.sorted(by: >)
+    private func rebuildSectionSnapshots() {
+        sectionSnapshots = BillSectionSnapshotBuilder.build(
+            from: meStore.billList,
+            monthKey: monthKey,
+            expense: { item in
+                isReceiveType(item) ? 0 : jsonDouble(item.sendAmount)
+            },
+            income: { item in
+                isReceiveType(item) ? jsonDouble(item.recvAmount) : 0
+            }
+        )
     }
 
     private var reloadTriggerKey: String {
@@ -364,18 +401,6 @@ struct BillListView: View {
         return item.receiveAddress ?? item.paymentAddress
     }
 
-    private func sectionExpense(_ items: [OrderSummary]) -> Double {
-        items.reduce(0) { partial, item in
-            partial + (isReceiveType(item) ? 0 : jsonDouble(item.sendAmount))
-        }
-    }
-
-    private func sectionIncome(_ items: [OrderSummary]) -> Double {
-        items.reduce(0) { partial, item in
-            partial + (isReceiveType(item) ? jsonDouble(item.recvAmount) : 0)
-        }
-    }
-
     private func jsonDouble(_ value: JSONValue?) -> Double {
         if let value = value?.doubleValue { return value }
         if let text = value?.stringValue, let parsed = Double(text) { return parsed }
@@ -417,10 +442,17 @@ struct BillListView: View {
     }
 
     private func sectionRows(_ items: [OrderSummary]) -> [BillSectionRow] {
-        Array(items.enumerated()).map { index, item in
-            let createdSeed = item.createdAt.map(String.init) ?? "row"
-            let seed = item.orderSn ?? createdSeed
-            return BillSectionRow(id: "\(seed)-\(index)", index: index, item: item)
+        let seeds = items.map { item in
+            StableRowID.make(
+                item.orderSn,
+                item.createdAt.map(String.init),
+                counterpartyAddress(item),
+                fallback: "bill-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(items, ids).enumerated()).map { index, pair in
+            BillSectionRow(id: pair.1, index: index, item: pair.0)
         }
     }
 
@@ -430,6 +462,42 @@ private struct BillSectionRow: Identifiable {
     let id: String
     let index: Int
     let item: OrderSummary
+}
+
+private struct BillSectionSnapshot: Identifiable {
+    let id: String
+    let title: String
+    let items: [OrderSummary]
+    let expense: Double
+    let income: Double
+}
+
+private enum BillSectionSnapshotBuilder {
+    static func build(
+        from items: [OrderSummary],
+        monthKey: (Int?) -> String,
+        expense: (OrderSummary) -> Double,
+        income: (OrderSummary) -> Double
+    ) -> [BillSectionSnapshot] {
+        let grouped = Dictionary(grouping: items) { item in
+            monthKey(item.createdAt)
+        }
+        let keys = grouped.keys.sorted(by: >)
+        return keys.map { key in
+            let sectionItems = grouped[key] ?? []
+            return BillSectionSnapshot(
+                id: key,
+                title: key,
+                items: sectionItems,
+                expense: sectionItems.reduce(0) { partial, item in
+                    partial + expense(item)
+                },
+                income: sectionItems.reduce(0) { partial, item in
+                    partial + income(item)
+                }
+            )
+        }
+    }
 }
 
 #Preview("BillListView") {

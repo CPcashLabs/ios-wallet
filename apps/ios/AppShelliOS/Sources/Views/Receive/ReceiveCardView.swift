@@ -200,17 +200,11 @@ struct ReceiveCardView: View {
     private var expiryText: String? {
         let expiredAt = traceDetail?.expiredAt ?? order?.expiredAt
         guard let expiredAt else { return nil }
-        let expiryDate = Date(timeIntervalSince1970: TimeInterval(expiredAt) / 1000)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter.string(from: expiryDate)
+        return DateTextFormatter.yearMonthDayMinute(fromTimestamp: expiredAt, fallback: "-")
     }
 
     private func formatAddress(_ value: String) -> String {
-        guard value.count > 14 else { return value }
-        let start = value.prefix(6)
-        let end = value.suffix(6)
-        return "\(start)...\(end)"
+        AddressFormatter.shortened(value, leading: 6, trailing: 6, threshold: 14)
     }
 
     private func format(_ value: Double) -> String {

@@ -56,6 +56,7 @@
 - 子页面（push 进入）：
   - 使用系统导航栏（inline）
   - 默认隐藏 TabBar（保持沉浸式业务流）
+  - 路由层仅负责 TabBar 可见性，不再包裹页面背景容器
 - 防连点：`NavigationGuard` 对 route push 做 cooldown 去重
 
 ## Safe Area 规范
@@ -63,6 +64,9 @@
   - 通过 `safeAreaInset(edge: .top)` 注入固定头部
   - 内容区域从头部下方开始滚动
   - 禁止使用固定像素（如 `topClearance`）做机型适配
-- 子页面统一使用 `FullscreenScaffold`
-  - 仅负责背景与导航外观，不负责“魔法位移补偿”
+- 子页面统一使用 `SafeAreaScreen`
+  - `SafeAreaScreen` 内部复用 `FullscreenScaffold`，统一背景与安全区契约
+  - 背景层可全屏（`ignoresSafeArea`），内容层必须遵守 safe area
+  - 底部固定操作统一通过 `safeAreaInset(edge: .bottom)` 注入
 - 背景层统一走 `GlobalFullscreenBackground`，确保全面屏与横竖屏一致
+- 避免双层容器：页面内部不再叠加路由层 `fullscreenScaffold`，防止导航层与 safe area 叠压

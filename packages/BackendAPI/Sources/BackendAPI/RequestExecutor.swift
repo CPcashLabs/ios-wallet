@@ -121,7 +121,7 @@ public final class RequestExecutor {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
 
-        print("[BackendAPI][\(environment.tag.rawValue)] \(method.rawValue) \(url.absoluteString)")
+        logRequest(method: method, url: url)
 
         let (data, response) = try await session.data(for: request)
 
@@ -186,7 +186,7 @@ public final class RequestExecutor {
             fileData: fileData
         )
 
-        print("[BackendAPI][\(environment.tag.rawValue)] \(method.rawValue) \(url.absoluteString)")
+        logRequest(method: method, url: url)
 
         let (data, response) = try await session.data(for: request)
 
@@ -268,6 +268,35 @@ public final class RequestExecutor {
     private func percentEncode(_ value: String) -> String {
         let allowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
         return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+    }
+
+    private func logRequest(method: HTTPMethod, url: URL) {
+        #if DEBUG
+        print("[BackendAPI][\(environment.tag.rawValue)] \(method.rawValue) \(redactedURL(url))")
+        #endif
+    }
+
+    private func redactedURL(_ url: URL) -> String {
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems
+        else {
+            return url.absoluteString
+        }
+
+        components.queryItems = queryItems.map { item in
+            let key = item.name.lowercased()
+            let sensitive = key.contains("token")
+                || key.contains("address")
+                || key.contains("tx")
+                || key.contains("hash")
+                || key.contains("sign")
+            if sensitive {
+                return URLQueryItem(name: item.name, value: "***")
+            }
+            return item
+        }
+
+        return components.string ?? url.absoluteString
     }
 
     private func assertEnvironmentHost() throws {

@@ -35,3 +35,53 @@ enum LoadKey: String {
     case receiveExpiry = "receive.expiry"
     case receiveExpiryUpdate = "receive.expiry.update"
 }
+
+enum StableRowID {
+    static func make(_ candidates: String?..., fallback: String) -> String {
+        make(from: candidates, fallback: fallback)
+    }
+
+    static func make(from candidates: [String?], fallback: String) -> String {
+        for candidate in candidates {
+            if let normalized = normalize(candidate) {
+                return normalized
+            }
+        }
+        return fallback
+    }
+
+    static func uniqued(_ seeds: [String], separator: String = "#") -> [String] {
+        var counter: [String: Int] = [:]
+        return seeds.map { seed in
+            let next = (counter[seed] ?? 0) + 1
+            counter[seed] = next
+            return next == 1 ? seed : "\(seed)\(separator)\(next)"
+        }
+    }
+
+    private static func normalize(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+final class PaginationGate {
+    private var inFlightTokens = Set<String>()
+
+    func begin(token: String) -> Bool {
+        if inFlightTokens.contains(token) {
+            return false
+        }
+        inFlightTokens.insert(token)
+        return true
+    }
+
+    func end(token: String) {
+        inFlightTokens.remove(token)
+    }
+
+    func reset() {
+        inFlightTokens.removeAll()
+    }
+}

@@ -276,6 +276,12 @@ final class AppState: ObservableObject {
     private lazy var billUseCase = BillUseCase(appState: self)
     private lazy var transferUseCase = TransferUseCase(appState: self)
     private lazy var receiveUseCase = ReceiveUseCase(appState: self)
+    private var messageRequestGeneration = 0
+    private var billRequestGeneration = 0
+    private var networkSelectionGeneration = 0
+    private var activeOrderDetailRequestSN: String?
+    private let messagePaginationGate = PaginationGate()
+    private let billPaginationGate = PaginationGate()
 
     init(dependencies: AppDependencies) {
         let env = EnvironmentConfig.default
@@ -433,21 +439,42 @@ final class AppState: ObservableObject {
     }
 
     func loadMessagesImpl(page: Int, append: Bool) async {
-        guard !isLoading(LoadKey.meMessageList) else { return }
-        setLoading(LoadKey.meMessageList, true)
-        defer { setLoading(LoadKey.meMessageList, false) }
-        do {
-            let response = try await backend.message.list(page: page, perPage: 10)
+        let requestedPage = max(page, 1)
+        let pageToken = "message.page.\(requestedPage)"
+        if append {
+            guard messagePaginationGate.begin(token: pageToken) else { return }
+        } else {
+            messagePaginationGate.reset()
+            messageRequestGeneration += 1
+        }
+        let generation = messageRequestGeneration
+        guard !isLoading(LoadKey.meMessageList) else {
             if append {
-                messageList.append(contentsOf: response.data)
+                messagePaginationGate.end(token: pageToken)
+            }
+            return
+        }
+        setLoading(LoadKey.meMessageList, true)
+        defer {
+            setLoading(LoadKey.meMessageList, false)
+            if append {
+                messagePaginationGate.end(token: pageToken)
+            }
+        }
+        do {
+            let response = try await backend.message.list(page: requestedPage, perPage: 10)
+            guard generation == messageRequestGeneration else { return }
+            if append {
+                messageList = mergeMessages(current: messageList, incoming: response.data)
             } else {
                 messageList = response.data
             }
-            messagePage = response.page ?? page
+            messagePage = response.page ?? requestedPage
             messageLastPage = computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
             clearError(LoadKey.meMessageList)
             log("消息列表加载成功: page=\(messagePage), count=\(messageList.count)")
         } catch {
+            guard generation == messageRequestGeneration else { return }
             setError(LoadKey.meMessageList, error)
             log("消息列表加载失败: \(error)")
         }
@@ -548,23 +575,45 @@ final class AppState: ObservableObject {
     }
 
     func loadBillListImpl(filter: BillFilter, append: Bool = false) async {
+        let requestedPage = max(filter.page, 1)
+        let pageToken = "bill.page.\(requestedPage)"
+        if append {
+            guard billPaginationGate.begin(token: pageToken) else { return }
+        } else {
+            billPaginationGate.reset()
+            billRequestGeneration += 1
+        }
+        let generation = billRequestGeneration
+        guard !isLoading(LoadKey.meBillList) else {
+            if append {
+                billPaginationGate.end(token: pageToken)
+            }
+            return
+        }
         setLoading(LoadKey.meBillList, true)
-        defer { setLoading(LoadKey.meBillList, false) }
+        defer {
+            setLoading(LoadKey.meBillList, false)
+            if append {
+                billPaginationGate.end(token: pageToken)
+            }
+        }
         do {
             let response = try await backend.bill.list(filter: filter)
+            guard generation == billRequestGeneration else { return }
             billFilter = filter
             billAddressFilter = filter.otherAddress
             if append {
-                billList.append(contentsOf: response.data)
+                billList = mergeOrders(current: billList, incoming: response.data)
             } else {
                 billList = response.data
             }
-            billCurrentPage = response.page ?? filter.page
+            billCurrentPage = response.page ?? requestedPage
             billTotal = response.total ?? billList.count
             billLastPage = computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
             clearError(LoadKey.meBillList)
             log("账单列表加载成功: \(billList.count)")
         } catch {
+            guard generation == billRequestGeneration else { return }
             setError(LoadKey.meBillList, error)
             log("账单列表加载失败: \(error)")
         }
@@ -750,10 +799,14 @@ final class AppState: ObservableObject {
 
     func selectNetwork(chainId: Int) {
         if let option = networkOptions.first(where: { $0.chainId == chainId }) {
+            networkSelectionGeneration += 1
+            let generation = networkSelectionGeneration
             applyNetworkOption(option)
-            Task {
-                await loadReceiveSelectNetwork()
-                await loadTransferSelectNetwork()
+            Task { [weak self] in
+                guard let self else { return }
+                await self.loadReceiveSelectNetwork()
+                guard generation == self.networkSelectionGeneration else { return }
+                await self.loadTransferSelectNetwork()
             }
         }
     }
@@ -763,6 +816,8 @@ final class AppState: ObservableObject {
     }
 
     func loadTransferSelectNetworkImpl() async {
+        let requestedChainId = selectedChainId
+        let requestedGeneration = networkSelectionGeneration
         setLoading(LoadKey.transferSelectNetwork, true)
         defer { setLoading(LoadKey.transferSelectNetwork, false) }
 
@@ -835,6 +890,9 @@ final class AppState: ObservableObject {
                 )
             }
 
+            guard requestedGeneration == networkSelectionGeneration, requestedChainId == selectedChainId else {
+                return
+            }
             transferNormalNetworks = normalNetworks
             transferProxyNetworks = proxyNetworks
             transferSelectNetworks = normalNetworks + proxyNetworks
@@ -849,6 +907,9 @@ final class AppState: ObservableObject {
             }
             clearError(LoadKey.transferSelectNetwork)
         } catch {
+            guard requestedGeneration == networkSelectionGeneration, requestedChainId == selectedChainId else {
+                return
+            }
             setError(LoadKey.transferSelectNetwork, error)
             transferNormalNetworks = [
                 TransferNetworkItem(
@@ -1166,6 +1227,8 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveSelectNetworkImpl() async {
+        let requestedChainId = selectedChainId
+        let requestedGeneration = networkSelectionGeneration
         setLoading(LoadKey.receiveSelectNetwork, true)
         defer { setLoading(LoadKey.receiveSelectNetwork, false) }
 
@@ -1234,6 +1297,9 @@ final class AppState: ObservableObject {
                 )
             }
 
+            guard requestedGeneration == networkSelectionGeneration, requestedChainId == selectedChainId else {
+                return
+            }
             receiveNormalNetworks = normalNetworks
             receiveProxyNetworks = proxyNetworks
             receiveSelectNetworks = normalNetworks + proxyNetworks
@@ -1248,6 +1314,9 @@ final class AppState: ObservableObject {
             }
             clearError(LoadKey.receiveSelectNetwork)
         } catch {
+            guard requestedGeneration == networkSelectionGeneration, requestedChainId == selectedChainId else {
+                return
+            }
             setError(LoadKey.receiveSelectNetwork, error)
             receiveNormalNetworks = [
                 ReceiveNetworkItem(
@@ -1576,11 +1645,16 @@ final class AppState: ObservableObject {
     }
 
     func loadOrderDetail(orderSN: String) async {
+        activeOrderDetailRequestSN = orderSN
+        selectedOrderDetail = nil
         do {
             let detail = try await backend.order.detail(orderSN: orderSN)
+            guard activeOrderDetailRequestSN == orderSN else { return }
             selectedOrderDetail = detail
             log("订单详情加载成功: \(detail.orderSn ?? orderSN)")
         } catch {
+            guard activeOrderDetailRequestSN == orderSN else { return }
+            selectedOrderDetail = nil
             log("订单详情加载失败: \(error)")
         }
     }
@@ -1593,6 +1667,8 @@ final class AppState: ObservableObject {
         isAuthenticated = false
         approvalSessionState = .locked
         backend.executor.clearToken()
+        selectedOrderDetail = nil
+        activeOrderDetailRequestSN = nil
         messageList = []
         homeRecentMessages = []
         addressBooks = []
@@ -1616,6 +1692,8 @@ final class AppState: ObservableObject {
         transferDomainState = TransferDomainState()
         transferDraft = TransferDraft()
         transferRecentContacts = []
+        messagePaginationGate.reset()
+        billPaginationGate.reset()
     }
 
     func showInfoToast(_ message: String) {
@@ -2169,6 +2247,57 @@ final class AppState: ObservableObject {
 
     func errorMessage(_ key: LoadKey) -> String? {
         errorMessage(key.rawValue)
+    }
+
+    private func mergeMessages(current: [MessageItem], incoming: [MessageItem]) -> [MessageItem] {
+        var merged = current
+        var seen = Set(current.map(messageUniqueKey))
+        for item in incoming {
+            let key = messageUniqueKey(item)
+            if seen.insert(key).inserted {
+                merged.append(item)
+            }
+        }
+        return merged
+    }
+
+    private func mergeOrders(current: [OrderSummary], incoming: [OrderSummary]) -> [OrderSummary] {
+        var merged = current
+        var seen = Set(current.map(orderUniqueKey))
+        for item in incoming {
+            let key = orderUniqueKey(item)
+            if seen.insert(key).inserted {
+                merged.append(item)
+            }
+        }
+        return merged
+    }
+
+    private func messageUniqueKey(_ item: MessageItem) -> String {
+        if let id = item.id {
+            return "id:\(id)"
+        }
+        return [
+            item.createdAt.map(String.init) ?? "-",
+            item.type ?? "-",
+            item.orderSn ?? "-",
+            item.title ?? "-",
+            item.content ?? "-",
+        ].joined(separator: "|")
+    }
+
+    private func orderUniqueKey(_ item: OrderSummary) -> String {
+        if let orderSN = item.orderSn, !orderSN.isEmpty {
+            return "order:\(orderSN)"
+        }
+        return [
+            item.createdAt.map(String.init) ?? "-",
+            item.orderType ?? "-",
+            item.paymentAddress ?? "-",
+            item.receiveAddress ?? "-",
+            item.sendAmount?.description ?? "-",
+            item.recvAmount?.description ?? "-",
+        ].joined(separator: "|")
     }
 
     private func computeLastPage(page: Int?, perPage: Int?, total: Int?) -> Bool {

@@ -111,10 +111,9 @@ struct ReceiveSelectNetworkView: View {
             Haptics.lightImpact()
             Task {
                 await state.selectReceiveNetwork(item: item, preloadHome: false)
-            }
-            onSelect()
-            Task {
+                onSelect()
                 try? await Task.sleep(nanoseconds: 600_000_000)
+                guard !Task.isCancelled else { return }
                 selectingNetworkID = nil
             }
         } label: {

@@ -65,20 +65,3 @@ private struct FullscreenNavigationModifier: ViewModifier {
         }
     }
 }
-
-extension View {
-    func fullscreenScaffold(
-        backgroundStyle: FullscreenBackgroundStyle = .globalImage,
-        hideNavigationBar: Bool = false
-    ) -> some View {
-        FullscreenScaffold(backgroundStyle: backgroundStyle, hideNavigationBar: hideNavigationBar) {
-            self
-        }
-    }
-
-    func fullscreenScaffold(background: Color, hideNavigationBar: Bool = false) -> some View {
-        FullscreenScaffold(background: background, hideNavigationBar: hideNavigationBar) {
-            self
-        }
-    }
-}

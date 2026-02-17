@@ -8,46 +8,47 @@ struct SettingUnitView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            Group {
-                if state.isLoading("me.settings.rates") {
-                    ProgressView("加载中...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        SectionCard {
-                            ForEach(currencyRows) { row in
-                                let item = row.item
-                                Button {
-                                    currentCurrency = item.currency ?? ""
-                                } label: {
-                                    HStack {
-                                        Text(item.currency ?? "-")
-                                            .font(.system(size: widthClass.bodySize + 1))
-                                            .foregroundStyle(ThemeTokens.title)
-                                        Spacer()
-                                        if currentCurrency == item.currency {
-                                            Image("settings_radio_checked")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 20, height: 20)
+            SafeAreaScreen(backgroundStyle: .globalImage) {
+                Group {
+                    if state.isLoading("me.settings.rates") {
+                        ProgressView("加载中...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ScrollView {
+                            SectionCard {
+                                ForEach(currencyRows) { row in
+                                    let item = row.item
+                                    Button {
+                                        currentCurrency = item.currency ?? ""
+                                    } label: {
+                                        HStack {
+                                            Text(item.currency ?? "-")
+                                                .font(.system(size: widthClass.bodySize + 1))
+                                                .foregroundStyle(ThemeTokens.title)
+                                            Spacer()
+                                            if currentCurrency == item.currency {
+                                                Image("settings_radio_checked")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 20, height: 20)
+                                            }
                                         }
+                                        .frame(minHeight: widthClass.metrics.listRowMinHeight)
+                                        .padding(.horizontal, 14)
                                     }
-                                    .frame(minHeight: widthClass.metrics.listRowMinHeight)
-                                    .padding(.horizontal, 14)
-                                }
-                                .buttonStyle(.plain)
+                                    .buttonStyle(.plain)
 
-                                if row.index < currencyRows.count - 1 {
-                                    Divider().padding(.leading, 14)
+                                    if row.index < currencyRows.count - 1 {
+                                        Divider().padding(.leading, 14)
+                                    }
                                 }
                             }
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                            .padding(.vertical, 12)
                         }
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                        .padding(.vertical, 12)
                     }
                 }
             }
-            .background(Color.clear)
             .navigationTitle("货币单位")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -8,29 +8,30 @@ struct ReceiveAddressListView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            Group {
-                if isLoading && items.isEmpty {
-                    ProgressView("正在加载...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if items.isEmpty {
-                    EmptyStateView(asset: "bill_no_data", title: "暂无地址")
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 10) {
-                            ForEach(addressRows) { row in
-                                itemCard(row.item)
+            SafeAreaScreen(backgroundStyle: .globalImage) {
+                Group {
+                    if isLoading && items.isEmpty {
+                        ProgressView("正在加载...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if items.isEmpty {
+                        EmptyStateView(asset: "bill_no_data", title: "暂无地址")
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 10) {
+                                ForEach(addressRows) { row in
+                                    itemCard(row.item)
+                                }
                             }
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                            .padding(.vertical, 12)
                         }
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                        .padding(.vertical, 12)
-                    }
-                    .refreshable {
-                        await state.loadReceiveAddresses(validity: validity)
+                        .refreshable {
+                            await state.loadReceiveAddresses(validity: validity)
+                        }
                     }
                 }
             }
-            .background(Color.clear)
             .navigationTitle(validity == .valid ? "有效地址" : "失效地址")
             .navigationBarTitleDisplayMode(.inline)
             .task {

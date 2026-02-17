@@ -9,48 +9,49 @@ struct ReceiveExpiryView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            ScrollView {
-                VStack(spacing: 10) {
-                    VStack(spacing: 0) {
-                        ForEach(state.receiveExpiryConfig.durations, id: \.self) { duration in
-                            Button {
-                                selectedDuration = duration
-                            } label: {
-                                HStack {
-                                    Text(durationTitle(duration))
-                                        .font(.system(size: widthClass.bodySize + 2))
-                                        .foregroundStyle(ThemeTokens.title)
-                                    Spacer()
-                                    if selectedDuration == duration {
-                                        Image("settings_radio_checked")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 20, height: 20)
+            SafeAreaScreen(backgroundStyle: .globalImage) {
+                ScrollView {
+                    VStack(spacing: 10) {
+                        VStack(spacing: 0) {
+                            ForEach(state.receiveExpiryConfig.durations, id: \.self) { duration in
+                                Button {
+                                    selectedDuration = duration
+                                } label: {
+                                    HStack {
+                                        Text(durationTitle(duration))
+                                            .font(.system(size: widthClass.bodySize + 2))
+                                            .foregroundStyle(ThemeTokens.title)
+                                        Spacer()
+                                        if selectedDuration == duration {
+                                            Image("settings_radio_checked")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20, height: 20)
+                                        }
                                     }
+                                    .frame(maxWidth: .infinity, minHeight: widthClass.metrics.listRowMinHeight, alignment: .leading)
+                                    .padding(.horizontal, 14)
                                 }
-                                .frame(maxWidth: .infinity, minHeight: widthClass.metrics.listRowMinHeight, alignment: .leading)
-                                .padding(.horizontal, 14)
-                            }
-                            .buttonStyle(.plain)
+                                .buttonStyle(.plain)
 
-                            if duration != state.receiveExpiryConfig.durations.last {
-                                Divider()
-                                    .padding(.leading, 14)
+                                if duration != state.receiveExpiryConfig.durations.last {
+                                    Divider()
+                                        .padding(.leading, 14)
+                                }
                             }
                         }
-                    }
-                    .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+                        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
 
-                    Text("设置后会自动应用到新生成的收款地址")
-                        .font(.system(size: widthClass.footnoteSize))
-                        .foregroundStyle(ThemeTokens.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("设置后会自动应用到新生成的收款地址")
+                            .font(.system(size: widthClass.footnoteSize))
+                            .foregroundStyle(ThemeTokens.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.horizontal, widthClass.horizontalPadding)
+                    .padding(.top, 12)
+                    .padding(.bottom, 110)
                 }
-                .padding(.horizontal, widthClass.horizontalPadding)
-                .padding(.top, 12)
-                .padding(.bottom, 110)
             }
-            .background(Color.clear)
             .safeAreaInset(edge: .bottom) {
                 bottomButton(widthClass: widthClass)
             }

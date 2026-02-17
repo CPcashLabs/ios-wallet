@@ -6,34 +6,35 @@ struct ReceiveAddressDeleteView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionCard {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("地址删除说明")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(ThemeTokens.title)
-                            Text("当前后端仅提供失效与重建机制，不提供物理删除。你可以在下方直接重建同类型收款地址。")
-                                .font(.system(size: 13))
-                                .foregroundStyle(ThemeTokens.secondary)
+            SafeAreaScreen(backgroundStyle: .globalImage) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        SectionCard {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("地址删除说明")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(ThemeTokens.title)
+                                Text("当前后端仅提供失效与重建机制，不提供物理删除。你可以在下方直接重建同类型收款地址。")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(ThemeTokens.secondary)
+                            }
+                            .padding(14)
                         }
-                        .padding(14)
-                    }
 
-                    if filteredInvalidItems.isEmpty {
-                        EmptyStateView(asset: "bill_no_data", title: "暂无失效地址")
-                    } else {
-                        LazyVStack(spacing: 12) {
-                            ForEach(deleteRows) { row in
-                                self.row(row.item)
+                        if filteredInvalidItems.isEmpty {
+                            EmptyStateView(asset: "bill_no_data", title: "暂无失效地址")
+                        } else {
+                            LazyVStack(spacing: 12) {
+                                ForEach(deleteRows) { row in
+                                    self.row(row.item)
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal, widthClass.horizontalPadding)
+                    .padding(.vertical, 12)
                 }
-                .padding(.horizontal, widthClass.horizontalPadding)
-                .padding(.vertical, 12)
             }
-            .background(Color.clear)
             .navigationTitle("删除地址")
             .navigationBarTitleDisplayMode(.inline)
             .task {

@@ -7,29 +7,30 @@ struct ReceiveTxLogsView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            Group {
-                if state.isLoading("receive.children") && state.receiveTraceChildren.isEmpty {
-                    ProgressView("加载收款记录...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if state.receiveTraceChildren.isEmpty {
-                    EmptyStateView(asset: "bill_no_data", title: "暂无记录")
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 10) {
-                            ForEach(txRows) { row in
-                                self.row(row.item)
+            SafeAreaScreen(backgroundStyle: .globalImage) {
+                Group {
+                    if state.isLoading("receive.children") && state.receiveTraceChildren.isEmpty {
+                        ProgressView("加载收款记录...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if state.receiveTraceChildren.isEmpty {
+                        EmptyStateView(asset: "bill_no_data", title: "暂无记录")
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 10) {
+                                ForEach(txRows) { row in
+                                    self.row(row.item)
+                                }
                             }
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                            .padding(.vertical, 12)
                         }
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                        .padding(.vertical, 12)
-                    }
-                    .refreshable {
-                        await state.loadReceiveTraceChildren(orderSN: orderSN)
+                        .refreshable {
+                            await state.loadReceiveTraceChildren(orderSN: orderSN)
+                        }
                     }
                 }
             }
-            .background(Color.clear)
             .navigationTitle("收款记录")
             .navigationBarTitleDisplayMode(.inline)
             .task {

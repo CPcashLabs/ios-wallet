@@ -6,48 +6,49 @@ struct MessageCenterView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            Group {
-                if state.isLoading("me.message.list") && state.messageList.isEmpty {
-                    ProgressView("正在加载消息...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if state.messageList.isEmpty {
-                    EmptyStateView(asset: "message_no_data", title: "暂无消息")
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(messageRows) { row in
-                                messageRow(row.item)
-                                    .onAppear {
-                                        if row.index == messageRows.count - 1,
-                                           !state.messageLastPage,
-                                           !state.isLoading("me.message.list")
-                                        {
-                                            Task {
-                                                await state.loadMessages(page: state.messagePage + 1, append: true)
+            SafeAreaScreen(backgroundStyle: .globalImage) {
+                Group {
+                    if state.isLoading("me.message.list") && state.messageList.isEmpty {
+                        ProgressView("正在加载消息...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if state.messageList.isEmpty {
+                        EmptyStateView(asset: "message_no_data", title: "暂无消息")
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 0) {
+                                ForEach(messageRows) { row in
+                                    messageRow(row.item)
+                                        .onAppear {
+                                            if row.index == messageRows.count - 1,
+                                               !state.messageLastPage,
+                                               !state.isLoading("me.message.list")
+                                            {
+                                                Task {
+                                                    await state.loadMessages(page: state.messagePage + 1, append: true)
+                                                }
                                             }
                                         }
-                                    }
-                                Divider()
-                            }
+                                    Divider()
+                                }
 
-                            if state.isLoading("me.message.list") {
-                                ProgressView()
-                                    .padding(.vertical, 12)
-                            } else if state.messageLastPage {
-                                Text("无更多数据")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(ThemeTokens.tertiary)
-                                    .padding(.vertical, 12)
+                                if state.isLoading("me.message.list") {
+                                    ProgressView()
+                                        .padding(.vertical, 12)
+                                } else if state.messageLastPage {
+                                    Text("无更多数据")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(ThemeTokens.tertiary)
+                                        .padding(.vertical, 12)
+                                }
                             }
+                            .padding(.horizontal, widthClass.horizontalPadding)
+                            .padding(.top, 8)
                         }
-                        .padding(.horizontal, widthClass.horizontalPadding)
-                        .padding(.top, 8)
                     }
                 }
             }
-            .background(Color.clear)
             .navigationTitle("消息")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

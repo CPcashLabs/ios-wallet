@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -51,6 +51,7 @@
 		6C7D59CC7D1014A7438AD35D /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 714EC42EFA8D756AAA356BD7 /* LoginView.swift */; };
 		6DF92B28E340BF06B2ED7642 /* ReceiveInvalidAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B114343429E617561D5BD9F /* ReceiveInvalidAddressView.swift */; };
 		7223069AAC9A1D0876BFD7AE /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CB901157B2BFC117C9FD52 /* EmptyStateView.swift */; };
+		78CDB7BB9D83E9E23763C966 /* SafeAreaScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9166AD5C97A82680B5B676E9 /* SafeAreaScreen.swift */; };
 		78E1B614844EBAF8F20F6FBA /* HomeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8F256761C20C04D8737C18 /* HomeStore.swift */; };
 		7E9C1AAC9F26E577F90B23B0 /* UserGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2BD210856069D4F11776B9 /* UserGuideView.swift */; };
 		7E9F3893EC85A27619CA2961 /* ActivityShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8203FCD7ED2ACCA7BAF14A9 /* ActivityShareSheet.swift */; };
@@ -103,7 +104,7 @@
 		3344F4313DC71AA8A1FCC342 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		39BF96D842912BB59E41AF74 /* FullscreenScaffold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenScaffold.swift; sourceTree = "<group>"; };
 		3A2BD210856069D4F11776B9 /* UserGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGuideView.swift; sourceTree = "<group>"; };
-		3B532F389336E97D85C03035 /* AppShelliOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AppShelliOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B532F389336E97D85C03035 /* AppShelliOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AppShelliOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E329E8788225CEA8B3D0408 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		41DD1B908F4429C6C79888B3 /* NetworkLogoResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkLogoResolver.swift; sourceTree = "<group>"; };
 		4434819311C0FE05F5E79706 /* ThemeTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeTokens.swift; sourceTree = "<group>"; };
@@ -131,6 +132,7 @@
 		830FBB6544B513DF2497DCF4 /* ios-wallet */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-wallet"; path = ../../..; sourceTree = SOURCE_ROOT; };
 		8387C2E389110F60F98790E6 /* ReceiveAddressDeleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveAddressDeleteView.swift; sourceTree = "<group>"; };
 		8A280B740D1755F59B465557 /* PersonalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalView.swift; sourceTree = "<group>"; };
+		9166AD5C97A82680B5B676E9 /* SafeAreaScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeAreaScreen.swift; sourceTree = "<group>"; };
 		998C723C6661C6771EDB7E80 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		9DDA779EB353AB9725CEC77C /* AddressBookListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressBookListView.swift; sourceTree = "<group>"; };
 		A2B45B50F053FA3C76F57FD3 /* ReceiveCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveCardView.swift; sourceTree = "<group>"; };
@@ -288,6 +290,7 @@
 				41DD1B908F4429C6C79888B3 /* NetworkLogoResolver.swift */,
 				BD20AABFD91C1B256DDF96DC /* PressFeedback.swift */,
 				2834F155423F16279E8FF0CB /* RemoteImageView.swift */,
+				9166AD5C97A82680B5B676E9 /* SafeAreaScreen.swift */,
 				4434819311C0FE05F5E79706 /* ThemeTokens.swift */,
 				5287380904E6A73474E711AA /* TopSafeAreaHeaderScaffold.swift */,
 			);
@@ -389,6 +392,7 @@
 				BDE424F0751120A7D8195B97 /* XCRemoteSwiftPackageReference "Nuke" */,
 				FE7F098FEBF13D992777C8E0 /* XCLocalSwiftPackageReference "../../.." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -465,6 +469,7 @@
 				095DDAC1C193FCAF0C1E3A82 /* ReceiveStore.swift in Sources */,
 				8A3AB2DE9B4008CF693C5BB6 /* ReceiveTxLogsView.swift in Sources */,
 				580BFD3B70B4C7F08CBF4E0C /* RemoteImageView.swift in Sources */,
+				78CDB7BB9D83E9E23763C966 /* SafeAreaScreen.swift in Sources */,
 				B909491800AB05EBB2329FD5 /* SectionCard.swift in Sources */,
 				18DC9CA01F8F2EB8833CD9EB /* SessionStore.swift in Sources */,
 				0A8DA30466BB1414D5321E0C /* SettingUnitView.swift in Sources */,
@@ -559,7 +564,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = DGDH98B728;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "扫码转账需要访问相机";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择头像需要访问相册";
@@ -584,7 +588,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = DGDH98B728;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "扫码转账需要访问相机";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择头像需要访问相册";

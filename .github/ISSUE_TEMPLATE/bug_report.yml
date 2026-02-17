@@ -1,0 +1,31 @@
+name: Bug Report
+description: Report a reproducible bug
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened and what did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction Steps
+      description: Provide exact steps to reproduce.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Include OS/Xcode/Swift versions.
+    validations:
+      required: true

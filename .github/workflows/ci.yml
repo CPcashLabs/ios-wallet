@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Swift build
+        run: make swift-build
+
+      - name: Swift test
+        run: make swift-test
+
+      - name: Generate iOS project
+        run: make ios-generate
+
+      - name: Build iOS app (Simulator)
+        run: make ios-build

@@ -2,46 +2,54 @@ import SwiftUI
 import UIKit
 
 struct MeView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var meStore: MeStore
+    let uiStore: UIStore
     let navigate: (MeRoute) -> Void
 
     var body: some View {
         AdaptiveReader { widthClass in
-            ScrollView {
-                VStack(spacing: 14) {
-                    topHeader
-                    headerCard
+            TopSafeAreaHeaderScaffold(
+                backgroundStyle: .globalImage,
+                headerBackground: ThemeTokens.groupBackground.opacity(0.94)
+            ) {
+                topHeader
+            } content: {
+                ScrollView {
+                    VStack(spacing: 14) {
+                        headerCard
 
-                    SectionCard {
-                        menuButton(icon: "me_bill", title: "账单") { navigate(.billList) }
-                        divider
-                        menuButton(icon: "me_addressbook", title: "地址簿") { navigate(.addressBookList) }
-                        divider
-                        menuButton(icon: "me_total_assets", title: "全部资产") { navigate(.totalAssets) }
-                    }
+                        SectionCard {
+                            menuButton(icon: "me_bill", title: "账单") { navigate(.billList) }
+                            divider
+                            menuButton(icon: "me_addressbook", title: "地址簿") { navigate(.addressBookList) }
+                            divider
+                            menuButton(icon: "me_total_assets", title: "全部资产") { navigate(.totalAssets) }
+                        }
 
-                    SectionCard {
-                        menuButton(icon: "me_invite", title: "邀请好友") { navigate(.invite) }
-                        divider
-                        menuButton(icon: "me_invite_code", title: "邀请码") { navigate(.inviteCode) }
-                    }
+                        SectionCard {
+                            menuButton(icon: "me_invite", title: "邀请好友") { navigate(.invite) }
+                            divider
+                            menuButton(icon: "me_invite_code", title: "邀请码") { navigate(.inviteCode) }
+                        }
 
-                    SectionCard {
-                        menuButton(icon: "me_user_guide", title: "用户指南") { navigate(.userGuide) }
-                        divider
-                        menuButton(icon: "me_about", title: "关于 CPcash") { navigate(.about) }
+                        SectionCard {
+                            menuButton(icon: "me_user_guide", title: "用户指南") { navigate(.userGuide) }
+                            divider
+                            menuButton(icon: "me_about", title: "关于 CPcash") { navigate(.about) }
+                        }
                     }
+                    .padding(.horizontal, widthClass.horizontalPadding)
+                    .padding(.top, 12)
+                    .padding(.bottom, widthClass == .max ? 28 : 20)
                 }
-                .padding(.horizontal, widthClass.horizontalPadding)
-                .padding(.top, topClearance(for: widthClass))
-                .padding(.bottom, widthClass == .max ? 28 : 20)
-            }
-            .background(Color.clear)
-            .task {
-                await state.loadMeRootData()
-            }
-            .refreshable {
-                await state.loadMeRootData()
+                .background(Color.clear)
+                .task {
+                    await meStore.loadMeRootData()
+                }
+                .refreshable {
+                    await meStore.loadMeRootData()
+                }
             }
         }
     }
@@ -86,8 +94,8 @@ struct MeView: View {
                             .font(.system(size: 13))
                             .foregroundStyle(ThemeTokens.secondary)
                         Button {
-                            UIPasteboard.general.string = state.activeAddress
-                            state.showInfoToast("地址已复制")
+                            UIPasteboard.general.string = sessionStore.activeAddress
+                            uiStore.showInfoToast("地址已复制")
                         } label: {
                             Image(systemName: "doc.on.doc")
                                 .font(.system(size: 13, weight: .medium))
@@ -109,37 +117,15 @@ struct MeView: View {
     }
 
     private var avatar: some View {
-        Group {
-            if let avatarURL = state.meProfile?.avatar,
-               let url = resolvedAvatarURL(avatarURL),
-               !avatarURL.isEmpty
-            {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        avatarFallback
-                    }
-                }
-            } else {
-                avatarFallback
-            }
+        RemoteImageView(
+            rawURL: meStore.profile?.avatar,
+            baseURL: sessionStore.environment.baseURL,
+            contentMode: .fill
+        ) {
+            avatarFallback
         }
         .frame(width: 48, height: 48)
         .clipShape(Circle())
-    }
-
-    private func resolvedAvatarURL(_ raw: String) -> URL? {
-        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !value.isEmpty else { return nil }
-        if let absolute = URL(string: value), absolute.scheme != nil {
-            return absolute
-        }
-        let trimmed = value.hasPrefix("/") ? String(value.dropFirst()) : value
-        return state.environment.baseURL.appendingPathComponent(trimmed)
     }
 
     private var avatarFallback: some View {
@@ -164,7 +150,7 @@ struct MeView: View {
     }
 
     private var displayName: String {
-        let raw = state.meProfile?.nickname?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = meStore.profile?.nickname?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let raw, !raw.isEmpty {
             return raw
         }
@@ -172,7 +158,7 @@ struct MeView: View {
     }
 
     private var shortAddress: String {
-        let value = state.activeAddress
+        let value = sessionStore.activeAddress
         guard value.count > 12 else { return value }
         return "\(value.prefix(6))...\(value.suffix(4))"
     }
@@ -193,16 +179,13 @@ struct MeView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func topClearance(for widthClass: DeviceWidthClass) -> CGFloat {
-        switch widthClass {
-        case .compact:
-            return 52
-        case .regular:
-            return 56
-        case .plus:
-            return 60
-        case .max:
-            return 64
-        }
-    }
+}
+
+#Preview("MeView") {
+    let appState = AppState()
+    MeView(
+        sessionStore: SessionStore(appState: appState),
+        meStore: MeStore(appState: appState),
+        uiStore: UIStore(appState: appState)
+    ) { _ in }
 }

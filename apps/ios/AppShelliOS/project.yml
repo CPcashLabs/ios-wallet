@@ -13,6 +13,9 @@ settings:
 packages:
   WalletAppSwift:
     path: ../../..
+  Nuke:
+    url: https://github.com/kean/Nuke.git
+    from: 12.8.0
 
 targets:
   AppShelliOS:
@@ -45,6 +48,8 @@ targets:
         product: WebDAppContainer
       - package: WalletAppSwift
         product: NftGalleryModule
+      - package: Nuke
+        product: NukeUI
 
 schemes:
   AppShelliOS:

@@ -62,10 +62,6 @@ private struct FullscreenNavigationModifier: ViewModifier {
             content
                 .toolbarBackground(.visible, for: .navigationBar)
                 .toolbarBackground(ThemeTokens.groupBackground, for: .navigationBar)
-                // Keep all page content below the inline navigation bar.
-                .safeAreaInset(edge: .top) {
-                    Color.clear.frame(height: 44)
-                }
         }
     }
 }

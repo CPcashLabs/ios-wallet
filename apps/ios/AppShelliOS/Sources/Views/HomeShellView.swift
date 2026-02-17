@@ -48,12 +48,16 @@ enum MeRoute: Hashable {
 }
 
 struct HomeShellView: View {
-    @ObservedObject var state: AppState
+    let appStore: AppStore
 
     @State private var selectedTab: HomeShellTab = .home
     @StateObject private var navigationGuard = NavigationGuard()
     @State private var mePath: [MeRoute] = []
     @State private var homePath: [HomeRoute] = []
+
+    private var state: AppState {
+        appStore.appState
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -80,17 +84,16 @@ struct HomeShellView: View {
     private var homeTab: some View {
         NavigationStack(path: $homePath) {
             HomeView(
-                state: state,
+                sessionStore: appStore.sessionStore,
+                homeStore: appStore.homeStore,
                 onShortcutTap: handleShortcutTap,
                 onBannerTap: { state.showInfoToast("Banner 跳转功能开发中") },
                 onRecentMessageTap: {
                     pushHomeRoute(.messageCenter)
                 }
             )
-            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(.hidden, for: .navigationBar)
-            .fullscreenScaffold(backgroundStyle: .globalImage, hideNavigationBar: true)
+            .toolbar(homePath.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .messageCenter:
@@ -178,18 +181,27 @@ struct HomeShellView: View {
 
     private var meTab: some View {
         NavigationStack(path: $mePath) {
-            MeView(state: state) { route in
+            MeView(
+                sessionStore: appStore.sessionStore,
+                meStore: appStore.meStore,
+                uiStore: appStore.uiStore
+            ) { route in
                 if route == .meRoot {
                     mePath = []
                 } else {
                     pushMeRoute(route)
                 }
             }
-            .fullscreenScaffold(backgroundStyle: .globalImage, hideNavigationBar: true)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(mePath.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: MeRoute.self) { route in
                 switch route {
                 case .meRoot:
-                    MeView(state: state) { nestedRoute in
+                    MeView(
+                        sessionStore: appStore.sessionStore,
+                        meStore: appStore.meStore,
+                        uiStore: appStore.uiStore
+                    ) { nestedRoute in
                         pushMeRoute(nestedRoute)
                     }
                 case .settings:

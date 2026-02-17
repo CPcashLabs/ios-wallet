@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var state = AppState()
+    @StateObject private var appStore = AppStore()
     @AppStorage("settings.darkMode") private var darkMode = false
 
     var body: some View {
@@ -9,21 +9,21 @@ struct ContentView: View {
             GlobalFullscreenBackground()
 
             Group {
-                switch state.rootScreen {
+                switch appStore.rootScreen {
                 case .login:
-                    LoginView(state: state)
+                    LoginView(state: appStore.appState)
                 case .home:
-                    HomeShellView(state: state)
+                    HomeShellView(appStore: appStore)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            ToastView(toast: state.toast)
+            ToastView(toast: appStore.toast)
                 .padding(.top, 8)
                 .padding(.horizontal, 16)
         }
         .task {
-            state.boot()
+            appStore.boot()
         }
         .preferredColorScheme(darkMode ? .dark : .light)
     }

@@ -30,7 +30,8 @@ enum HomeShortcut: CaseIterable {
 }
 
 struct HomeView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var homeStore: HomeStore
     let onShortcutTap: (HomeShortcut) -> Void
     let onBannerTap: () -> Void
     let onRecentMessageTap: () -> Void
@@ -42,38 +43,44 @@ struct HomeView: View {
     private let banners = ["home_banner_1", "home_banner_2", "home_banner_3"]
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [ThemeTokens.homeTopGradient.opacity(0.72), Color.clear],
-                startPoint: .top,
-                endPoint: .center
-            )
-            .ignoresSafeArea(.all)
+        AdaptiveReader { widthClass in
+            TopSafeAreaHeaderScaffold(
+                backgroundStyle: .globalImage,
+                headerBackground: ThemeTokens.groupBackground.opacity(0.94)
+            ) {
+                topBrandHeader(widthClass: widthClass)
+            } content: {
+                ZStack(alignment: .top) {
+                    LinearGradient(
+                        colors: [ThemeTokens.homeTopGradient.opacity(0.72), Color.clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                    .frame(height: 260)
+                    .frame(maxWidth: .infinity)
 
-            AdaptiveReader { widthClass in
-                ScrollView {
-                    VStack(spacing: sectionSpacing(for: widthClass)) {
-                        topBrandHeader(widthClass: widthClass)
-                        balanceCard(widthClass: widthClass)
-                        quickEntryRow(widthClass: widthClass)
-                        bannerSection(widthClass: widthClass)
-                        recentMessageSection(widthClass: widthClass)
+                    ScrollView {
+                        VStack(spacing: sectionSpacing(for: widthClass)) {
+                            balanceCard(widthClass: widthClass)
+                            quickEntryRow(widthClass: widthClass)
+                            bannerSection(widthClass: widthClass)
+                            recentMessageSection(widthClass: widthClass)
+                        }
+                        .padding(.horizontal, widthClass.horizontalPadding)
+                        .padding(.top, 12)
+                        .padding(.bottom, widthClass == .max ? 36 : 24)
                     }
-                    .padding(.horizontal, widthClass.horizontalPadding)
-                    .padding(.top, topClearance(for: widthClass))
-                    .padding(.bottom, widthClass == .max ? 36 : 24)
-                }
-                .refreshable {
-                    await refreshHomeData(withHaptic: true)
-                }
-                .task {
-                    if state.homeRecentMessages.isEmpty {
-                        await refreshHomeData(withHaptic: false)
+                    .refreshable {
+                        await refreshHomeData(withHaptic: true)
+                    }
+                    .task {
+                        if homeStore.homeRecentMessages.isEmpty {
+                            await refreshHomeData(withHaptic: false)
+                        }
                     }
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func topBrandHeader(widthClass: DeviceWidthClass) -> some View {
@@ -90,7 +97,7 @@ struct HomeView: View {
             }
             Spacer()
             HStack(spacing: 8) {
-                Text("\(state.selectedChainName) · \(shortAddress(state.activeAddress))")
+                Text("\(sessionStore.selectedChainName) · \(shortAddress(sessionStore.activeAddress))")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(ThemeTokens.secondary)
                     .lineLimit(1)
@@ -109,7 +116,7 @@ struct HomeView: View {
     }
 
     private func refreshHomeData(withHaptic: Bool) async {
-        await state.refreshHomeData()
+        await homeStore.refreshHomeData()
         guard withHaptic else { return }
         Haptics.lightImpact()
     }
@@ -170,8 +177,8 @@ struct HomeView: View {
 
     private func bannerSection(widthClass: DeviceWidthClass) -> some View {
         TabView(selection: $selectedBanner) {
-            ForEach(Array(banners.enumerated()), id: \.offset) { index, banner in
-                bannerCard(asset: banner)
+            ForEach(Array(banners.indices), id: \.self) { index in
+                bannerCard(asset: banners[index])
                     .tag(index)
             }
         }
@@ -201,8 +208,8 @@ struct HomeView: View {
 
     private func recentMessageSection(widthClass: DeviceWidthClass) -> some View {
         Button {
-            guard !state.homeRecentMessages.isEmpty else { return }
-            if let firstID = state.homeRecentMessages.first?.id {
+            guard !homeStore.homeRecentMessages.isEmpty else { return }
+            if let firstID = homeStore.homeRecentMessages.first?.id {
                 latestMessageId = String(firstID)
             }
             Haptics.lightImpact()
@@ -214,7 +221,7 @@ struct HomeView: View {
                         .font(.system(size: 14))
                         .foregroundStyle(ThemeTokens.title)
                     Spacer()
-                    if !state.homeRecentMessages.isEmpty {
+                    if !homeStore.homeRecentMessages.isEmpty {
                         HStack(spacing: 6) {
                             if hasNewMessage {
                                 Text("New")
@@ -231,7 +238,7 @@ struct HomeView: View {
                     }
                 }
 
-                if state.homeRecentMessages.isEmpty {
+                if homeStore.homeRecentMessages.isEmpty {
                     VStack(spacing: 8) {
                         Image("home_no_data")
                             .resizable()
@@ -245,19 +252,19 @@ struct HomeView: View {
                     .frame(minHeight: emptyMessageHeight(for: widthClass))
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(Array(state.homeRecentMessages.enumerated()), id: \.offset) { index, item in
+                        ForEach(recentMessageRows) { row in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(messageTitle(item))
+                                Text(messageTitle(row.item))
                                     .font(.system(size: 13, weight: .medium))
                                     .foregroundStyle(ThemeTokens.title)
                                     .lineLimit(1)
-                                Text(messageContent(item))
+                                Text(messageContent(row.item))
                                     .font(.system(size: 12))
                                     .foregroundStyle(ThemeTokens.secondary)
                                     .lineLimit(2)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            if index < state.homeRecentMessages.count - 1 {
+                            if row.index < recentMessageRows.count - 1 {
                                 Divider()
                             }
                         }
@@ -273,12 +280,19 @@ struct HomeView: View {
     }
 
     private var hasNewMessage: Bool {
-        guard let first = state.homeRecentMessages.first?.id else { return false }
+        guard let first = homeStore.homeRecentMessages.first?.id else { return false }
         return String(first) != latestMessageId
     }
 
+    private var recentMessageRows: [RecentMessageRow] {
+        Array(homeStore.homeRecentMessages.enumerated()).map { index, item in
+            let itemID = item.id.map(String.init) ?? "row-\(index)"
+            return RecentMessageRow(id: itemID, index: index, item: item)
+        }
+    }
+
     private var formattedTotalBalance: String {
-        let total = state.coins.reduce(0.0) { partial, coin in
+        let total = homeStore.coins.reduce(0.0) { partial, coin in
             partial + coinBalance(coin)
         }
         return String(format: "$ %.2f", total)
@@ -319,19 +333,6 @@ struct HomeView: View {
             return 18
         case .max:
             return 22
-        }
-    }
-
-    private func topClearance(for widthClass: DeviceWidthClass) -> CGFloat {
-        switch widthClass {
-        case .compact:
-            return 52
-        case .regular:
-            return 56
-        case .plus:
-            return 60
-        case .max:
-            return 64
         }
     }
 
@@ -412,4 +413,21 @@ struct HomeView: View {
             return 172
         }
     }
+}
+
+private struct RecentMessageRow: Identifiable {
+    let id: String
+    let index: Int
+    let item: MessageItem
+}
+
+#Preview("HomeView") {
+    let appState = AppState()
+    HomeView(
+        sessionStore: SessionStore(appState: appState),
+        homeStore: HomeStore(appState: appState),
+        onShortcutTap: { _ in },
+        onBannerTap: {},
+        onRecentMessageTap: {}
+    )
 }

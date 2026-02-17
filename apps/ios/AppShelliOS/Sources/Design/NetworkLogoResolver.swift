@@ -62,17 +62,14 @@ struct NetworkLogoView: View {
             } else if let url = NetworkLogoResolver.resolvedURL(baseURL: baseURL, raw: logoURL),
                       NetworkLogoResolver.isRasterURL(url)
             {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .clipShape(Circle())
-                    default:
-                        fallback
-                    }
+                RemoteImageView(
+                    rawURL: logoURL,
+                    baseURL: baseURL,
+                    contentMode: .fit
+                ) {
+                    fallback
                 }
+                .clipShape(Circle())
             } else {
                 fallback
             }

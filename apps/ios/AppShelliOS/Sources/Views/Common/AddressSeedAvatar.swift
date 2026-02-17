@@ -4,36 +4,18 @@ struct AddressSeedAvatar: View {
     let size: CGFloat
     let address: String
     let avatarURL: String?
+    private let defaultAvatarBaseURL = URL(string: "https://charprotocol.dev")
 
     var body: some View {
-        if let url = resolvedAvatarURL
-        {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case let .success(image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                default:
-                    seededAvatar
-                }
-            }
-            .frame(width: size, height: size)
-            .clipShape(Circle())
-        } else {
+        RemoteImageView(
+            rawURL: avatarURL,
+            baseURL: defaultAvatarBaseURL,
+            contentMode: .fill
+        ) {
             seededAvatar
         }
-    }
-
-    private var resolvedAvatarURL: URL? {
-        guard let avatarURL else { return nil }
-        let value = avatarURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !value.isEmpty else { return nil }
-        if let absolute = URL(string: value), absolute.scheme != nil {
-            return absolute
-        }
-        let trimmed = value.hasPrefix("/") ? String(value.dropFirst()) : value
-        return URL(string: "https://charprotocol.dev")?.appendingPathComponent(trimmed)
+        .frame(width: size, height: size)
+        .clipShape(Circle())
     }
 
     private var seededAvatar: some View {

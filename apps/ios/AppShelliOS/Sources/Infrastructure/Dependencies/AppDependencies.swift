@@ -1,6 +1,7 @@
 import BackendAPI
 import CoreRuntime
 import Foundation
+import SecurityCore
 
 protocol BackendServing {
     var auth: AuthServicing { get }
@@ -44,6 +45,7 @@ extension SecurityServing {
 
 extension StubSecurityCore: SecurityServing {}
 
+@MainActor
 protocol PasskeyServing: AnyObject {
     func accounts() -> [LocalPasskeyAccount]
     func register(displayName: String) async throws -> LocalPasskeyAccount
@@ -85,6 +87,7 @@ struct AppDependencies {
     let idGenerator: AppIDGenerator
     let logger: AppLogger
 
+    @MainActor
     static func live() -> AppDependencies {
         AppDependencies(
             securityService: StubSecurityCore(),

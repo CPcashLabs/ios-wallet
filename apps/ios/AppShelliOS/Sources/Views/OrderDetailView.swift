@@ -184,10 +184,6 @@ struct OrderDetailView: View {
     }
 
     private func formatTimestamp(_ timestamp: Int) -> String {
-        let seconds = timestamp > 1_000_000_000_000 ? TimeInterval(timestamp) / 1000 : TimeInterval(timestamp)
-        let date = Date(timeIntervalSince1970: seconds)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter.string(from: date)
+        DateTextFormatter.yearMonthDayMinute(fromTimestamp: timestamp, fallback: "-")
     }
 }

@@ -12,7 +12,7 @@ struct ReceiveShareView: View {
         FullscreenScaffold(backgroundStyle: .globalImage) {
             ScrollView {
                 VStack(spacing: 16) {
-                    if state.isLoading("receive.share") {
+                    if state.isLoading(.receiveShare) {
                         ProgressView("生成分享卡片...")
                             .padding(.top, 30)
                     } else {

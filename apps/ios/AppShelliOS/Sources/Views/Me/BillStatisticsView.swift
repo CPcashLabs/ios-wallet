@@ -124,7 +124,7 @@ struct BillStatisticsView: View {
 
             Divider()
 
-            if state.isLoading("me.bill.aggregate") {
+            if state.isLoading(.meBillAggregate) {
                 ProgressView("加载中")
                     .padding(.vertical, 22)
             } else if state.billAddressAggList.isEmpty {
@@ -209,8 +209,7 @@ struct BillStatisticsView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 14 else { return value }
-        return "\(value.prefix(8))...\(value.suffix(4))"
+        AddressFormatter.shortened(value, leading: 8, trailing: 4, threshold: 14)
     }
 
     private func valueText(_ value: JSONValue?) -> String {

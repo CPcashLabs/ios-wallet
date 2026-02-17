@@ -270,7 +270,7 @@ final class AppState: ObservableObject {
     private let appLogger: AppLogger
     private let selectedChainStorageKey = "cpcash.selected.chain.id"
 
-    init(dependencies: AppDependencies = .live()) {
+    init(dependencies: AppDependencies) {
         let env = EnvironmentConfig.default
         environment = env
         securityService = dependencies.securityService
@@ -280,6 +280,10 @@ final class AppState: ObservableObject {
         clock = dependencies.clock
         idGenerator = dependencies.idGenerator
         appLogger = dependencies.logger
+    }
+
+    convenience init() {
+        self.init(dependencies: .live())
     }
 
     deinit {
@@ -371,8 +375,8 @@ final class AppState: ObservableObject {
     }
 
     func loadMeRootData() async {
-        setLoading("me.root", true)
-        defer { setLoading("me.root", false) }
+        setLoading(LoadKey.meRoot, true)
+        defer { setLoading(LoadKey.meRoot, false) }
 
         do {
             async let profileTask = backend.auth.currentUser()
@@ -390,17 +394,17 @@ final class AppState: ObservableObject {
             if let current = rates.first?.currency, !current.isEmpty {
                 selectedCurrency = current
             }
-            clearError("me.root")
+            clearError(LoadKey.meRoot)
         } catch {
-            setError("me.root", error)
+            setError(LoadKey.meRoot, error)
             log("我的页面基础数据加载失败: \(error)")
         }
     }
 
     func loadMessages(page: Int, append: Bool) async {
-        guard !isLoading("me.message.list") else { return }
-        setLoading("me.message.list", true)
-        defer { setLoading("me.message.list", false) }
+        guard !isLoading(LoadKey.meMessageList) else { return }
+        setLoading(LoadKey.meMessageList, true)
+        defer { setLoading(LoadKey.meMessageList, false) }
         do {
             let response = try await backend.message.list(page: page, perPage: 10)
             if append {
@@ -410,10 +414,10 @@ final class AppState: ObservableObject {
             }
             messagePage = response.page ?? page
             messageLastPage = computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
-            clearError("me.message.list")
+            clearError(LoadKey.meMessageList)
             log("消息列表加载成功: page=\(messagePage), count=\(messageList.count)")
         } catch {
-            setError("me.message.list", error)
+            setError(LoadKey.meMessageList, error)
             log("消息列表加载失败: \(error)")
         }
     }
@@ -422,9 +426,9 @@ final class AppState: ObservableObject {
         do {
             try await backend.message.markRead(id: id)
             await loadMessages(page: 1, append: false)
-            clearError("me.message.read")
+            clearError(LoadKey.meMessageRead)
         } catch {
-            setError("me.message.read", error)
+            setError(LoadKey.meMessageRead, error)
             showToast("标记已读失败", theme: .error)
             log("标记消息已读失败: \(error)")
         }
@@ -435,23 +439,23 @@ final class AppState: ObservableObject {
             try await backend.message.markAllRead()
             await loadMessages(page: 1, append: false)
             showToast("已全部标记为已读", theme: .success)
-            clearError("me.message.readall")
+            clearError(LoadKey.meMessageReadAll)
         } catch {
-            setError("me.message.readall", error)
+            setError(LoadKey.meMessageReadAll, error)
             showToast("全部已读失败", theme: .error)
             log("全部标记已读失败: \(error)")
         }
     }
 
     func loadAddressBooks() async {
-        setLoading("me.addressbook.list", true)
-        defer { setLoading("me.addressbook.list", false) }
+        setLoading(LoadKey.meAddressbookList, true)
+        defer { setLoading(LoadKey.meAddressbookList, false) }
         do {
             addressBooks = try await backend.addressBook.list()
-            clearError("me.addressbook.list")
+            clearError(LoadKey.meAddressbookList)
             log("地址簿加载成功: \(addressBooks.count)")
         } catch {
-            setError("me.addressbook.list", error)
+            setError(LoadKey.meAddressbookList, error)
             log("地址簿加载失败: \(error)")
         }
     }
@@ -463,10 +467,10 @@ final class AppState: ObservableObject {
             )
             showToast("地址簿添加成功", theme: .success)
             await loadAddressBooks()
-            clearError("me.addressbook.create")
+            clearError(LoadKey.meAddressbookCreate)
             return true
         } catch {
-            setError("me.addressbook.create", error)
+            setError(LoadKey.meAddressbookCreate, error)
             showToast("地址簿添加失败", theme: .error)
             log("地址簿新增失败: \(error)")
             return false
@@ -481,10 +485,10 @@ final class AppState: ObservableObject {
             )
             showToast("地址簿更新成功", theme: .success)
             await loadAddressBooks()
-            clearError("me.addressbook.update")
+            clearError(LoadKey.meAddressbookUpdate)
             return true
         } catch {
-            setError("me.addressbook.update", error)
+            setError(LoadKey.meAddressbookUpdate, error)
             showToast("地址簿更新失败", theme: .error)
             log("地址簿更新失败: \(error)")
             return false
@@ -496,17 +500,17 @@ final class AppState: ObservableObject {
             try await backend.addressBook.delete(id: id)
             showToast("地址簿删除成功", theme: .success)
             addressBooks.removeAll { "\($0.id ?? -1)" == id }
-            clearError("me.addressbook.delete")
+            clearError(LoadKey.meAddressbookDelete)
         } catch {
-            setError("me.addressbook.delete", error)
+            setError(LoadKey.meAddressbookDelete, error)
             showToast("地址簿删除失败", theme: .error)
             log("地址簿删除失败: \(error)")
         }
     }
 
     func loadBillList(filter: BillFilter, append: Bool = false) async {
-        setLoading("me.bill.list", true)
-        defer { setLoading("me.bill.list", false) }
+        setLoading(LoadKey.meBillList, true)
+        defer { setLoading(LoadKey.meBillList, false) }
         do {
             let response = try await backend.bill.list(filter: filter)
             billFilter = filter
@@ -519,10 +523,10 @@ final class AppState: ObservableObject {
             billCurrentPage = response.page ?? filter.page
             billTotal = response.total ?? billList.count
             billLastPage = computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
-            clearError("me.bill.list")
+            clearError(LoadKey.meBillList)
             log("账单列表加载成功: \(billList.count)")
         } catch {
-            setError("me.bill.list", error)
+            setError(LoadKey.meBillList, error)
             log("账单列表加载失败: \(error)")
         }
     }
@@ -537,27 +541,27 @@ final class AppState: ObservableObject {
     }
 
     func loadBillStatistics(range: BillTimeRange) async {
-        setLoading("me.bill.stat", true)
-        defer { setLoading("me.bill.stat", false) }
+        setLoading(LoadKey.meBillStat, true)
+        defer { setLoading(LoadKey.meBillStat, false) }
         do {
             billStats = try await backend.bill.statAllAddressStat(range: range)
-            clearError("me.bill.stat")
+            clearError(LoadKey.meBillStat)
         } catch {
-            setError("me.bill.stat", error)
+            setError(LoadKey.meBillStat, error)
             log("账单统计加载失败: \(error)")
         }
     }
 
     func loadBillAddressAggregate(range: BillTimeRange, page: Int = 1, perPage: Int = 50) async {
-        setLoading("me.bill.aggregate", true)
-        defer { setLoading("me.bill.aggregate", false) }
+        setLoading(LoadKey.meBillAggregate, true)
+        defer { setLoading(LoadKey.meBillAggregate, false) }
         do {
             let response = try await backend.bill.statAllAddressPage(range: range, page: page, perPage: perPage)
             billAddressAggList = response.data
-            clearError("me.bill.aggregate")
+            clearError(LoadKey.meBillAggregate)
             log("账单地址聚合加载成功: \(billAddressAggList.count)")
         } catch {
-            setError("me.bill.aggregate", error)
+            setError(LoadKey.meBillAggregate, error)
             log("账单地址聚合加载失败: \(error)")
         }
     }
@@ -567,17 +571,17 @@ final class AppState: ObservableObject {
             try await backend.profile.update(request: ProfileUpdateRequest(nickname: nickname, avatar: nil))
             meProfile = try await backend.auth.currentUser()
             showToast("昵称更新成功", theme: .success)
-            clearError("me.profile.nickname")
+            clearError(LoadKey.meProfileNickname)
         } catch {
-            setError("me.profile.nickname", error)
+            setError(LoadKey.meProfileNickname, error)
             showToast("昵称更新失败", theme: .error)
             log("昵称更新失败: \(error)")
         }
     }
 
     func updateAvatar(fileData: Data, fileName: String = "avatar.jpg", mimeType: String = "image/jpeg") async {
-        setLoading("me.profile.avatar", true)
-        defer { setLoading("me.profile.avatar", false) }
+        setLoading(LoadKey.meProfileAvatar, true)
+        defer { setLoading(LoadKey.meProfileAvatar, false) }
         do {
             let upload = try await backend.profile.uploadAvatar(fileData: fileData, fileName: fileName, mimeType: mimeType)
             let avatarURL = upload.url?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -589,17 +593,17 @@ final class AppState: ObservableObject {
             meProfile = profile
             userProfile = profile
             showToast("头像更新成功", theme: .success)
-            clearError("me.profile.avatar")
+            clearError(LoadKey.meProfileAvatar)
         } catch {
-            setError("me.profile.avatar", error)
+            setError(LoadKey.meProfileAvatar, error)
             showToast(simplifyError(error), theme: .error)
             log("头像更新失败: \(error)")
         }
     }
 
     func loadExchangeRates() async {
-        setLoading("me.settings.rates", true)
-        defer { setLoading("me.settings.rates", false) }
+        setLoading(LoadKey.meSettingsRates, true)
+        defer { setLoading(LoadKey.meSettingsRates, false) }
         do {
             exchangeRates = try await backend.settings.exchangeRateByUSD()
             let current = selectedCurrency.uppercased()
@@ -607,9 +611,9 @@ final class AppState: ObservableObject {
             if !hasCurrent, let currency = exchangeRates.first?.currency, !currency.isEmpty {
                 selectedCurrency = currency
             }
-            clearError("me.settings.rates")
+            clearError(LoadKey.meSettingsRates)
         } catch {
-            setError("me.settings.rates", error)
+            setError(LoadKey.meSettingsRates, error)
             log("汇率列表加载失败: \(error)")
         }
     }
@@ -623,9 +627,9 @@ final class AppState: ObservableObject {
         do {
             try await backend.settings.setTransferEmailNotify(enable: enable)
             transferEmailNotify = enable
-            clearError("me.settings.transferNotify")
+            clearError(LoadKey.meSettingsTransferNotify)
         } catch {
-            setError("me.settings.transferNotify", error)
+            setError(LoadKey.meSettingsTransferNotify, error)
             showToast("转账通知更新失败", theme: .error)
         }
     }
@@ -634,9 +638,9 @@ final class AppState: ObservableObject {
         do {
             try await backend.settings.setRewardEmailNotify(enable: enable)
             rewardEmailNotify = enable
-            clearError("me.settings.rewardNotify")
+            clearError(LoadKey.meSettingsRewardNotify)
         } catch {
-            setError("me.settings.rewardNotify", error)
+            setError(LoadKey.meSettingsRewardNotify, error)
             showToast("奖励通知更新失败", theme: .error)
         }
     }
@@ -645,9 +649,9 @@ final class AppState: ObservableObject {
         do {
             try await backend.settings.setReceiptEmailNotify(enable: enable)
             receiptEmailNotify = enable
-            clearError("me.settings.receiptNotify")
+            clearError(LoadKey.meSettingsReceiptNotify)
         } catch {
-            setError("me.settings.receiptNotify", error)
+            setError(LoadKey.meSettingsReceiptNotify, error)
             showToast("收据通知更新失败", theme: .error)
         }
     }
@@ -656,9 +660,9 @@ final class AppState: ObservableObject {
         do {
             try await backend.settings.setBackupWalletNotify(enable: enable)
             backupWalletNotify = enable
-            clearError("me.settings.backupNotify")
+            clearError(LoadKey.meSettingsBackupNotify)
         } catch {
-            setError("me.settings.backupNotify", error)
+            setError(LoadKey.meSettingsBackupNotify, error)
             showToast("备份通知更新失败", theme: .error)
         }
     }
@@ -692,8 +696,8 @@ final class AppState: ObservableObject {
     }
 
     func loadTransferSelectNetwork() async {
-        setLoading("transfer.selectNetwork", true)
-        defer { setLoading("transfer.selectNetwork", false) }
+        setLoading(LoadKey.transferSelectNetwork, true)
+        defer { setLoading(LoadKey.transferSelectNetwork, false) }
 
         do {
             let query = AllowListQuery(
@@ -776,9 +780,9 @@ final class AppState: ObservableObject {
             if transferSelectedNetworkId == nil, let first = transferSelectNetworks.first {
                 configureTransferNetwork(first)
             }
-            clearError("transfer.selectNetwork")
+            clearError(LoadKey.transferSelectNetwork)
         } catch {
-            setError("transfer.selectNetwork", error)
+            setError(LoadKey.transferSelectNetwork, error)
             transferNormalNetworks = [
                 TransferNetworkItem(
                     id: "normal:CPcash",
@@ -905,10 +909,10 @@ final class AppState: ObservableObject {
                 sendChainName: sendChain,
                 recvChainName: recvChain
             )
-            clearError("transfer.address.candidates")
+            clearError(LoadKey.transferAddressCandidates)
             log("转账最近联系人加载成功: \(transferRecentContacts.count)")
         } catch {
-            setError("transfer.address.candidates", error)
+            setError(LoadKey.transferAddressCandidates, error)
             transferRecentContacts = []
             log("转账最近联系人加载失败: \(error)")
         }
@@ -948,8 +952,8 @@ final class AppState: ObservableObject {
             return true
         }
 
-        setLoading("transfer.prepare", true)
-        defer { setLoading("transfer.prepare", false) }
+        setLoading(LoadKey.transferPrepare, true)
+        defer { setLoading(LoadKey.transferPrepare, false) }
         do {
             let result = try await backend.order.createPayment(
                 request: CreatePaymentRequest(
@@ -979,9 +983,9 @@ final class AppState: ObservableObject {
             showToast("登录会话失效，请重新登录", theme: .error)
             return false
         }
-        guard !isLoading("transfer.pay") else { return false }
-        setLoading("transfer.pay", true)
-        defer { setLoading("transfer.pay", false) }
+        guard !isLoading(LoadKey.transferPay) else { return false }
+        setLoading(LoadKey.transferPay, true)
+        defer { setLoading(LoadKey.transferPay, false) }
 
         do {
             let payment = try buildTransferExecutionContext()
@@ -1079,8 +1083,8 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveSelectNetwork() async {
-        setLoading("receive.selectNetwork", true)
-        defer { setLoading("receive.selectNetwork", false) }
+        setLoading(LoadKey.receiveSelectNetwork, true)
+        defer { setLoading(LoadKey.receiveSelectNetwork, false) }
 
         do {
             let query = AllowListQuery(
@@ -1159,9 +1163,9 @@ final class AppState: ObservableObject {
             if receiveSelectedNetworkId == nil, let first = receiveSelectNetworks.first {
                 configureReceiveNetwork(first)
             }
-            clearError("receive.selectNetwork")
+            clearError(LoadKey.receiveSelectNetwork)
         } catch {
-            setError("receive.selectNetwork", error)
+            setError(LoadKey.receiveSelectNetwork, error)
             receiveNormalNetworks = [
                 ReceiveNetworkItem(
                     id: "normal:CPcash",
@@ -1220,8 +1224,8 @@ final class AppState: ObservableObject {
     }
 
     func loadReceiveHome(autoCreateIfMissing: Bool = true) async {
-        setLoading("receive.home", true)
-        defer { setLoading("receive.home", false) }
+        setLoading(LoadKey.receiveHome, true)
+        defer { setLoading(LoadKey.receiveHome, false) }
 
         if receiveDomainState.selectedIsNormalChannel {
             individualTraceOrder = nil
@@ -1232,7 +1236,7 @@ final class AppState: ObservableObject {
             receiveDomainState.businessOrderSN = nil
             receiveDomainState.receiveMinAmount = 0
             receiveDomainState.receiveMaxAmount = 0
-            clearError("receive.home")
+            clearError(LoadKey.receiveHome)
             return
         }
 
@@ -1298,9 +1302,9 @@ final class AppState: ObservableObject {
             } else if let orderSN = receiveDomainState.activeTab == .individuals ? receiveDomainState.individualOrderSN : receiveDomainState.businessOrderSN {
                 await refreshTraceShow(orderSN: orderSN)
             }
-            clearError("receive.home")
+            clearError(LoadKey.receiveHome)
         } catch {
-            setError("receive.home", error)
+            setError(LoadKey.receiveHome, error)
             log("收款主页加载失败: \(error)")
         }
     }
@@ -1336,9 +1340,9 @@ final class AppState: ObservableObject {
             {
                 businessTraceDetail = detail
             }
-            clearError("receive.detail")
+            clearError(LoadKey.receiveDetail)
         } catch {
-            setError("receive.detail", error)
+            setError(LoadKey.receiveDetail, error)
             log("收款详情刷新失败: \(error)")
         }
     }
@@ -1349,8 +1353,8 @@ final class AppState: ObservableObject {
         case .valid:
             await loadReceiveHome()
         case .invalid:
-            setLoading("receive.invalid", true)
-            defer { setLoading("receive.invalid", false) }
+            setLoading(LoadKey.receiveInvalid, true)
+            defer { setLoading(LoadKey.receiveInvalid, false) }
             do {
                 let invalidOrderType = receiveDomainState.activeTab == .business ? "TRACE_LONG_TERM" : "TRACE"
                 receiveRecentInvalid = try await backend.receive.recentInvalidTraces(
@@ -1361,9 +1365,9 @@ final class AppState: ObservableObject {
                     recvCoinCode: receiveDomainState.selectedRecvCoinCode,
                     multisigWalletId: nil
                 )
-                clearError("receive.invalid")
+                clearError(LoadKey.receiveInvalid)
             } catch {
-                setError("receive.invalid", error)
+                setError(LoadKey.receiveInvalid, error)
                 log("失效地址加载失败: \(error)")
             }
         }
@@ -1392,35 +1396,35 @@ final class AppState: ObservableObject {
             )
             showToast("已更新默认收款地址", theme: .success)
             await loadReceiveHome()
-            clearError("receive.mark")
+            clearError(LoadKey.receiveMark)
         } catch {
-            setError("receive.mark", error)
+            setError(LoadKey.receiveMark, error)
             showToast("更新默认地址失败", theme: .error)
             log("更新默认收款地址失败: \(error)")
         }
     }
 
     func loadReceiveTraceChildren(orderSN: String, page: Int = 1, perPage: Int = 20) async {
-        setLoading("receive.children", true)
-        defer { setLoading("receive.children", false) }
+        setLoading(LoadKey.receiveChildren, true)
+        defer { setLoading(LoadKey.receiveChildren, false) }
         do {
             let pageData = try await backend.receive.traceChildren(orderSN: orderSN, page: page, perPage: perPage)
             receiveTraceChildren = pageData.data
-            clearError("receive.children")
+            clearError(LoadKey.receiveChildren)
         } catch {
-            setError("receive.children", error)
+            setError(LoadKey.receiveChildren, error)
             log("收款记录加载失败: \(error)")
         }
     }
 
     func loadReceiveShare(orderSN: String) async {
-        setLoading("receive.share", true)
-        defer { setLoading("receive.share", false) }
+        setLoading(LoadKey.receiveShare, true)
+        defer { setLoading(LoadKey.receiveShare, false) }
         do {
             receiveShareDetail = try await backend.receive.receiveShare(orderSN: orderSN)
-            clearError("receive.share")
+            clearError(LoadKey.receiveShare)
         } catch {
-            setError("receive.share", error)
+            setError(LoadKey.receiveShare, error)
             log("收款分享数据加载失败: \(error)")
         }
     }
@@ -1431,9 +1435,9 @@ final class AppState: ObservableObject {
             if !config.durations.isEmpty {
                 receiveExpiryConfig = config
             }
-            clearError("receive.expiry")
+            clearError(LoadKey.receiveExpiry)
         } catch {
-            setError("receive.expiry", error)
+            setError(LoadKey.receiveExpiry, error)
             log("收款地址有效期配置加载失败: \(error)")
         }
     }
@@ -1446,9 +1450,9 @@ final class AppState: ObservableObject {
                 selectedDuration: duration
             )
             showToast("有效期已更新", theme: .success)
-            clearError("receive.expiry.update")
+            clearError(LoadKey.receiveExpiryUpdate)
         } catch {
-            setError("receive.expiry.update", error)
+            setError(LoadKey.receiveExpiryUpdate, error)
             showToast("有效期更新失败", theme: .error)
             log("收款地址有效期更新失败: \(error)")
         }
@@ -2135,8 +2139,16 @@ final class AppState: ObservableObject {
         uiLoadingMap[key] ?? false
     }
 
+    func isLoading(_ key: LoadKey) -> Bool {
+        isLoading(key.rawValue)
+    }
+
     func errorMessage(_ key: String) -> String? {
         uiErrorMap[key]
+    }
+
+    func errorMessage(_ key: LoadKey) -> String? {
+        errorMessage(key.rawValue)
     }
 
     private func computeLastPage(page: Int?, perPage: Int?, total: Int?) -> Bool {
@@ -2150,12 +2162,24 @@ final class AppState: ObservableObject {
         uiLoadingMap[key] = loading
     }
 
+    private func setLoading(_ key: LoadKey, _ loading: Bool) {
+        setLoading(key.rawValue, loading)
+    }
+
     private func setError(_ key: String, _ error: Error) {
         uiErrorMap[key] = simplifyError(error)
     }
 
+    private func setError(_ key: LoadKey, _ error: Error) {
+        setError(key.rawValue, error)
+    }
+
     private func clearError(_ key: String) {
         uiErrorMap[key] = nil
+    }
+
+    private func clearError(_ key: LoadKey) {
+        clearError(key.rawValue)
     }
 
     private func simplifyError(_ error: Error) -> String {

@@ -93,7 +93,6 @@ struct TransferReceiptView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 14 else { return value }
-        return "\(value.prefix(8))...\(value.suffix(6))"
+        AddressFormatter.shortened(value, leading: 8, trailing: 6, threshold: 14)
     }
 }

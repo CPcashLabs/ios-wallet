@@ -154,15 +154,8 @@ struct ReceiveAddressListView: View {
     }
 
     private func formatTimestamp(_ milliseconds: Int) -> String {
-        let date = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000.0)
-        return Self.dateFormatter.string(from: date)
+        DateTextFormatter.yearMonthDay(fromTimestamp: milliseconds, fallback: "-")
     }
-
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
 }
 
 private struct ReceiveAddressRow: Identifiable {

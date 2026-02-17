@@ -1,0 +1,37 @@
+import Foundation
+
+enum LoadKey: String {
+    case meRoot = "me.root"
+    case meMessageList = "me.message.list"
+    case meMessageRead = "me.message.read"
+    case meMessageReadAll = "me.message.readall"
+    case meAddressbookList = "me.addressbook.list"
+    case meAddressbookCreate = "me.addressbook.create"
+    case meAddressbookUpdate = "me.addressbook.update"
+    case meAddressbookDelete = "me.addressbook.delete"
+    case meBillList = "me.bill.list"
+    case meBillStat = "me.bill.stat"
+    case meBillAggregate = "me.bill.aggregate"
+    case meProfileNickname = "me.profile.nickname"
+    case meProfileAvatar = "me.profile.avatar"
+    case meSettingsRates = "me.settings.rates"
+    case meSettingsTransferNotify = "me.settings.transferNotify"
+    case meSettingsRewardNotify = "me.settings.rewardNotify"
+    case meSettingsReceiptNotify = "me.settings.receiptNotify"
+    case meSettingsBackupNotify = "me.settings.backupNotify"
+
+    case transferSelectNetwork = "transfer.selectNetwork"
+    case transferAddressCandidates = "transfer.address.candidates"
+    case transferPrepare = "transfer.prepare"
+    case transferPay = "transfer.pay"
+
+    case receiveSelectNetwork = "receive.selectNetwork"
+    case receiveHome = "receive.home"
+    case receiveDetail = "receive.detail"
+    case receiveInvalid = "receive.invalid"
+    case receiveMark = "receive.mark"
+    case receiveChildren = "receive.children"
+    case receiveShare = "receive.share"
+    case receiveExpiry = "receive.expiry"
+    case receiveExpiryUpdate = "receive.expiry.update"
+}

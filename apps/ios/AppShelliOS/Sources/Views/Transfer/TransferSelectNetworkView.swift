@@ -16,7 +16,7 @@ struct TransferSelectNetworkView: View {
                             title: "In-App Channel (Free)",
                             infoMessage: "Suitable for in-platform transfers with low friction and zero fee"
                         )
-                        if state.isLoading("transfer.selectNetwork"), state.transferNormalNetworks.isEmpty {
+                        if state.isLoading(.transferSelectNetwork), state.transferNormalNetworks.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 60)
                         } else {
@@ -31,7 +31,7 @@ struct TransferSelectNetworkView: View {
                             title: "Proxy Settlement",
                             infoMessage: "Suitable for cross-network settlement routed by CPcash"
                         )
-                        if state.isLoading("transfer.selectNetwork"), state.transferProxyNetworks.isEmpty {
+                        if state.isLoading(.transferSelectNetwork), state.transferProxyNetworks.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 90)
                         } else if state.transferProxyNetworks.isEmpty {

@@ -279,7 +279,6 @@ struct LoginView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 12 else { return value }
-        return "\(value.prefix(6))...\(value.suffix(4))"
+        AddressFormatter.shortened(value, leading: 6, trailing: 4, threshold: 12)
     }
 }

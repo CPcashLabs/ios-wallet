@@ -9,7 +9,7 @@ struct ReceiveTxLogsView: View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading("receive.children") && state.receiveTraceChildren.isEmpty {
+                    if state.isLoading(.receiveChildren) && state.receiveTraceChildren.isEmpty {
                         ProgressView("加载收款记录...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if state.receiveTraceChildren.isEmpty {

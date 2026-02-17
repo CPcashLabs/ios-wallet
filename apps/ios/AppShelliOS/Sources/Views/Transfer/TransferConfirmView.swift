@@ -81,7 +81,7 @@ struct TransferConfirmView: View {
         VStack(spacing: 0) {
             Divider()
             Button {
-                guard !state.isLoading("transfer.pay") else { return }
+                guard !state.isLoading(.transferPay) else { return }
                 let now = Date()
                 if let lastTapAt, now.timeIntervalSince(lastTapAt) < 2 {
                     return
@@ -96,7 +96,7 @@ struct TransferConfirmView: View {
             } label: {
                 HStack {
                     Spacer()
-                    if state.isLoading("transfer.pay") {
+                    if state.isLoading(.transferPay) {
                         ProgressView()
                             .tint(.white)
                     } else {
@@ -115,7 +115,7 @@ struct TransferConfirmView: View {
                 .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
-            .disabled(state.isLoading("transfer.pay"))
+            .disabled(state.isLoading(.transferPay))
         }
     }
 
@@ -158,7 +158,6 @@ struct TransferConfirmView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 14 else { return value }
-        return "\(value.prefix(8))...\(value.suffix(6))"
+        AddressFormatter.shortened(value, leading: 8, trailing: 6, threshold: 14)
     }
 }

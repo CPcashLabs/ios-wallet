@@ -10,7 +10,7 @@ struct SettingUnitView: View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading("me.settings.rates") {
+                    if state.isLoading(.meSettingsRates) {
                         ProgressView("加载中...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {

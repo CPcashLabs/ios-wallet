@@ -154,7 +154,7 @@ struct TransferAmountView: View {
             } label: {
                 HStack {
                     Spacer()
-                    if state.isLoading("transfer.prepare") {
+                    if state.isLoading(.transferPrepare) {
                         ProgressView()
                             .tint(.white)
                     } else {
@@ -173,7 +173,7 @@ struct TransferAmountView: View {
                 .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
-            .disabled(!canSubmit || state.isLoading("transfer.prepare") || nextTriggered)
+            .disabled(!canSubmit || state.isLoading(.transferPrepare) || nextTriggered)
         }
     }
 
@@ -226,7 +226,6 @@ struct TransferAmountView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 14 else { return value }
-        return "\(value.prefix(8))...\(value.suffix(6))"
+        AddressFormatter.shortened(value, leading: 8, trailing: 6, threshold: 14)
     }
 }

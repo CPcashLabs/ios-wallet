@@ -9,7 +9,7 @@ struct AddressBookListView: View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading("me.addressbook.list") {
+                    if state.isLoading(.meAddressbookList) {
                         ProgressView("加载地址簿...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if state.addressBooks.isEmpty {

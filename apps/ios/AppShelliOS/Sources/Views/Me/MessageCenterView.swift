@@ -8,7 +8,7 @@ struct MessageCenterView: View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading("me.message.list") && state.messageList.isEmpty {
+                    if state.isLoading(.meMessageList) && state.messageList.isEmpty {
                         ProgressView("正在加载消息...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if state.messageList.isEmpty {
@@ -23,7 +23,7 @@ struct MessageCenterView: View {
                                         .onAppear {
                                             if row.index == messageRows.count - 1,
                                                !state.messageLastPage,
-                                               !state.isLoading("me.message.list")
+                                               !state.isLoading(.meMessageList)
                                             {
                                                 Task {
                                                     await state.loadMessages(page: state.messagePage + 1, append: true)
@@ -33,7 +33,7 @@ struct MessageCenterView: View {
                                     Divider()
                                 }
 
-                                if state.isLoading("me.message.list") {
+                                if state.isLoading(.meMessageList) {
                                     ProgressView()
                                         .padding(.vertical, 12)
                                 } else if state.messageLastPage {

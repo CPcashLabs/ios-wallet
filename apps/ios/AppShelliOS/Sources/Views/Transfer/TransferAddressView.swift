@@ -202,7 +202,7 @@ struct TransferAddressView: View {
     private func contentSection(widthClass: DeviceWidthClass) -> some View {
         switch selectedTab {
         case .recent:
-            if state.isLoading("transfer.address.candidates"), filteredRecentContacts.isEmpty {
+            if state.isLoading(.transferAddressCandidates), filteredRecentContacts.isEmpty {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 80)
             } else if filteredRecentContacts.isEmpty {
@@ -434,8 +434,7 @@ struct TransferAddressView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 16 else { return value }
-        return "\(value.prefix(8))...\(value.suffix(6))"
+        AddressFormatter.shortened(value, leading: 8, trailing: 6, threshold: 16)
     }
 
     private func recentMeta(_ item: TransferReceiveContact) -> String {
@@ -455,17 +454,8 @@ struct TransferAddressView: View {
     }
 
     private func formatDate(_ ts: Int?) -> String {
-        guard let ts else { return "-" }
-        let seconds: TimeInterval = ts > 1_000_000_000_000 ? TimeInterval(ts) / 1000 : TimeInterval(ts)
-        let date = Date(timeIntervalSince1970: seconds)
-        return Self.dateFormatter.string(from: date)
+        DateTextFormatter.yearMonthDay(fromTimestamp: ts, fallback: "-")
     }
-
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
 }
 
 private struct TransferRecentRow: Identifiable {

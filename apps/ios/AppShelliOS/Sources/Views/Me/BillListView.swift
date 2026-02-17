@@ -35,7 +35,7 @@ struct BillListView: View {
                 VStack(spacing: 0) {
                     topBar(widthClass: widthClass)
 
-                    if state.isLoading("me.bill.list") && state.billList.isEmpty {
+                    if state.isLoading(.meBillList) && state.billList.isEmpty {
                         skeletonList(widthClass: widthClass)
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .padding(.top, 14)
@@ -318,17 +318,11 @@ struct BillListView: View {
     }
 
     private func monthKey(_ timestamp: Int?) -> String {
-        guard let timestamp else { return "未知月份" }
-        let seconds: TimeInterval = timestamp > 1_000_000_000_000 ? TimeInterval(timestamp) / 1000 : TimeInterval(timestamp)
-        let date = Date(timeIntervalSince1970: seconds)
-        return Self.monthFormatter.string(from: date)
+        DateTextFormatter.yearMonth(fromTimestamp: timestamp, fallback: "未知月份")
     }
 
     private func timeText(_ timestamp: Int?) -> String {
-        guard let timestamp else { return "-" }
-        let seconds: TimeInterval = timestamp > 1_000_000_000_000 ? TimeInterval(timestamp) / 1000 : TimeInterval(timestamp)
-        let date = Date(timeIntervalSince1970: seconds)
-        return Self.timeFormatter.string(from: date)
+        DateTextFormatter.yearMonthDayMinute(fromTimestamp: timestamp, fallback: "-")
     }
 
     private func orderTypeTitle(_ orderType: String?) -> String {
@@ -393,8 +387,7 @@ struct BillListView: View {
     }
 
     private func shortAddress(_ value: String) -> String {
-        guard value.count > 14 else { return value }
-        return "\(value.prefix(6))...\(value.suffix(4))"
+        AddressFormatter.shortened(value, leading: 6, trailing: 4, threshold: 14)
     }
 
     private func abnormalStatusText(_ status: Int?) -> String? {
@@ -430,17 +423,6 @@ struct BillListView: View {
         }
     }
 
-    private static let monthFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM"
-        return formatter
-    }()
-
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter
-    }()
 }
 
 private struct BillSectionRow: Identifiable {

@@ -80,6 +80,12 @@
 
 > 兼容策略：`AppState` 仍对外保持原方法与语义，内部逐步委派到 UseCase，不允许业务行为漂移。
 
+## 列表与输入统一规范
+- 稳定 identity：列表行统一通过 `StableRowID` 生成稳定主键，禁止以 `index` 作为唯一标识。
+- 分页并发门禁：滚动分页场景统一使用 `PaginationGate`，避免重复请求与乱序 append。
+- 地址输入解析：扫码/输入归一化统一走 `AddressInputParser`，避免页面各自维护正则与裁剪逻辑。
+- 聚合快照：账单分组统计采用快照构建（`BillSectionSnapshot`）并在数据变更时重建，避免 `body` 周期内重算。
+
 ## 依赖注入约定
 - 统一入口：`AppDependencies`
 - 协议边界：

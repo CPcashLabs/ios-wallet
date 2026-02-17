@@ -51,10 +51,29 @@ targets:
       - package: Nuke
         product: NukeUI
 
+  AppShelliOSTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - Tests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: AppShelliOS
+      - package: WalletAppSwift
+        product: BackendAPI
+
 schemes:
   AppShelliOS:
     build:
       targets:
         AppShelliOS: all
+        AppShelliOSTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - name: AppShelliOSTests

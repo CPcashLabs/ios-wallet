@@ -30,3 +30,6 @@ jobs:
 
       - name: Build iOS app (Simulator)
         run: make ios-build
+
+      - name: Test iOS app (Simulator)
+        run: make ios-test

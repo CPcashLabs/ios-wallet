@@ -13,7 +13,7 @@ SWIFT_ENV = DEVELOPER_DIR=$(DEVELOPER_DIR) \
 	SWIFT_MODULECACHE_PATH=$(SWIFT_MODULE_CACHE) \
 	CLANG_MODULE_CACHE_PATH=$(CLANG_MODULE_CACHE)
 
-.PHONY: help swift-build swift-test ios-generate ios-build cli-run registry ci
+.PHONY: help swift-build swift-test ios-generate ios-build ios-test cli-run registry ci
 
 help:
 	@echo "Targets:"
@@ -22,6 +22,7 @@ help:
 	@echo "  make cli-run       - Run AppShell CLI"
 	@echo "  make ios-generate  - Generate Xcode project via xcodegen"
 	@echo "  make ios-build     - Build AppShelliOS for iOS Simulator"
+	@echo "  make ios-test      - Run AppShelliOS unit tests on iOS Simulator"
 	@echo "  make registry      - Regenerate CLI module registry"
 	@echo "  make ci            - Run local CI pipeline"
 
@@ -43,10 +44,21 @@ ios-build:
 	  -derivedDataPath $(IOS_DERIVED_DATA) \
 	  CODE_SIGNING_ALLOWED=NO build
 
+ios-test:
+	cd apps/ios/AppShelliOS && \
+	DEST_ID=$$(DEVELOPER_DIR=$(DEVELOPER_DIR) xcodebuild -project AppShelliOS.xcodeproj -scheme AppShelliOS -showdestinations 2>/dev/null | awk -F'id:' '/platform:iOS Simulator/ && /name:iPhone/ {split($$2,a,","); gsub(/ /,"",a[1]); print a[1]; exit}') && \
+	if [ -z "$$DEST_ID" ]; then echo "No iOS Simulator destination found for tests"; exit 1; fi && \
+	$(SWIFT_ENV) \
+	xcodebuild -project AppShelliOS.xcodeproj \
+	  -scheme AppShelliOS \
+	  -destination "id=$$DEST_ID" \
+	  -derivedDataPath $(IOS_DERIVED_DATA) \
+	  CODE_SIGNING_ALLOWED=NO test
+
 cli-run:
 	$(SWIFT_ENV) swift run AppShell
 
 registry:
 	bash tools/ModuleRegistryPlugin/generate_registry.sh
 
-ci: swift-build swift-test ios-generate ios-build
+ci: swift-build swift-test ios-generate ios-build ios-test

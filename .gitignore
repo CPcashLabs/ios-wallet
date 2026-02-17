@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# SwiftPM
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode derived files
+DerivedData/
+*.xcresult
+*.xccheckout
+*.xcscmblueprint
+**/xcuserdata/
+**/.swiftpm/xcode/xcuserdata/
+
+# Local build outputs
+tmp/
+
+cpcash-vue/

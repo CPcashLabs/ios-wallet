@@ -1,101 +1,138 @@
-# WalletApp Swift Monorepo
+# iOS Wallet Application - Swift Monorepo
 
-一个面向 iOS 钱包场景的 Swift Monorepo，采用 `apps + packages + modules + tools` 分层组织，支持：
-- iOS App 壳（SwiftUI）
-- CLI 壳（本地联调与自动化）
-- 可插拔业务模块
-- 可复用的运行时/安全/后端能力包
+## 📱 Project Overview
 
-## 特性
-- `Swift Package Manager` 统一依赖与模块管理
-- `xcodegen` 生成 iOS 工程，避免手工维护 project 文件
-- 运行时能力边界清晰（`CoreRuntime`/`SecurityCore`/`BackendAPI`）
-- 模块注册支持脚本化生成（`tools/ModuleRegistryPlugin`）
+This is a Swift-based iOS cryptocurrency wallet application that supports multi-chain wallet management, transaction signing, NFT display, and more. The project adopts a modern Monorepo structure, built with SwiftUI for iOS 17+ applications, while providing CLI tools for development and testing.
 
-## 目录结构
+### Key Features
+- 🔒 **Secure Account Management**: Support for EVM chain signing and Passkey login
+- 💱 **Multi-Chain Support**: BSC, Polygon, TRON, and EVM-compatible networks
+- 🌐 **DApp Integration**: Interact with DApps through the EIP-1193 protocol
+- 📊 **Transaction History**: View transaction records and bills
+- 💳 **Send & Receive**: Quick and convenient asset transfer functionality
 
-```text
-.
-├── apps/
-│   ├── cli/AppShell                # CLI 可执行壳
-│   └── ios/AppShelliOS             # iOS SwiftUI 主壳
-├── modules/
-│   └── NftGallery                  # 示例业务模块
-├── packages/
-│   ├── CoreRuntime                 # 运行时协议/权限/路由/存储
-│   ├── SecurityCore                # 签名与交易安全能力
-│   ├── BackendAPI                  # 后端接口封装
-│   └── WebDAppContainer            # WebView + EIP-1193 桥接
-├── tools/
-│   └── ModuleRegistryPlugin        # 模块注册生成工具（Phase 1 脚本）
-├── Tests/
-│   └── CoreRuntimeTests            # 核心运行时 smoke tests
-├── Makefile
-└── Package.swift
+---
+
+## 📁 Project Structure
+
+### Core Applications
+- **`apps/ios/AppShelliOS`** - iOS 17+ SwiftUI main application (generated using xcodegen)
+- **`apps/cli/AppShell`** - Command-line tool for development debugging and automated testing
+
+### Core Libraries
+- **`packages/CoreRuntime`** - Module runtime, routing, permission management, confirmation flow framework
+- **`packages/SecurityCore`** - Security core library (EVM signing, transaction broadcasting, key management)
+- **`packages/BackendAPI`** - Backend API encapsulation and data models
+- **`packages/WebDAppContainer`** - WKWebView and DApp EIP-1193 bridge implementation
+
+### Business Modules
+- **`modules/NftGallery`** - NFT display module example
+
+### Tools
+- **`tools/ModuleRegistryPlugin`** - Automatic module registration generation tool
+
+### Compatibility Paths (Retained)
+```
+AppShelliOS -> apps/ios/AppShelliOS
+AppShell -> apps/cli/AppShell
+Packages -> packages
+Modules -> modules
+Tools -> tools
 ```
 
-## 环境要求
-- macOS
-- Xcode 17+
+---
+
+## 🚀 Quick Start
+
+### Requirements
+- macOS 12+
+- Xcode 15+
 - Swift 5.9+
-- [xcodegen](https://github.com/yonaskolb/XcodeGen)
 
-## 快速开始
-
-### 1) Swift 包构建
-
+### Running the CLI Tool
 ```bash
-make swift-build
+swift run AppShell
 ```
 
-### 2) 运行 CLI 壳
-
+### Building iOS Application (Simulator)
 ```bash
-make cli-run
+cd apps/ios/AppShelliOS
+
+# Generate Xcode project
+xcodegen generate
+
+# Build
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+xcodebuild -project AppShelliOS.xcodeproj \
+  -scheme AppShelliOS \
+  -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath /tmp/AppShelliOSDerived \
+  CODE_SIGNING_ALLOWED=NO build
 ```
 
-说明：若本地 keychain 中不存在测试私钥，CLI 会打印错误并退出，这是预期行为。
-
-### 3) 生成 iOS 工程
-
+### Opening the Project in Xcode
 ```bash
-make ios-generate
+cd apps/ios/AppShelliOS
+open AppShelliOS.xcodeproj
 ```
 
-### 4) 构建 iOS 模拟器产物
+---
 
+## 📊 Development Progress
+
+### Phase 1 - Foundation Framework ✅
+- Runnable application skeleton
+- Modular architecture setup
+
+### Phase A - EVM Security Features 🔄
+- Real EVM signing implementation
+- Complete transaction flow integration
+
+### Phase B - Core Feature Iteration 🔄
+- Passkey login integration
+- Home, receive, and transfer features
+- Transaction history and profile pages
+
+---
+
+## 🏗️ Tech Stack
+
+- **Language**: Swift 5.9+
+- **UI Framework**: SwiftUI
+- **Minimum OS**: iOS 17+
+- **Cryptography**: SecurityCore (EVM signing)
+- **Networking**: URLSession + Backend API
+- **DApp Communication**: WKWebView + EIP-1193 protocol
+
+---
+
+## 📝 Development Guide
+
+### Adding a New Module
+
+1. Create a new module folder in the `modules/` directory
+2. Implement a `*Manifest.swift` file to define module information
+3. Run the module registration generation tool to update `ModuleRegistry.swift`
+
+### Project Configuration
+
+- **iOS Project Configuration**: `apps/ios/AppShelliOS/project.yml`
+- **Swift Package Configuration**: `Package.swift`
+
+---
+
+## 📦 Dependency Management
+
+Dependencies are managed through Swift Package Manager. For details, run:
 ```bash
-make ios-build
+cat Package.swift
+cat Package.resolved
 ```
 
-## 测试
+---
 
-```bash
-make swift-test
-```
+## 💡 Important Notes
 
-## 本地 CI（与仓库工作流对齐）
-
-```bash
-make ci
-```
-
-## 模块注册生成
-
-```bash
-make registry
-```
-
-该命令会扫描 `modules/*/*Manifest.swift`，并更新：
-- `apps/cli/AppShell/Generated/ModuleRegistry.swift`
-
-## 开源协作文档
-- 贡献指南：`CONTRIBUTING.md`
-- 安全策略：`SECURITY.md`
-- 行为准则：`CODE_OF_CONDUCT.md`
-- 架构说明：`docs/architecture.md`
-
-## 兼容性路径
-为兼容旧脚本，仓库根目录保留符号链接：
-- `AppShell -> apps/cli/AppShell`
-- `AppShelliOS -> apps/ios/AppShelliOS`
+- Use `Makefile` to quickly execute common tasks
+- Simulator builds require code signing to be disabled (`CODE_SIGNING_ALLOWED=NO`)
+- Ensure Xcode is pointing to the correct Developer directory

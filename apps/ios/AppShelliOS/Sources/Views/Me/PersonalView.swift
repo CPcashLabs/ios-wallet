@@ -12,7 +12,7 @@ struct PersonalView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            FullscreenScaffold(backgroundStyle: .globalImage) {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 ScrollView {
                     VStack(spacing: 14) {
                         SectionCard {

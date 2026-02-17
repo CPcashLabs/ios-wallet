@@ -31,7 +31,7 @@ struct BillListView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            FullscreenScaffold(backgroundStyle: .globalImage) {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 VStack(spacing: 0) {
                     topBar(widthClass: widthClass)
 

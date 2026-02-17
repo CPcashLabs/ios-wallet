@@ -7,7 +7,7 @@ struct AddressBookListView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            FullscreenScaffold(backgroundStyle: .globalImage) {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
                     if state.isLoading("me.addressbook.list") {
                         ProgressView("加载地址簿...")

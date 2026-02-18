@@ -345,167 +345,32 @@ final class AppState: ObservableObject {
         await meUseCase.loadMeRootData()
     }
 
-    func loadMeRootDataImpl() async {
-        setLoading(LoadKey.meRoot, true)
-        defer { setLoading(LoadKey.meRoot, false) }
-
-        do {
-            async let profileTask = backend.auth.currentUser()
-            async let messagesTask = backend.message.list(page: 1, perPage: 10)
-            async let ratesTask = backend.settings.exchangeRateByUSD()
-
-            let profile = try await profileTask
-            let messages = try await messagesTask
-            let rates = try await ratesTask
-            meProfile = profile
-            messageList = messages.data
-            messagePage = messages.page ?? 1
-            messageLastPage = computeLastPage(page: messages.page, perPage: messages.perPage, total: messages.total)
-            exchangeRates = rates
-            if let current = rates.first?.currency, !current.isEmpty {
-                selectedCurrency = current
-            }
-            clearError(LoadKey.meRoot)
-        } catch {
-            setError(LoadKey.meRoot, error)
-            log("我的页面基础数据加载失败: \(error)")
-        }
-    }
-
     func loadMessages(page: Int, append: Bool) async {
         await meUseCase.loadMessages(page: page, append: append)
     }
 
-    func loadMessagesImpl(page: Int, append: Bool) async {
-        let requestedPage = max(page, 1)
-        let pageToken = "message.page.\(requestedPage)"
-        if append {
-            guard messagePaginationGate.begin(token: pageToken) else { return }
-        } else {
-            messagePaginationGate.reset()
-            messageRequestGeneration += 1
-        }
-        let generation = messageRequestGeneration
-        guard !isLoading(LoadKey.meMessageList) else {
-            if append {
-                messagePaginationGate.end(token: pageToken)
-            }
-            return
-        }
-        setLoading(LoadKey.meMessageList, true)
-        defer {
-            setLoading(LoadKey.meMessageList, false)
-            if append {
-                messagePaginationGate.end(token: pageToken)
-            }
-        }
-        do {
-            let response = try await backend.message.list(page: requestedPage, perPage: 10)
-            guard generation == messageRequestGeneration else { return }
-            if append {
-                messageList = mergeMessages(current: messageList, incoming: response.data)
-            } else {
-                messageList = response.data
-            }
-            messagePage = response.page ?? requestedPage
-            messageLastPage = computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
-            clearError(LoadKey.meMessageList)
-            log("消息列表加载成功: page=\(messagePage), count=\(messageList.count)")
-        } catch {
-            guard generation == messageRequestGeneration else { return }
-            setError(LoadKey.meMessageList, error)
-            log("消息列表加载失败: \(error)")
-        }
-    }
-
     func markMessageRead(id: String) async {
-        do {
-            try await backend.message.markRead(id: id)
-            await loadMessages(page: 1, append: false)
-            clearError(LoadKey.meMessageRead)
-        } catch {
-            setError(LoadKey.meMessageRead, error)
-            showToast("标记已读失败", theme: .error)
-            log("标记消息已读失败: \(error)")
-        }
+        await meUseCase.markMessageRead(id: id)
     }
 
     func markAllMessagesRead() async {
-        do {
-            try await backend.message.markAllRead()
-            await loadMessages(page: 1, append: false)
-            showToast("已全部标记为已读", theme: .success)
-            clearError(LoadKey.meMessageReadAll)
-        } catch {
-            setError(LoadKey.meMessageReadAll, error)
-            showToast("全部已读失败", theme: .error)
-            log("全部标记已读失败: \(error)")
-        }
+        await meUseCase.markAllMessagesRead()
     }
 
     func loadAddressBooks() async {
         await meUseCase.loadAddressBooks()
     }
 
-    func loadAddressBooksImpl() async {
-        setLoading(LoadKey.meAddressbookList, true)
-        defer { setLoading(LoadKey.meAddressbookList, false) }
-        do {
-            addressBooks = try await backend.addressBook.list()
-            clearError(LoadKey.meAddressbookList)
-            log("地址簿加载成功: \(addressBooks.count)")
-        } catch {
-            setError(LoadKey.meAddressbookList, error)
-            log("地址簿加载失败: \(error)")
-        }
-    }
-
     func createAddressBook(name: String, walletAddress: String, chainType: String = "EVM") async -> Bool {
-        do {
-            try await backend.addressBook.create(
-                request: AddressBookUpsertRequest(name: name, walletAddress: walletAddress, chainType: chainType)
-            )
-            showToast("地址簿添加成功", theme: .success)
-            await loadAddressBooks()
-            clearError(LoadKey.meAddressbookCreate)
-            return true
-        } catch {
-            setError(LoadKey.meAddressbookCreate, error)
-            showToast("地址簿添加失败", theme: .error)
-            log("地址簿新增失败: \(error)")
-            return false
-        }
+        await meUseCase.createAddressBook(name: name, walletAddress: walletAddress, chainType: chainType)
     }
 
     func updateAddressBook(id: String, name: String, walletAddress: String, chainType: String = "EVM") async -> Bool {
-        do {
-            try await backend.addressBook.update(
-                id: id,
-                request: AddressBookUpsertRequest(name: name, walletAddress: walletAddress, chainType: chainType)
-            )
-            showToast("地址簿更新成功", theme: .success)
-            await loadAddressBooks()
-            clearError(LoadKey.meAddressbookUpdate)
-            return true
-        } catch {
-            setError(LoadKey.meAddressbookUpdate, error)
-            showToast("地址簿更新失败", theme: .error)
-            log("地址簿更新失败: \(error)")
-            return false
-        }
+        await meUseCase.updateAddressBook(id: id, name: name, walletAddress: walletAddress, chainType: chainType)
     }
 
     func deleteAddressBook(id: String) async {
-        do {
-            try await backend.addressBook.delete(id: id)
-            showToast("地址簿删除成功", theme: .success)
-            addressBooks.removeAll { "\($0.id ?? -1)" == id }
-            clearError(LoadKey.meAddressbookDelete)
-        } catch {
-            setError(LoadKey.meAddressbookDelete, error)
-            showToast("地址簿删除失败", theme: .error)
-            log("地址簿删除失败: \(error)")
-        }
+        await meUseCase.deleteAddressBook(id: id)
     }
 
     func loadBillList(filter: BillFilter, append: Bool = false) async {
@@ -608,113 +473,32 @@ final class AppState: ObservableObject {
         await meUseCase.updateNickname(nickname)
     }
 
-    func updateNicknameImpl(_ nickname: String) async {
-        do {
-            try await backend.profile.update(request: ProfileUpdateRequest(nickname: nickname, avatar: nil))
-            meProfile = try await backend.auth.currentUser()
-            showToast("昵称更新成功", theme: .success)
-            clearError(LoadKey.meProfileNickname)
-        } catch {
-            setError(LoadKey.meProfileNickname, error)
-            showToast("昵称更新失败", theme: .error)
-            log("昵称更新失败: \(error)")
-        }
-    }
-
     func updateAvatar(fileData: Data, fileName: String = "avatar.jpg", mimeType: String = "image/jpeg") async {
         await meUseCase.updateAvatar(fileData: fileData, fileName: fileName, mimeType: mimeType)
-    }
-
-    func updateAvatarImpl(fileData: Data, fileName: String = "avatar.jpg", mimeType: String = "image/jpeg") async {
-        setLoading(LoadKey.meProfileAvatar, true)
-        defer { setLoading(LoadKey.meProfileAvatar, false) }
-        do {
-            let upload = try await backend.profile.uploadAvatar(fileData: fileData, fileName: fileName, mimeType: mimeType)
-            let avatarURL = upload.url?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            guard !avatarURL.isEmpty else {
-                throw BackendAPIError.serverError(code: -1, message: "头像上传失败，请重试")
-            }
-            try await backend.profile.update(request: ProfileUpdateRequest(nickname: nil, avatar: avatarURL))
-            let profile = try await backend.auth.currentUser()
-            meProfile = profile
-            userProfile = profile
-            showToast("头像更新成功", theme: .success)
-            clearError(LoadKey.meProfileAvatar)
-        } catch {
-            setError(LoadKey.meProfileAvatar, error)
-            showToast(simplifyError(error), theme: .error)
-            log("头像更新失败: \(error)")
-        }
     }
 
     func loadExchangeRates() async {
         await meUseCase.loadExchangeRates()
     }
 
-    func loadExchangeRatesImpl() async {
-        setLoading(LoadKey.meSettingsRates, true)
-        defer { setLoading(LoadKey.meSettingsRates, false) }
-        do {
-            exchangeRates = try await backend.settings.exchangeRateByUSD()
-            let current = selectedCurrency.uppercased()
-            let hasCurrent = exchangeRates.contains { ($0.currency ?? "").uppercased() == current }
-            if !hasCurrent, let currency = exchangeRates.first?.currency, !currency.isEmpty {
-                selectedCurrency = currency
-            }
-            clearError(LoadKey.meSettingsRates)
-        } catch {
-            setError(LoadKey.meSettingsRates, error)
-            log("汇率列表加载失败: \(error)")
-        }
-    }
-
     func saveCurrencyUnit(currency: String) {
-        selectedCurrency = currency
-        showToast("修改成功", theme: .success)
+        meUseCase.saveCurrencyUnit(currency: currency)
     }
 
     func setTransferEmailNotify(_ enable: Bool) async {
-        do {
-            try await backend.settings.setTransferEmailNotify(enable: enable)
-            transferEmailNotify = enable
-            clearError(LoadKey.meSettingsTransferNotify)
-        } catch {
-            setError(LoadKey.meSettingsTransferNotify, error)
-            showToast("转账通知更新失败", theme: .error)
-        }
+        await meUseCase.setTransferEmailNotify(enable)
     }
 
     func setRewardEmailNotify(_ enable: Bool) async {
-        do {
-            try await backend.settings.setRewardEmailNotify(enable: enable)
-            rewardEmailNotify = enable
-            clearError(LoadKey.meSettingsRewardNotify)
-        } catch {
-            setError(LoadKey.meSettingsRewardNotify, error)
-            showToast("奖励通知更新失败", theme: .error)
-        }
+        await meUseCase.setRewardEmailNotify(enable)
     }
 
     func setReceiptEmailNotify(_ enable: Bool) async {
-        do {
-            try await backend.settings.setReceiptEmailNotify(enable: enable)
-            receiptEmailNotify = enable
-            clearError(LoadKey.meSettingsReceiptNotify)
-        } catch {
-            setError(LoadKey.meSettingsReceiptNotify, error)
-            showToast("收据通知更新失败", theme: .error)
-        }
+        await meUseCase.setReceiptEmailNotify(enable)
     }
 
     func setBackupWalletNotify(_ enable: Bool) async {
-        do {
-            try await backend.settings.setBackupWalletNotify(enable: enable)
-            backupWalletNotify = enable
-            clearError(LoadKey.meSettingsBackupNotify)
-        } catch {
-            setError(LoadKey.meSettingsBackupNotify, error)
-            showToast("备份通知更新失败", theme: .error)
-        }
+        await meUseCase.setBackupWalletNotify(enable)
     }
 
     func refreshNetworkOptions() async {
@@ -2010,7 +1794,7 @@ final class AppState: ObservableObject {
         errorMessage(key.rawValue)
     }
 
-    private func mergeMessages(current: [MessageItem], incoming: [MessageItem]) -> [MessageItem] {
+    func mergeMessages(current: [MessageItem], incoming: [MessageItem]) -> [MessageItem] {
         var merged = current
         var seen = Set(current.map(messageUniqueKey))
         for item in incoming {
@@ -2022,7 +1806,7 @@ final class AppState: ObservableObject {
         return merged
     }
 
-    private func mergeOrders(current: [OrderSummary], incoming: [OrderSummary]) -> [OrderSummary] {
+    func mergeOrders(current: [OrderSummary], incoming: [OrderSummary]) -> [OrderSummary] {
         var merged = current
         var seen = Set(current.map(orderUniqueKey))
         for item in incoming {
@@ -2061,38 +1845,38 @@ final class AppState: ObservableObject {
         ].joined(separator: "|")
     }
 
-    private func computeLastPage(page: Int?, perPage: Int?, total: Int?) -> Bool {
+    func computeLastPage(page: Int?, perPage: Int?, total: Int?) -> Bool {
         guard let page, let perPage, let total, perPage > 0 else {
             return false
         }
         return page * perPage >= total
     }
 
-    private func setLoading(_ key: String, _ loading: Bool) {
+    func setLoading(_ key: String, _ loading: Bool) {
         uiLoadingMap[key] = loading
     }
 
-    private func setLoading(_ key: LoadKey, _ loading: Bool) {
+    func setLoading(_ key: LoadKey, _ loading: Bool) {
         setLoading(key.rawValue, loading)
     }
 
-    private func setError(_ key: String, _ error: Error) {
+    func setError(_ key: String, _ error: Error) {
         uiErrorMap[key] = simplifyError(error)
     }
 
-    private func setError(_ key: LoadKey, _ error: Error) {
+    func setError(_ key: LoadKey, _ error: Error) {
         setError(key.rawValue, error)
     }
 
-    private func clearError(_ key: String) {
+    func clearError(_ key: String) {
         uiErrorMap[key] = nil
     }
 
-    private func clearError(_ key: LoadKey) {
+    func clearError(_ key: LoadKey) {
         clearError(key.rawValue)
     }
 
-    private func simplifyError(_ error: Error) -> String {
+    func simplifyError(_ error: Error) -> String {
         AppErrorMapper.message(for: error)
     }
 

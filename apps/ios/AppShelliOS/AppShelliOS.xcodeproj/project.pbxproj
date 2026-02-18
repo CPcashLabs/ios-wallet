@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -132,7 +132,7 @@
 		371D75509A6427F44A14393F /* DateTextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTextFormatter.swift; sourceTree = "<group>"; };
 		39BF96D842912BB59E41AF74 /* FullscreenScaffold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenScaffold.swift; sourceTree = "<group>"; };
 		3A2BD210856069D4F11776B9 /* UserGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGuideView.swift; sourceTree = "<group>"; };
-		3B532F389336E97D85C03035 /* AppShelliOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AppShelliOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B532F389336E97D85C03035 /* AppShelliOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AppShelliOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E329E8788225CEA8B3D0408 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3EB014EBC4F7BCD35BC9082A /* BillRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRangeTests.swift; sourceTree = "<group>"; };
 		41DD1B908F4429C6C79888B3 /* NetworkLogoResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkLogoResolver.swift; sourceTree = "<group>"; };
@@ -563,7 +563,6 @@
 				BDE424F0751120A7D8195B97 /* XCRemoteSwiftPackageReference "Nuke" */,
 				FE7F098FEBF13D992777C8E0 /* XCLocalSwiftPackageReference "../../.." */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -765,6 +764,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DGDH98B728;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "扫码转账需要访问相机";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择头像需要访问相册";

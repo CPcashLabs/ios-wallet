@@ -110,7 +110,21 @@ struct ReceiveHomeView: View {
             }
         }
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .modifier(iOS26TransparentNavBarModifier())
         .background(TransparentNavigationBar())
+    }
+
+    /// iOS 26+ Liquid Glass navigation bar fix
+    private struct iOS26TransparentNavBarModifier: ViewModifier {
+        func body(content: Content) -> some View {
+            if #available(iOS 26, *) {
+                content
+                    .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            } else {
+                content
+            }
+        }
     }
 
     // Helper to force transparent navigation bar via UIKit
@@ -122,6 +136,11 @@ struct ReceiveHomeView: View {
         func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 
         class TransparentNavigationController: UIViewController {
+            override func viewDidLoad() {
+                super.viewDidLoad()
+                applyTransparentAppearance()
+            }
+
             override func viewWillAppear(_ animated: Bool) {
                 super.viewWillAppear(animated)
                 applyTransparentAppearance()
@@ -145,6 +164,15 @@ struct ReceiveHomeView: View {
                     current.navigationItem.scrollEdgeAppearance = appearance
                     current.navigationItem.compactAppearance = appearance
                     current.navigationItem.scrollEdgeAppearance = appearance
+
+                    // iOS 26+: Suppress Liquid Glass effect on navigation bar
+                    if #available(iOS 26, *) {
+                        if let navBar = current.navigationController?.navigationBar {
+                            navBar.isTranslucent = true
+                            navBar.setBackgroundImage(UIImage(), for: .default)
+                            navBar.shadowImage = UIImage()
+                        }
+                    }
                     
                     // Also try to help the transition coordinator if active
                     if let coordinator = current.transitionCoordinator {

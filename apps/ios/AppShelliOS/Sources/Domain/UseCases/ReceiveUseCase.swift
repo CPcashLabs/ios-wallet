@@ -403,6 +403,44 @@ final class ReceiveUseCase {
         }
     }
 
+    func loadReceiveAddressLimit() async {
+        let orderType = appState.receiveDomainState.activeTab == .business ? "TRACE_LONG_TERM" : "TRACE"
+        do {
+            let limit = try await appState.backend.receive.limitCount(
+                orderType: orderType,
+                sendCoinCode: appState.receiveDomainState.selectedSendCoinCode,
+                recvCoinCode: appState.receiveDomainState.selectedRecvCoinCode
+            )
+            appState.receiveDomainState.receiveAddressLimit = limit
+            appState.clearError(LoadKey.receiveAddressLimit)
+        } catch {
+            appState.receiveDomainState.receiveAddressLimit = 20
+            appState.setError(LoadKey.receiveAddressLimit, error)
+            appState.log("收款地址上限获取失败: \(error)")
+        }
+    }
+
+    func editAddressInfo(orderSN: String, remarkName: String, address: String) async -> Bool {
+        appState.setLoading(LoadKey.receiveEditAddress, true)
+        defer { appState.setLoading(LoadKey.receiveEditAddress, false) }
+        do {
+            try await appState.backend.receive.editAddressInfo(
+                orderSN: orderSN,
+                remarkName: remarkName,
+                address: address
+            )
+            appState.showToast("地址备注已更新", theme: .success)
+            appState.clearError(LoadKey.receiveEditAddress)
+            await loadReceiveHome(autoCreateIfMissing: false)
+            return true
+        } catch {
+            appState.setError(LoadKey.receiveEditAddress, error)
+            appState.showToast("地址备注更新失败", theme: .error)
+            appState.log("地址备注更新失败: \(error)")
+            return false
+        }
+    }
+
     private func configureReceiveNetwork(_ item: ReceiveNetworkItem) {
         appState.receiveSelectedNetworkId = item.id
         appState.receiveDomainState.selectedNetworkName = item.name

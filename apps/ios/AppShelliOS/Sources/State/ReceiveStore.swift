@@ -102,6 +102,14 @@ final class ReceiveStore: ObservableObject {
         await appState.updateReceiveExpiry(duration: duration)
     }
 
+    func loadReceiveAddressLimit() async {
+        await appState.loadReceiveAddressLimit()
+    }
+
+    func editAddressInfo(orderSN: String, remarkName: String, address: String) async -> Bool {
+        await appState.editAddressInfo(orderSN: orderSN, remarkName: remarkName, address: address)
+    }
+
     func isLoading(_ key: LoadKey) -> Bool {
         appState.isLoading(key)
     }

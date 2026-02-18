@@ -251,6 +251,11 @@ struct ReceiveHomeView: View {
                             },
                             onCopyAddress: {
                                 uiStore.showInfoToast("地址已复制")
+                            },
+                            onAddressTap: {
+                                receiveStore.setReceiveActiveTab(.individuals)
+                                expandedDrawer = .individuals
+                                onNavigate(.addAddress)
                             }
                         )
                     }
@@ -298,6 +303,11 @@ struct ReceiveHomeView: View {
                                 },
                                 onCopyAddress: {
                                     uiStore.showInfoToast("地址已复制")
+                                },
+                                onAddressTap: {
+                                    receiveStore.setReceiveActiveTab(.business)
+                                    expandedDrawer = .business
+                                    onNavigate(.addAddress)
                                 }
                             )
                         }
@@ -368,19 +378,30 @@ struct ReceiveHomeView: View {
                         .stroke(Color.black.opacity(0.12), lineWidth: 1)
                 )
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Address")
-                    .font(.system(size: 14))
-                    .foregroundStyle(ThemeTokens.secondary)
-                Text(shortAddress(receiveStore.activeAddress))
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(ThemeTokens.title)
-                    .lineLimit(2)
-                    .truncationMode(.middle)
+            Button {
+                onNavigate(.addAddress)
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Address")
+                            .font(.system(size: 14))
+                            .foregroundStyle(ThemeTokens.secondary)
+                        Text(shortAddress(receiveStore.activeAddress))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(ThemeTokens.title)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ThemeTokens.tertiary)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .buttonStyle(.plain)
 
             HStack(spacing: 10) {
                 Button("分享") {

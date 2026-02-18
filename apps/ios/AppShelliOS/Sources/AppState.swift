@@ -96,6 +96,7 @@ struct ReceiveDomainState: Equatable {
     var selectedSellerId: Int?
     var selectedNetworkName: String = "CPcash"
     var selectedIsNormalChannel = false
+    var receiveAddressLimit: Int = 20
 }
 
 enum TransferNetworkCategory: String, Equatable {
@@ -645,6 +646,14 @@ final class AppState: ObservableObject {
 
     func updateReceiveExpiry(duration: Int) async {
         await receiveUseCase.updateReceiveExpiry(duration: duration)
+    }
+
+    func loadReceiveAddressLimit() async {
+        await receiveUseCase.loadReceiveAddressLimit()
+    }
+
+    func editAddressInfo(orderSN: String, remarkName: String, address: String) async -> Bool {
+        await receiveUseCase.editAddressInfo(orderSN: orderSN, remarkName: remarkName, address: address)
     }
 
     func refreshOrdersOnly() async {

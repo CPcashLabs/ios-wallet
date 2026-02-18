@@ -15,6 +15,7 @@ struct ReceiveCardView: View {
     let onShare: () -> Void
     let onTxLogs: () -> Void
     let onCopyAddress: () -> Void
+    var onAddressTap: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 12) {
@@ -86,8 +87,12 @@ struct ReceiveCardView: View {
         .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onTapGesture {
             if !isPolling {
-                UIPasteboard.general.string = address
-                onCopyAddress()
+                if let onAddressTap {
+                    onAddressTap()
+                } else {
+                    UIPasteboard.general.string = address
+                    onCopyAddress()
+                }
             }
         }
     }

@@ -34,6 +34,8 @@ enum LoadKey: String {
     case receiveShare = "receive.share"
     case receiveExpiry = "receive.expiry"
     case receiveExpiryUpdate = "receive.expiry.update"
+    case receiveAddressLimit = "receive.addressLimit"
+    case receiveEditAddress = "receive.editAddress"
 }
 
 enum StableRowID {

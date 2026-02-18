@@ -11,4 +11,7 @@ enum ReceiveRoute: Hashable {
     case expiry
     case txLogs(orderSN: String)
     case share(orderSN: String)
+    case addAddress
+    case editAddressName
+    case rareAddress
 }

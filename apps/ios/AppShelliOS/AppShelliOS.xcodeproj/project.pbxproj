@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -96,6 +96,7 @@
 		EFF10B380EDB7694B46252AC /* ReceiveUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A30032807BD09B187587D99 /* ReceiveUseCase.swift */; };
 		F2CCF23AF50414699698B109 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442240F0A4FBD1BF597D3DA6 /* AppDependencies.swift */; };
 		F2D6BFDB283C86027EF01D5F /* ReceiveAddressDeleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8387C2E389110F60F98790E6 /* ReceiveAddressDeleteView.swift */; };
+		F3A2224E27497ABF9C07AC02 /* AddReceiveAddressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867F50E1469DC30E1EAD3494 /* AddReceiveAddressView.swift */; };
 		F768362F8BA719AE7107CA52 /* NavigationGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BA40A2104358F7A0A3B4D8B /* NavigationGuard.swift */; };
 		FA67B7C8B14E1A114FD90D0C /* ReceiveHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561B6257AB38BB896B249531 /* ReceiveHomeView.swift */; };
 		FC9F5E1F2046E1C1D6256F10 /* AppErrorMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62521220BDB6251052D5F538 /* AppErrorMapperTests.swift */; };
@@ -132,7 +133,7 @@
 		371D75509A6427F44A14393F /* DateTextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTextFormatter.swift; sourceTree = "<group>"; };
 		39BF96D842912BB59E41AF74 /* FullscreenScaffold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenScaffold.swift; sourceTree = "<group>"; };
 		3A2BD210856069D4F11776B9 /* UserGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGuideView.swift; sourceTree = "<group>"; };
-		3B532F389336E97D85C03035 /* AppShelliOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AppShelliOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B532F389336E97D85C03035 /* AppShelliOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AppShelliOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E329E8788225CEA8B3D0408 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3EB014EBC4F7BCD35BC9082A /* BillRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRangeTests.swift; sourceTree = "<group>"; };
 		41DD1B908F4429C6C79888B3 /* NetworkLogoResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkLogoResolver.swift; sourceTree = "<group>"; };
@@ -165,6 +166,7 @@
 		7BA40A2104358F7A0A3B4D8B /* NavigationGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationGuard.swift; sourceTree = "<group>"; };
 		830FBB6544B513DF2497DCF4 /* ios-wallet */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-wallet"; path = ../../..; sourceTree = SOURCE_ROOT; };
 		8387C2E389110F60F98790E6 /* ReceiveAddressDeleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveAddressDeleteView.swift; sourceTree = "<group>"; };
+		867F50E1469DC30E1EAD3494 /* AddReceiveAddressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddReceiveAddressView.swift; sourceTree = "<group>"; };
 		8A280B740D1755F59B465557 /* PersonalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalView.swift; sourceTree = "<group>"; };
 		9166AD5C97A82680B5B676E9 /* SafeAreaScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeAreaScreen.swift; sourceTree = "<group>"; };
 		998C723C6661C6771EDB7E80 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
@@ -328,6 +330,7 @@
 		801B5E6B6775B00CAF653E19 /* Receive */ = {
 			isa = PBXGroup;
 			children = (
+				867F50E1469DC30E1EAD3494 /* AddReceiveAddressView.swift */,
 				8387C2E389110F60F98790E6 /* ReceiveAddressDeleteView.swift */,
 				D6C3A6ED31437EF8A67B39A1 /* ReceiveAddressEditView.swift */,
 				44911A26CFCA0697C139601F /* ReceiveAddressListView.swift */,
@@ -563,6 +566,7 @@
 				BDE424F0751120A7D8195B97 /* XCRemoteSwiftPackageReference "Nuke" */,
 				FE7F098FEBF13D992777C8E0 /* XCLocalSwiftPackageReference "../../.." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -593,6 +597,7 @@
 				7E9F3893EC85A27619CA2961 /* ActivityShareSheet.swift in Sources */,
 				99010CF11001E31276949612 /* AdaptiveLayout.swift in Sources */,
 				C8FFBCD26339D381D71F380A /* AdaptiveMetrics.swift in Sources */,
+				F3A2224E27497ABF9C07AC02 /* AddReceiveAddressView.swift in Sources */,
 				17D62564E165831C216FC99C /* AddressBookEditView.swift in Sources */,
 				62C18FED244288E73D28F694 /* AddressBookListView.swift in Sources */,
 				92F0704AF1ED9999E3C00D7E /* AddressFormatter.swift in Sources */,
@@ -764,7 +769,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = DGDH98B728;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "扫码转账需要访问相机";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择头像需要访问相册";

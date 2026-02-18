@@ -18,6 +18,9 @@ enum HomeRoute: Hashable {
     case receiveExpiry
     case receiveTxLogs(orderSN: String)
     case receiveShare(orderSN: String)
+    case receiveAddAddress
+    case receiveEditAddressName
+    case receiveRareAddress
 
     case transferSelectNetwork
     case transferAddress
@@ -129,6 +132,15 @@ struct HomeShellView: View {
                         uiStore: appStore.uiStore,
                         orderSN: orderSN
                     ))
+                case .receiveAddAddress:
+                    hideTabBar(AddReceiveAddressView(
+                        receiveStore: appStore.receiveStore,
+                        onNavigate: { pushReceiveRoute($0) }
+                    ))
+                case .receiveEditAddressName:
+                    hideTabBar(Text("Edit Address Name")) // Placeholder
+                case .receiveRareAddress:
+                    hideTabBar(Text("Rare Address")) // Placeholder
 
                 case .transferSelectNetwork:
                     hideTabBar(TransferSelectNetworkView(
@@ -316,6 +328,12 @@ struct HomeShellView: View {
             pushHomeRoute(.receiveTxLogs(orderSN: orderSN))
         case let .share(orderSN):
             pushHomeRoute(.receiveShare(orderSN: orderSN))
+        case .addAddress:
+            pushHomeRoute(.receiveAddAddress)
+        case .editAddressName:
+            pushHomeRoute(.receiveEditAddressName)
+        case .rareAddress:
+            pushHomeRoute(.receiveRareAddress)
         }
     }
 

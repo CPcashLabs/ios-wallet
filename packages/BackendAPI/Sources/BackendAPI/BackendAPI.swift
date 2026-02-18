@@ -30,6 +30,8 @@ public protocol ReceiveServicing {
     func traceShow(orderSN: String) async throws -> TraceShowDetail
     func markTraceOrder(orderSN: String, sendCoinCode: String, recvCoinCode: String, orderType: String) async throws
     func receiveShare(orderSN: String) async throws -> ReceiveOrderDetail
+    func limitCount(orderType: String, sendCoinCode: String, recvCoinCode: String) async throws -> Int
+    func editAddressInfo(orderSN: String, remarkName: String, address: String) async throws
 }
 
 public protocol OrderServicing {
@@ -573,6 +575,31 @@ private struct ReceiveService: ReceiveServicing {
             throw BackendAPIError.emptyData
         }
         return detail
+    }
+
+    func limitCount(orderType: String, sendCoinCode: String, recvCoinCode: String) async throws -> Int {
+        let envelope: APIEnvelope<Int> = try await executor.request(
+            method: .GET,
+            path: "/api/order/member/order-limit/limit-count",
+            query: [
+                URLQueryItem(name: "order_type", value: orderType),
+                URLQueryItem(name: "send_coin_code", value: sendCoinCode),
+                URLQueryItem(name: "recv_coin_code", value: recvCoinCode),
+            ]
+        )
+        return envelope.data ?? 20
+    }
+
+    func editAddressInfo(orderSN: String, remarkName: String, address: String) async throws {
+        let _: APIEnvelope<JSONValue> = try await executor.request(
+            method: .POST,
+            path: "/api/order/member/orderAddressInfo/editAddressInfo",
+            jsonBody: [
+                "order_sn": .string(orderSN),
+                "remark_name": .string(remarkName),
+                "address": .string(address),
+            ]
+        )
     }
 
     private func traceBody(_ request: CreateTraceRequest) -> [String: JSONValue] {

@@ -20,7 +20,6 @@ struct ReceiveHomeView: View {
                 ZStack(alignment: .top) {
                     Rectangle()
                         .fill(receiveTopColor)
-                        .frame(height: 300)
                         .ignoresSafeArea(edges: .top)
 
                     ScrollView {
@@ -110,10 +109,62 @@ struct ReceiveHomeView: View {
                 ActivityShareSheet(activityItems: normalShareItems)
             }
         }
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .background(TransparentNavigationBar())
+    }
+
+    // Helper to force transparent navigation bar via UIKit
+    private struct TransparentNavigationBar: UIViewControllerRepresentable {
+        func makeUIViewController(context: Context) -> UIViewController {
+            return TransparentNavigationController()
+        }
+
+        func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+        class TransparentNavigationController: UIViewController {
+            override func viewWillAppear(_ animated: Bool) {
+                super.viewWillAppear(animated)
+                applyTransparentAppearance()
+            }
+            
+            override func didMove(toParent parent: UIViewController?) {
+                super.didMove(toParent: parent)
+                applyTransparentAppearance()
+            }
+            
+            private func applyTransparentAppearance() {
+                let appearance = UINavigationBarAppearance()
+                appearance.configureWithTransparentBackground()
+                appearance.backgroundColor = .clear
+                appearance.shadowColor = .clear
+                
+                // Traverse up to find the hosting controller(s) and apply appearance
+                var candidate: UIViewController? = self.parent
+                while let current = candidate {
+                    current.navigationItem.standardAppearance = appearance
+                    current.navigationItem.scrollEdgeAppearance = appearance
+                    current.navigationItem.compactAppearance = appearance
+                    current.navigationItem.scrollEdgeAppearance = appearance
+                    
+                    // Also try to help the transition coordinator if active
+                    if let coordinator = current.transitionCoordinator {
+                        coordinator.animate(alongsideTransition: { _ in
+                            current.navigationController?.navigationBar.setNeedsLayout()
+                        }, completion: nil)
+                    }
+                    
+                    candidate = current.parent
+                }
+            }
+        }
     }
 
     private var receiveTopColor: Color {
-        let base = Color(hex: receiveStore.receiveDomainState.selectedChainColor, fallback: ThemeTokens.cpGold)
+        let hex = receiveStore.receiveDomainState.selectedChainColor
+        if hex.isEmpty {
+            return Color.clear
+        }
+        let base = Color(hex: hex, fallback: ThemeTokens.cpGold)
         if colorScheme == .dark {
             return base.opacity(0.76)
         }
@@ -150,6 +201,7 @@ struct ReceiveHomeView: View {
                             minAmount: receiveStore.receiveDomainState.receiveMinAmount,
                             maxAmount: receiveStore.receiveDomainState.receiveMaxAmount,
                             qrSide: receiveCardQRSide(widthClass),
+                            isPolling: receiveStore.receiveDomainState.isPolling,
                             onGenerate: {
                                 receiveStore.setReceiveActiveTab(.individuals)
                                 expandedDrawer = .individuals
@@ -196,6 +248,7 @@ struct ReceiveHomeView: View {
                                 minAmount: receiveStore.receiveDomainState.receiveMinAmount,
                                 maxAmount: receiveStore.receiveDomainState.receiveMaxAmount,
                                 qrSide: receiveCardQRSide(widthClass),
+                                isPolling: receiveStore.receiveDomainState.isPolling,
                                 onGenerate: {
                                     receiveStore.setReceiveActiveTab(.business)
                                     expandedDrawer = .business

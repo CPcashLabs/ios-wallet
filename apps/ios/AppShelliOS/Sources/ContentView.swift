@@ -19,7 +19,6 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
             ToastView(toast: appStore.toast)
-                .padding(.top, 8)
                 .padding(.horizontal, 16)
         }
         .task {

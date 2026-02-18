@@ -1,4 +1,4 @@
-# iOS Wallet Application - Swift Monorepo
+# iOS Wallet(CPcash)
 
 ## 📱 Project Overview
 

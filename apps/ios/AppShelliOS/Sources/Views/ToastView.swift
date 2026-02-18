@@ -5,6 +5,7 @@ struct ToastView: View {
 
     var body: some View {
         VStack {
+            Spacer()
             if let toast {
                 HStack(spacing: 8) {
                     Image(systemName: iconName(for: toast.theme))
@@ -18,11 +19,12 @@ struct ToastView: View {
                 .padding(.vertical, 10)
                 .background(backgroundColor(for: toast.theme), in: Capsule())
                 .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 4)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .transition(.scale.combined(with: .opacity))
             }
             Spacer()
+            Spacer()
         }
-        .animation(.easeInOut(duration: 0.2), value: toast?.id)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: toast?.id)
         .allowsHitTesting(false)
     }
 

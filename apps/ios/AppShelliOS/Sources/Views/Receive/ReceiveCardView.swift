@@ -10,6 +10,7 @@ struct ReceiveCardView: View {
     let minAmount: Double
     let maxAmount: Double
     let qrSide: CGFloat
+    let isPolling: Bool
     let onGenerate: () -> Void
     let onShare: () -> Void
     let onTxLogs: () -> Void
@@ -32,10 +33,10 @@ struct ReceiveCardView: View {
                 .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
-            if let qrValue = qrAddress, !qrValue.isEmpty {
-                qrSection(address: qrValue)
-                addressSection(address: qrValue)
-                actionButtons(address: qrValue)
+            if (qrAddress != nil && !qrAddress!.isEmpty) || isPolling {
+                qrSection(address: qrAddress ?? "")
+                addressSection(address: qrAddress ?? "")
+                actionButtons(address: qrAddress ?? "")
                 minimumSection
                 txLogsSection
             } else {
@@ -51,7 +52,14 @@ struct ReceiveCardView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(ThemeTokens.qrBackground)
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.black.opacity(0.12), lineWidth: 1))
-            QRCodeView(value: address, side: qrSide)
+            
+            if !address.isEmpty {
+                QRCodeView(value: address, side: qrSide)
+            }
+            
+            if isPolling {
+                QRCodeLoadingView(side: qrSide)
+            }
         }
         .frame(width: qrSide + 16, height: qrSide + 16)
     }
@@ -67,9 +75,9 @@ struct ReceiveCardView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(ThemeTokens.tertiary)
             }
-            Text(formatAddress(address))
+            Text(isPolling ? "生成中..." : formatAddress(address))
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(ThemeTokens.title)
+                .foregroundStyle(isPolling ? ThemeTokens.secondary : ThemeTokens.title)
                 .lineLimit(2)
                 .truncationMode(.middle)
         }
@@ -77,32 +85,37 @@ struct ReceiveCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onTapGesture {
-            UIPasteboard.general.string = address
-            onCopyAddress()
-        }
-    }
-
-    private func actionButtons(address: String) -> some View {
-        HStack(spacing: 10) {
-            button(title: "分享", action: onShare)
-            button(title: "复制") {
+            if !isPolling {
                 UIPasteboard.general.string = address
                 onCopyAddress()
             }
         }
     }
 
+    private func actionButtons(address: String) -> some View {
+        HStack(spacing: 10) {
+            button(title: "分享", action: onShare)
+                .disabled(isPolling)
+                .opacity(isPolling ? 0.6 : 1)
+            
+            button(title: "复制") {
+                UIPasteboard.general.string = address
+                onCopyAddress()
+            }
+            .disabled(isPolling)
+            .opacity(isPolling ? 0.6 : 1)
+        }
+    }
+
     private var minimumSection: some View {
         VStack(spacing: 8) {
-            if let expiry = expiryText {
+            if let expiredAt = expiryTimestamp, isWithin30Days(expiredAt) {
                 HStack {
                     Text("有效期")
                         .font(.system(size: 14))
                         .foregroundStyle(ThemeTokens.secondary)
                     Spacer()
-                    Text(expiry)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(ThemeTokens.title)
+                    ExpiryDisplayView(expiredAt: expiredAt)
                 }
             }
             HStack {
@@ -113,17 +126,6 @@ struct ReceiveCardView: View {
                 Text("\(format(minAmount)) \(sendCoinName)")
                     .font(.system(size: 14))
                     .foregroundStyle(ThemeTokens.title)
-            }
-            if maxAmount > 0 {
-                HStack {
-                    Text("最高收款金额")
-                        .font(.system(size: 14))
-                        .foregroundStyle(ThemeTokens.secondary)
-                    Spacer()
-                    Text("\(format(maxAmount)) \(sendCoinName)")
-                        .font(.system(size: 14))
-                        .foregroundStyle(ThemeTokens.title)
-                }
             }
         }
     }
@@ -146,11 +148,98 @@ struct ReceiveCardView: View {
                     .foregroundStyle(ThemeTokens.tertiary)
             }
             .padding(.top, 10)
+            .padding(.bottom, 2)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
             .overlay(alignment: .top) {
                 Divider()
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private struct QRCodeLoadingView: View {
+        let side: CGFloat
+        @State private var isAnimating = false
+        
+        var body: some View {
+            ZStack {
+                Color.white.opacity(0.9)
+                
+                // Scanning line animation
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.clear, ThemeTokens.cpPrimary.opacity(0.4), .clear]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 60)
+                    .offset(y: isAnimating ? side/2 : -side/2)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(width: side, height: side)
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    isAnimating = true
+                }
+            }
+        }
+    }
+    
+    private struct ExpiryDisplayView: View {
+        let expiredAt: Int64
+        
+        var body: some View {
+            TimelineView(.periodic(from: .now, by: 1.0)) { context in
+                if shouldShowCountdown(current: context.date) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 14))
+                        Text(countdownString(current: context.date))
+                            .monospacedDigit()
+                    }
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ThemeTokens.title)
+                } else {
+                    Text(dateString)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ThemeTokens.title)
+                }
+            }
+        }
+        
+        private func shouldShowCountdown(current: Date) -> Bool {
+            let expiryDate = Date(timeIntervalSince1970: TimeInterval(expiredAt) / 1000)
+            let remaining = expiryDate.timeIntervalSince(current)
+            // 30 days in seconds: 30 * 24 * 3600 = 2,592,000
+            return remaining <= 2592000
+        }
+        
+        private var dateString: String {
+            DateTextFormatter.yearMonthDayMinute(fromTimestamp: Int(expiredAt), fallback: "-")
+        }
+        
+        private func countdownString(current: Date) -> String {
+            let expiryDate = Date(timeIntervalSince1970: TimeInterval(expiredAt) / 1000)
+            let remaining = expiryDate.timeIntervalSince(current)
+            
+            if remaining <= 0 {
+                return "00:00:00"
+            }
+            
+            let days = Int(remaining) / 86400
+            let hours = Int(remaining) / 3600 % 24
+            let minutes = Int(remaining) / 60 % 60
+            let seconds = Int(remaining) % 60
+            
+            if days > 0 {
+                return String(format: "%d天 %02d:%02d:%02d", days, hours, minutes, seconds)
+            } else {
+                return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+            }
+        }
     }
 
     private var emptySection: some View {
@@ -197,10 +286,11 @@ struct ReceiveCardView: View {
         return Double(expiredAt) < (nowMS + threshold)
     }
 
-    private var expiryText: String? {
-        let expiredAt = traceDetail?.expiredAt ?? order?.expiredAt
-        guard let expiredAt else { return nil }
-        return DateTextFormatter.yearMonthDayMinute(fromTimestamp: expiredAt, fallback: "-")
+    private var expiryTimestamp: Int64? {
+        if let val = traceDetail?.expiredAt ?? order?.expiredAt {
+            return Int64(val)
+        }
+        return nil
     }
 
     private func formatAddress(_ value: String) -> String {
@@ -210,4 +300,13 @@ struct ReceiveCardView: View {
     private func format(_ value: Double) -> String {
         String(format: "%.2f", value)
     }
+
+    private func isWithin30Days(_ expiredAt: Int64) -> Bool {
+        let now = Date().timeIntervalSince1970
+        let expiry = TimeInterval(expiredAt) / 1000
+        let remaining = expiry - now
+        // 30 days in seconds
+        return remaining <= 30 * 24 * 3600
+    }
 }
+

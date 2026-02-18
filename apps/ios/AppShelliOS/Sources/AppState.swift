@@ -181,84 +181,84 @@ struct TransferDomainState: Equatable {
 
 @MainActor
 final class AppState: ObservableObject {
-    @Published private(set) var environment: EnvironmentConfig
-    @Published private(set) var activeAddress: String = "-"
-    @Published private(set) var userProfile: UserProfile?
-    @Published private(set) var coins: [CoinItem] = []
-    @Published private(set) var recentTransfers: [TransferItem] = []
-    @Published private(set) var transferRecentContacts: [TransferReceiveContact] = []
-    @Published private(set) var homeRecentMessages: [MessageItem] = []
-    @Published private(set) var receives: [ReceiveRecord] = []
-    @Published private(set) var orders: [OrderSummary] = []
-    @Published private(set) var selectedOrderDetail: OrderDetail?
-    @Published private(set) var lastCreatedReceiveOrderSN: String = "-"
-    @Published private(set) var lastCreatedPaymentOrderSN: String = "-"
-    @Published private(set) var lastTxHash: String = "-"
-    @Published private(set) var meProfile: UserProfile?
-    @Published private(set) var messageList: [MessageItem] = []
-    @Published private(set) var messagePage: Int = 1
-    @Published private(set) var messageLastPage = false
-    @Published private(set) var addressBooks: [AddressBookItem] = []
-    @Published private(set) var billList: [OrderSummary] = []
-    @Published private(set) var billFilter = BillFilter()
-    @Published private(set) var billAddressFilter: String?
-    @Published private(set) var billStats: BillStatisticsSummary?
-    @Published private(set) var billAddressAggList: [BillAddressAggregateItem] = []
-    @Published private(set) var billCurrentPage: Int = 1
-    @Published private(set) var billTotal: Int = 0
-    @Published private(set) var billLastPage = false
-    @Published private(set) var exchangeRates: [ExchangeRateItem] = []
-    @Published private(set) var selectedCurrency = "USD"
-    @Published private(set) var uiLoadingMap: [String: Bool] = [:]
-    @Published private(set) var uiErrorMap: [String: String] = [:]
-    @Published private(set) var transferEmailNotify = false
-    @Published private(set) var rewardEmailNotify = false
-    @Published private(set) var receiptEmailNotify = false
-    @Published private(set) var backupWalletNotify = false
-    @Published private(set) var logs: [String] = []
-    @Published private(set) var passkeyAccounts: [LocalPasskeyAccount] = []
+    @Published var environment: EnvironmentConfig
+    @Published var activeAddress: String = "-"
+    @Published var userProfile: UserProfile?
+    @Published var coins: [CoinItem] = []
+    @Published var recentTransfers: [TransferItem] = []
+    @Published var transferRecentContacts: [TransferReceiveContact] = []
+    @Published var homeRecentMessages: [MessageItem] = []
+    @Published var receives: [ReceiveRecord] = []
+    @Published var orders: [OrderSummary] = []
+    @Published var selectedOrderDetail: OrderDetail?
+    @Published var lastCreatedReceiveOrderSN: String = "-"
+    @Published var lastCreatedPaymentOrderSN: String = "-"
+    @Published var lastTxHash: String = "-"
+    @Published var meProfile: UserProfile?
+    @Published var messageList: [MessageItem] = []
+    @Published var messagePage: Int = 1
+    @Published var messageLastPage = false
+    @Published var addressBooks: [AddressBookItem] = []
+    @Published var billList: [OrderSummary] = []
+    @Published var billFilter = BillFilter()
+    @Published var billAddressFilter: String?
+    @Published var billStats: BillStatisticsSummary?
+    @Published var billAddressAggList: [BillAddressAggregateItem] = []
+    @Published var billCurrentPage: Int = 1
+    @Published var billTotal: Int = 0
+    @Published var billLastPage = false
+    @Published var exchangeRates: [ExchangeRateItem] = []
+    @Published var selectedCurrency = "USD"
+    @Published var uiLoadingMap: [String: Bool] = [:]
+    @Published var uiErrorMap: [String: String] = [:]
+    @Published var transferEmailNotify = false
+    @Published var rewardEmailNotify = false
+    @Published var receiptEmailNotify = false
+    @Published var backupWalletNotify = false
+    @Published var logs: [String] = []
+    @Published var passkeyAccounts: [LocalPasskeyAccount] = []
     @Published var selectedPasskeyRawId: String = ""
 
-    @Published private(set) var isAuthenticated = false
-    @Published private(set) var loginBusy = false
-    @Published private(set) var loginCooldownUntil: Date?
-    @Published private(set) var loginErrorKind: LoginErrorKind?
-    @Published private(set) var toast: ToastState?
+    @Published var isAuthenticated = false
+    @Published var loginBusy = false
+    @Published var loginCooldownUntil: Date?
+    @Published var loginErrorKind: LoginErrorKind?
+    @Published var toast: ToastState?
 
-    @Published private(set) var selectedChainId: Int = 1029
-    @Published private(set) var selectedChainName: String = "BTT_TEST"
-    @Published private(set) var networkOptions: [NetworkOption] = []
-    @Published private(set) var approvalSessionState: ApprovalSessionState = .locked
+    @Published var selectedChainId: Int = 1029
+    @Published var selectedChainName: String = "BTT_TEST"
+    @Published var networkOptions: [NetworkOption] = []
+    @Published var approvalSessionState: ApprovalSessionState = .locked
 
-    @Published private(set) var receiveDomainState = ReceiveDomainState()
-    @Published private(set) var receiveSelectNetworks: [ReceiveNetworkItem] = []
-    @Published private(set) var receiveNormalNetworks: [ReceiveNetworkItem] = []
-    @Published private(set) var receiveProxyNetworks: [ReceiveNetworkItem] = []
-    @Published private(set) var receiveSelectedNetworkId: String?
-    @Published private(set) var individualTraceOrder: TraceOrderItem?
-    @Published private(set) var businessTraceOrder: TraceOrderItem?
-    @Published private(set) var receiveRecentValid: [TraceOrderItem] = []
-    @Published private(set) var receiveRecentInvalid: [TraceOrderItem] = []
-    @Published private(set) var receiveTraceChildren: [TraceChildItem] = []
-    @Published private(set) var individualTraceDetail: TraceShowDetail?
-    @Published private(set) var businessTraceDetail: TraceShowDetail?
-    @Published private(set) var receiveShareDetail: ReceiveOrderDetail?
-    @Published private(set) var receiveExpiryConfig = ReceiveExpiryConfig(durations: [24, 72, 168], selectedDuration: 72)
-    @Published private(set) var transferDomainState = TransferDomainState()
-    @Published private(set) var transferSelectNetworks: [TransferNetworkItem] = []
-    @Published private(set) var transferNormalNetworks: [TransferNetworkItem] = []
-    @Published private(set) var transferProxyNetworks: [TransferNetworkItem] = []
-    @Published private(set) var transferSelectedNetworkId: String?
-    @Published private(set) var transferDraft = TransferDraft()
+    @Published var receiveDomainState = ReceiveDomainState()
+    @Published var receiveSelectNetworks: [ReceiveNetworkItem] = []
+    @Published var receiveNormalNetworks: [ReceiveNetworkItem] = []
+    @Published var receiveProxyNetworks: [ReceiveNetworkItem] = []
+    @Published var receiveSelectedNetworkId: String?
+    @Published var individualTraceOrder: TraceOrderItem?
+    @Published var businessTraceOrder: TraceOrderItem?
+    @Published var receiveRecentValid: [TraceOrderItem] = []
+    @Published var receiveRecentInvalid: [TraceOrderItem] = []
+    @Published var receiveTraceChildren: [TraceChildItem] = []
+    @Published var individualTraceDetail: TraceShowDetail?
+    @Published var businessTraceDetail: TraceShowDetail?
+    @Published var receiveShareDetail: ReceiveOrderDetail?
+    @Published var receiveExpiryConfig = ReceiveExpiryConfig(durations: [24, 72, 168], selectedDuration: 72)
+    @Published var transferDomainState = TransferDomainState()
+    @Published var transferSelectNetworks: [TransferNetworkItem] = []
+    @Published var transferNormalNetworks: [TransferNetworkItem] = []
+    @Published var transferProxyNetworks: [TransferNetworkItem] = []
+    @Published var transferSelectedNetworkId: String?
+    @Published var transferDraft = TransferDraft()
 
     var rootScreen: RootScreen {
         isAuthenticated ? .home : .login
     }
 
     private var toastDismissTask: Task<Void, Never>?
-    private let securityService: SecurityServing
-    private let backendFactory: (EnvironmentConfig) -> BackendServing
-    private var backend: BackendServing
+    let securityService: SecurityServing
+    let backendFactory: (EnvironmentConfig) -> BackendServing
+    var backend: BackendServing
     private static let logTimeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
@@ -266,22 +266,22 @@ final class AppState: ObservableObject {
     }()
     private static let evmAddressRegex = try! NSRegularExpression(pattern: "0x[a-fA-F0-9]{40}")
     private static let txHashRegex = try! NSRegularExpression(pattern: "0x[a-fA-F0-9]{64}")
-    private let passkeyService: PasskeyServing
-    private let clock: AppClock
-    private let idGenerator: AppIDGenerator
-    private let appLogger: AppLogger
-    private let selectedChainStorageKey = "cpcash.selected.chain.id"
+    let passkeyService: PasskeyServing
+    let clock: AppClock
+    let idGenerator: AppIDGenerator
+    let appLogger: AppLogger
+    let selectedChainStorageKey = "cpcash.selected.chain.id"
     private lazy var sessionUseCase = SessionUseCase(appState: self)
     private lazy var meUseCase = MeUseCase(appState: self)
     private lazy var billUseCase = BillUseCase(appState: self)
     private lazy var transferUseCase = TransferUseCase(appState: self)
     private lazy var receiveUseCase = ReceiveUseCase(appState: self)
-    private var messageRequestGeneration = 0
-    private var billRequestGeneration = 0
-    private var networkSelectionGeneration = 0
-    private var activeOrderDetailRequestSN: String?
-    private let messagePaginationGate = PaginationGate()
-    private let billPaginationGate = PaginationGate()
+    var messageRequestGeneration = 0
+    var billRequestGeneration = 0
+    var networkSelectionGeneration = 0
+    var activeOrderDetailRequestSN: String?
+    let messagePaginationGate = PaginationGate()
+    let billPaginationGate = PaginationGate()
 
     init(dependencies: AppDependencies) {
         let env = EnvironmentConfig.default
@@ -307,78 +307,16 @@ final class AppState: ObservableObject {
         sessionUseCase.boot()
     }
 
-    func bootImpl() {
-        do {
-            let address = try securityService.activeAddress()
-            activeAddress = address.value
-            refreshPasskeyAccounts()
-            restoreSelectedChain()
-            log("钱包已就绪: \(address.value)")
-            log("当前后端环境: \(environment.tag.rawValue) -> \(environment.baseURL.absoluteString)")
-            Task {
-                await refreshNetworkOptions()
-                await loadReceiveExpiryConfig()
-                await loadTransferSelectNetwork()
-            }
-        } catch {
-            log("钱包初始化失败: \(error)")
-        }
-    }
-
     func refreshPasskeyAccounts() {
         sessionUseCase.refreshPasskeyAccounts()
-    }
-
-    func refreshPasskeyAccountsImpl() {
-        passkeyAccounts = passkeyService.accounts()
-        if selectedPasskeyRawId.isEmpty {
-            selectedPasskeyRawId = passkeyAccounts.first?.rawId ?? ""
-        }
     }
 
     func registerPasskey(displayName: String) async {
         await sessionUseCase.registerPasskey(displayName: displayName)
     }
 
-    func registerPasskeyImpl(displayName: String) async {
-        guard beginLoginFlow() else { return }
-        defer { endLoginFlow() }
-
-        do {
-            let normalizedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-            let account = try await passkeyService.register(displayName: normalizedName.isEmpty ? "CPCash" : normalizedName)
-            let address = try securityService.importAccount(EncryptedImportBlob(payload: account.privateKeyHex))
-            try passkeyService.updateAddress(rawId: account.rawId, address: address.value)
-            refreshPasskeyAccounts()
-            selectedPasskeyRawId = account.rawId
-            activeAddress = address.value
-            log("Passkey 注册成功: \(account.displayName) / \(address.value)")
-            try await performSignInFlow()
-        } catch {
-            handleLoginFailure(error)
-        }
-    }
-
     func loginWithPasskey(rawId: String?) async {
         await sessionUseCase.loginWithPasskey(rawId: rawId)
-    }
-
-    func loginWithPasskeyImpl(rawId: String?) async {
-        guard beginLoginFlow() else { return }
-        defer { endLoginFlow() }
-
-        do {
-            let account = try await passkeyService.login(rawId: rawId)
-            let importedAddress = try securityService.importAccount(EncryptedImportBlob(payload: account.privateKeyHex))
-            if account.address != importedAddress.value {
-                try? passkeyService.updateAddress(rawId: account.rawId, address: importedAddress.value)
-            }
-            activeAddress = importedAddress.value
-            log("Passkey 认证成功: \(account.displayName) / \(importedAddress.value)")
-            try await performSignInFlow()
-        } catch {
-            handleLoginFailure(error)
-        }
     }
 
     func refreshHomeData() async {
@@ -1663,39 +1601,6 @@ final class AppState: ObservableObject {
         sessionUseCase.signOutToLogin()
     }
 
-    func signOutToLoginImpl() {
-        isAuthenticated = false
-        approvalSessionState = .locked
-        backend.executor.clearToken()
-        selectedOrderDetail = nil
-        activeOrderDetailRequestSN = nil
-        messageList = []
-        homeRecentMessages = []
-        addressBooks = []
-        billList = []
-        billAddressFilter = nil
-        billAddressAggList = []
-        receiveSelectNetworks = []
-        receiveNormalNetworks = []
-        receiveProxyNetworks = []
-        receiveSelectedNetworkId = nil
-        receiveDomainState = ReceiveDomainState()
-        receiveRecentValid = []
-        receiveRecentInvalid = []
-        receiveTraceChildren = []
-        individualTraceDetail = nil
-        businessTraceDetail = nil
-        transferSelectNetworks = []
-        transferNormalNetworks = []
-        transferProxyNetworks = []
-        transferSelectedNetworkId = nil
-        transferDomainState = TransferDomainState()
-        transferDraft = TransferDraft()
-        transferRecentContacts = []
-        messagePaginationGate.reset()
-        billPaginationGate.reset()
-    }
-
     func showInfoToast(_ message: String) {
         showToast(message, theme: .info)
     }
@@ -1704,137 +1609,9 @@ final class AppState: ObservableObject {
     func cycleEnvironmentForDebug() {
         sessionUseCase.cycleEnvironmentForDebug()
     }
-
-    func cycleEnvironmentForDebugImpl() {
-        let next: EnvironmentConfig
-        switch environment.tag {
-        case .development:
-            next = .staging
-        case .staging:
-            next = .production
-        case .production:
-            next = .development
-        }
-        environment = next
-        backend = backendFactory(next)
-        log("Debug 环境切换完成: \(next.tag.rawValue) -> \(next.baseURL.absoluteString)")
-    }
     #endif
 
-    private func performSignInFlow() async throws {
-        let address = try securityService.activeAddress()
-        let message = loginMessage(address: address.value)
-        let source = RequestSource.system(name: "message_signature_login")
-
-        let signature = try securityService.signPersonalMessage(
-            SignMessageRequest(
-                source: source,
-                account: address,
-                message: message,
-                chainId: selectedChainId
-            )
-        )
-
-        _ = try await backend.auth.signIn(
-            signature: signature.value,
-            address: address.value,
-            message: message
-        )
-        log("登录成功，token 已更新")
-        isAuthenticated = true
-        approvalSessionState = .unlocked(lastVerifiedAt: clock.now)
-        loginErrorKind = nil
-        showToast("登录成功", theme: .success)
-        await refreshHomeData()
-    }
-
-    private func beginLoginFlow() -> Bool {
-        let now = clock.now
-        if loginBusy {
-            log("登录请求已忽略: 当前请求仍在执行")
-            return false
-        }
-        if let cooldown = loginCooldownUntil, now < cooldown {
-            log("登录请求已忽略: 2 秒防抖生效中")
-            return false
-        }
-        loginBusy = true
-        loginCooldownUntil = now.addingTimeInterval(2)
-        loginErrorKind = nil
-        return true
-    }
-
-    private func endLoginFlow() {
-        loginBusy = false
-    }
-
-    private func handleLoginFailure(_ error: Error) {
-        let kind = classifyLoginError(error)
-        loginErrorKind = kind
-        approvalSessionState = .locked
-        isAuthenticated = false
-        showToast(messageForLoginError(kind), theme: .error)
-        log("登录失败[\(kind.rawValue)]: \(error)")
-    }
-
-    private func classifyLoginError(_ error: Error) -> LoginErrorKind {
-        if let local = error as? LocalPasskeyError {
-            switch local {
-            case .biometricUnavailable, .biometricFailed, .accountNotFound:
-                return .authFailed
-            }
-        }
-
-        if let la = error as? LAError {
-            switch la.code {
-            case .userCancel, .systemCancel, .appCancel, .userFallback:
-                return .rejectSign
-            default:
-                return .authFailed
-            }
-        }
-
-        if let backendError = error as? BackendAPIError {
-            switch backendError {
-            case .unauthorized:
-                return .authFailed
-            case let .serverError(code, _):
-                if code == 401 {
-                    return .authFailed
-                }
-                return .networkFailed
-            case .httpStatus, .invalidURL, .invalidEnvironmentHost, .emptyData:
-                return .networkFailed
-            }
-        }
-
-        if error is URLError {
-            return .networkFailed
-        }
-        let nsError = error as NSError
-        if nsError.domain == NSURLErrorDomain {
-            return .networkFailed
-        }
-
-        let lowercased = String(describing: error).lowercased()
-        if lowercased.contains("network") || lowercased.contains("timed out") || lowercased.contains("offline") {
-            return .networkFailed
-        }
-        return .authFailed
-    }
-
-    private func messageForLoginError(_ kind: LoginErrorKind) -> String {
-        switch kind {
-        case .rejectSign:
-            return "用户拒绝该请求"
-        case .authFailed:
-            return "身份验证失败"
-        case .networkFailed:
-            return "网络连接失败"
-        }
-    }
-
-    private func showToast(_ message: String, theme: ToastTheme, duration: TimeInterval = 2) {
+    func showToast(_ message: String, theme: ToastTheme, duration: TimeInterval = 2) {
         let current = ToastState(message: message, theme: theme, duration: duration)
         toast = current
 
@@ -1848,22 +1625,6 @@ final class AppState: ObservableObject {
                 self.toast = nil
             }
         }
-    }
-
-    private func loginMessage(address: String) -> String {
-        let loginTime = Int(clock.now.timeIntervalSince1970 * 1000)
-        let payload: [String: String] = [
-            "address": address,
-            "login_time": String(loginTime),
-        ]
-
-        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
-              let text = String(data: data, encoding: .utf8)
-        else {
-            return "{\"address\":\"\(address)\",\"login_time\":\"\(loginTime)\"}"
-        }
-
-        return text
     }
 
     private func configureTransferNetwork(_ item: TransferNetworkItem) {
@@ -2350,7 +2111,7 @@ final class AppState: ObservableObject {
         ]
     }
 
-    private func restoreSelectedChain() {
+    func restoreSelectedChain() {
         let storedChainId = UserDefaults.standard.integer(forKey: selectedChainStorageKey)
         if storedChainId == 199 || storedChainId == 1029 {
             selectedChainId = storedChainId
@@ -2594,7 +2355,7 @@ final class AppState: ObservableObject {
         return secured
     }
 
-    private func log(_ message: String) {
+    func log(_ message: String) {
         let sanitized = redactSensitiveLog(message)
         let entry = "[\(Self.logTimeFormatter.string(from: clock.now))] \(sanitized)"
         logs.append(entry)

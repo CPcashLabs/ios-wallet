@@ -15,6 +15,7 @@ final class TransferStore: ObservableObject {
     @Published private(set) var transferDraft: TransferDraft
     @Published private(set) var transferRecentContacts: [TransferReceiveContact]
     @Published private(set) var addressBooks: [AddressBookItem]
+    @Published private(set) var lastTxHash: String
 
     init(appState: AppState) {
         self.appState = appState
@@ -26,6 +27,7 @@ final class TransferStore: ObservableObject {
         transferDraft = appState.transferDraft
         transferRecentContacts = appState.transferRecentContacts
         addressBooks = appState.addressBooks
+        lastTxHash = appState.lastTxHash
 
         bind()
     }
@@ -74,12 +76,28 @@ final class TransferStore: ObservableObject {
         await appState.loadTransferAddressCandidates()
     }
 
+    func loadAddressBooks() async {
+        await appState.loadAddressBooks()
+    }
+
     func prepareTransferPayment(amountText: String, note: String) async -> Bool {
         await appState.prepareTransferPayment(amountText: amountText, note: note)
     }
 
     func executeTransferPayment() async -> Bool {
         await appState.executeTransferPayment()
+    }
+
+    func isLoading(_ key: LoadKey) -> Bool {
+        appState.isLoading(key)
+    }
+
+    func errorMessage(_ key: LoadKey) -> String? {
+        appState.errorMessage(key)
+    }
+
+    func showInfoToast(_ message: String) {
+        appState.showInfoToast(message)
     }
 
     private func bind() {
@@ -113,6 +131,10 @@ final class TransferStore: ObservableObject {
 
         appState.$addressBooks
             .sink { [weak self] in self?.addressBooks = $0 }
+            .store(in: &cancellables)
+
+        appState.$lastTxHash
+            .sink { [weak self] in self?.lastTxHash = $0 }
             .store(in: &cancellables)
     }
 }

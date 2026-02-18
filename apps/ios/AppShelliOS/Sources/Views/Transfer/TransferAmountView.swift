@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TransferAmountView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var transferStore: TransferStore
     let onNext: () -> Void
 
     @State private var amountText = ""
@@ -32,18 +32,18 @@ struct TransferAmountView: View {
             .scrollDismissesKeyboard(.interactively)
             .task {
                 if amountText.isEmpty {
-                    amountText = state.transferDraft.amountText
+                    amountText = transferStore.transferDraft.amountText
                 }
                 if noteText.isEmpty {
-                    noteText = state.transferDraft.note
+                    noteText = transferStore.transferDraft.note
                 }
             }
             .confirmationDialog("选择币种", isPresented: $showCoinPicker, titleVisibility: .visible) {
-                ForEach(state.transferDomainState.availableNormalCoins, id: \.coinCode) { coin in
+                ForEach(transferStore.transferDomainState.availableNormalCoins, id: \.coinCode) { coin in
                     let title = coin.coinSymbol ?? coin.coinName ?? coin.coinCode ?? "-"
                     Button(title) {
                         if let coinCode = coin.coinCode {
-                            Task { await state.selectTransferNormalCoin(coinCode: coinCode) }
+                            Task { await transferStore.selectTransferNormalCoin(coinCode: coinCode) }
                         }
                     }
                 }
@@ -51,7 +51,7 @@ struct TransferAmountView: View {
             .confirmationDialog("选择交易对", isPresented: $showPairPicker, titleVisibility: .visible) {
                 ForEach(pairOptions, id: \.id) { option in
                     Button(option.title) {
-                        state.selectTransferPair(sendCoinCode: option.sendCoinCode, recvCoinCode: option.recvCoinCode)
+                        transferStore.selectTransferPair(sendCoinCode: option.sendCoinCode, recvCoinCode: option.recvCoinCode)
                     }
                 }
             }
@@ -60,10 +60,10 @@ struct TransferAmountView: View {
 
     private func addressCard(widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(state.transferDomainState.selectedPayChain)
+            Text(transferStore.transferDomainState.selectedPayChain)
                 .font(.system(size: widthClass.bodySize + 1, weight: .semibold))
                 .foregroundStyle(ThemeTokens.title)
-            Text(shortAddress(state.transferDraft.recipientAddress))
+            Text(shortAddress(transferStore.transferDraft.recipientAddress))
                 .font(.system(size: widthClass.bodySize))
                 .foregroundStyle(ThemeTokens.secondary)
                 .lineLimit(1)
@@ -85,25 +85,25 @@ struct TransferAmountView: View {
                     .keyboardType(.decimalPad)
                     .font(.system(size: widthClass.titleSize + 8, weight: .semibold))
                     .foregroundStyle(ThemeTokens.title)
-                Text(state.transferDomainState.selectedCoinSymbol)
+                Text(transferStore.transferDomainState.selectedCoinSymbol)
                     .font(.system(size: widthClass.bodySize + 1, weight: .medium))
                     .foregroundStyle(ThemeTokens.secondary)
             }
 
             Divider()
 
-            if state.transferDomainState.selectedIsNormalChannel {
+            if transferStore.transferDomainState.selectedIsNormalChannel {
                 Button {
                     showCoinPicker = true
                 } label: {
-                    pickerRow(title: "Coin", value: state.transferDomainState.selectedCoinSymbol)
+                    pickerRow(title: "Coin", value: transferStore.transferDomainState.selectedCoinSymbol)
                 }
                 .buttonStyle(.plain)
             } else if !pairOptions.isEmpty {
                 Button {
                     showPairPicker = true
                 } label: {
-                    pickerRow(title: "Pair", value: state.transferDomainState.selectedPairLabel)
+                    pickerRow(title: "Pair", value: transferStore.transferDomainState.selectedPairLabel)
                 }
                 .buttonStyle(.plain)
             }
@@ -141,7 +141,7 @@ struct TransferAmountView: View {
                 guard !nextTriggered else { return }
                 nextTriggered = true
                 Task {
-                    let ok = await state.prepareTransferPayment(amountText: amountText, note: noteText)
+                    let ok = await transferStore.prepareTransferPayment(amountText: amountText, note: noteText)
                     if ok {
                         await MainActor.run {
                             onNext()
@@ -154,7 +154,7 @@ struct TransferAmountView: View {
             } label: {
                 HStack {
                     Spacer()
-                    if state.isLoading(.transferPrepare) {
+                    if transferStore.isLoading(.transferPrepare) {
                         ProgressView()
                             .tint(.white)
                     } else {
@@ -173,14 +173,14 @@ struct TransferAmountView: View {
                 .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
-            .disabled(!canSubmit || state.isLoading(.transferPrepare) || nextTriggered)
+            .disabled(!canSubmit || transferStore.isLoading(.transferPrepare) || nextTriggered)
         }
     }
 
     private var pairOptions: [(id: String, title: String, sendCoinCode: String, recvCoinCode: String)] {
         var seen = Set<String>()
         var result: [(id: String, title: String, sendCoinCode: String, recvCoinCode: String)] = []
-        for pair in state.transferDomainState.availablePairs {
+        for pair in transferStore.transferDomainState.availablePairs {
             let sendCode = pair.sendCoinCode ?? ""
             let recvCode = pair.recvCoinCode ?? ""
             guard !sendCode.isEmpty, !recvCode.isEmpty else { continue }
@@ -195,9 +195,9 @@ struct TransferAmountView: View {
     }
 
     private var minimumHint: String {
-        if let order = state.transferDraft.orderDetail,
+        if let order = transferStore.transferDraft.orderDetail,
            let min = order.sendAmount?.stringValue, !min.isEmpty {
-            return "当前金额: \(min) \(state.transferDomainState.selectedCoinSymbol)"
+            return "当前金额: \(min) \(transferStore.transferDomainState.selectedCoinSymbol)"
         }
         return "请确认金额与网络一致"
     }
@@ -207,7 +207,7 @@ struct TransferAmountView: View {
         guard !text.isEmpty, let value = Decimal(string: text), value > 0 else {
             return false
         }
-        return !state.transferDraft.recipientAddress.isEmpty
+        return !transferStore.transferDraft.recipientAddress.isEmpty
     }
 
     private func pickerRow(title: String, value: String) -> some View {

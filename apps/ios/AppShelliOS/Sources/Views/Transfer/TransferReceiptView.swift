@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TransferReceiptView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var transferStore: TransferStore
     let onDone: () -> Void
     let onViewOrder: (String) -> Void
 
@@ -25,10 +25,10 @@ struct TransferReceiptView: View {
 
                     VStack(spacing: 10) {
                         Button {
-                            if let orderSN = state.transferDraft.orderSN, !orderSN.isEmpty {
+                            if let orderSN = transferStore.transferDraft.orderSN, !orderSN.isEmpty {
                                 onViewOrder(orderSN)
                             } else {
-                                state.showInfoToast("当前交易无订单号")
+                                transferStore.showInfoToast("当前交易无订单号")
                             }
                         } label: {
                             Text("View Order")
@@ -67,10 +67,10 @@ struct TransferReceiptView: View {
 
     private func infoCard(widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            row("TxHash", state.lastTxHash)
-            row("OrderSN", state.transferDraft.orderSN ?? "-")
-            row("Amount", "\(state.transferDraft.amountText) \(state.transferDomainState.selectedSendCoinName)")
-            row("To", shortAddress(state.transferDraft.recipientAddress))
+            row("TxHash", transferStore.lastTxHash)
+            row("OrderSN", transferStore.transferDraft.orderSN ?? "-")
+            row("Amount", "\(transferStore.transferDraft.amountText) \(transferStore.transferDomainState.selectedSendCoinName)")
+            row("To", shortAddress(transferStore.transferDraft.recipientAddress))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

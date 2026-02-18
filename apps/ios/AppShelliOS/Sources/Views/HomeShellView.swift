@@ -97,7 +97,7 @@ struct HomeShellView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .messageCenter:
-                    hideTabBar(MessageCenterView(state: state))
+                    hideTabBar(MessageCenterView(meStore: appStore.meStore))
                 case .receiveSelectNetwork:
                     hideTabBar(ReceiveSelectNetworkView(state: state) {
                         pushHomeRoute(.receiveRoot)
@@ -126,24 +126,28 @@ struct HomeShellView: View {
                     hideTabBar(ReceiveShareView(state: state, orderSN: orderSN))
 
                 case .transferSelectNetwork:
-                    hideTabBar(TransferSelectNetworkView(state: state) {
+                    hideTabBar(TransferSelectNetworkView(
+                        sessionStore: appStore.sessionStore,
+                        transferStore: appStore.transferStore,
+                        uiStore: appStore.uiStore
+                    ) {
                         pushHomeRoute(.transferAddress)
                     })
                 case .transferAddress:
-                    hideTabBar(TransferAddressView(state: state) {
+                    hideTabBar(TransferAddressView(transferStore: appStore.transferStore) {
                         pushHomeRoute(.transferAmount)
                     })
                 case .transferAmount:
-                    hideTabBar(TransferAmountView(state: state) {
+                    hideTabBar(TransferAmountView(transferStore: appStore.transferStore) {
                         pushHomeRoute(.transferConfirm)
                     })
                 case .transferConfirm:
-                    hideTabBar(TransferConfirmView(state: state) {
+                    hideTabBar(TransferConfirmView(transferStore: appStore.transferStore) {
                         pushHomeRoute(.transferReceipt)
                     })
                 case .transferReceipt:
                     hideTabBar(TransferReceiptView(
-                        state: state,
+                        transferStore: appStore.transferStore,
                         onDone: {
                             homePath = []
                         },
@@ -169,7 +173,7 @@ struct HomeShellView: View {
                         pushHomeRoute(.billList)
                     })
                 case let .orderDetail(orderSN):
-                    hideTabBar(OrderDetailView(state: state, orderSN: orderSN))
+                    hideTabBar(OrderDetailView(meStore: appStore.meStore, uiStore: appStore.uiStore, orderSN: orderSN))
                 }
             }
         }
@@ -225,7 +229,7 @@ struct HomeShellView: View {
                         pushMeRoute(.billList)
                     })
                 case let .orderDetail(orderSN):
-                    hideTabBar(OrderDetailView(state: state, orderSN: orderSN))
+                    hideTabBar(OrderDetailView(meStore: appStore.meStore, uiStore: appStore.uiStore, orderSN: orderSN))
                 case .personal:
                     hideTabBar(PersonalView(
                         meStore: appStore.meStore,
@@ -237,7 +241,7 @@ struct HomeShellView: View {
                         pushMeRoute(nestedRoute)
                     })
                 case let .addressBookEdit(id):
-                    hideTabBar(AddressBookEditView(state: state, editingId: id))
+                    hideTabBar(AddressBookEditView(meStore: appStore.meStore, uiStore: appStore.uiStore, editingId: id))
                 case .settingUnit:
                     hideTabBar(SettingUnitView(meStore: appStore.meStore))
                 case .totalAssets:

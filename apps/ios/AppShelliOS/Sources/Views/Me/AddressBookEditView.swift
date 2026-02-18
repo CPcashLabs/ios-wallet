@@ -3,7 +3,8 @@ import SwiftUI
 struct AddressBookEditView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
+    @ObservedObject var uiStore: UIStore
     let editingId: String?
 
     @State private var name = ""
@@ -64,14 +65,14 @@ struct AddressBookEditView: View {
                                 let chainType = resolvedChainType ?? initialChainType
                                 let success: Bool
                                 if let editingId {
-                                    success = await state.updateAddressBook(
+                                    success = await meStore.updateAddressBook(
                                         id: editingId,
                                         name: cleanName,
                                         walletAddress: cleanAddress,
                                         chainType: chainType
                                     )
                                 } else {
-                                    success = await state.createAddressBook(
+                                    success = await meStore.createAddressBook(
                                         name: cleanName,
                                         walletAddress: cleanAddress,
                                         chainType: chainType
@@ -95,7 +96,7 @@ struct AddressBookEditView: View {
                         if let editingId {
                             Button {
                                 Task {
-                                    await state.deleteAddressBook(id: editingId)
+                                    await meStore.deleteAddressBook(id: editingId)
                                     dismiss()
                                 }
                             } label: {
@@ -118,7 +119,7 @@ struct AddressBookEditView: View {
                 QRCodeScannerSheet { value in
                     let normalized = normalizeScannedAddress(value)
                     guard !normalized.isEmpty else {
-                        state.showInfoToast("未识别到有效地址")
+                        uiStore.showInfoToast("未识别到有效地址")
                         return
                     }
                     walletAddress = normalized
@@ -127,10 +128,10 @@ struct AddressBookEditView: View {
             .onAppear {
                 guard let editingId else { return }
                 Task {
-                    if state.addressBooks.isEmpty {
-                        await state.loadAddressBooks()
+                    if meStore.addressBooks.isEmpty {
+                        await meStore.loadAddressBooks()
                     }
-                    guard let item = state.addressBooks.first(where: { "\($0.id ?? -1)" == editingId }) else { return }
+                    guard let item = meStore.addressBooks.first(where: { "\($0.id ?? -1)" == editingId }) else { return }
                     name = item.name ?? ""
                     walletAddress = item.walletAddress ?? ""
                     initialChainType = item.chainType ?? "EVM"
@@ -146,13 +147,13 @@ struct AddressBookEditView: View {
     }
 
     private var resolvedChainType: String? {
-        state.detectAddressChainType(walletAddress) ?? (editingId != nil ? initialChainType : nil)
+        meStore.detectAddressChainType(walletAddress) ?? (editingId != nil ? initialChainType : nil)
     }
 
     private var invalidAddress: Bool {
         let value = AddressInputParser.sanitize(walletAddress)
         guard !value.isEmpty else { return false }
-        return state.detectAddressChainType(value) == nil
+        return meStore.detectAddressChainType(value) == nil
     }
 
     private var saveDisabled: Bool {
@@ -213,7 +214,7 @@ struct AddressBookEditView: View {
 
     private func normalizeScannedAddress(_ raw: String) -> String {
         AddressInputParser.normalizeScannedAddress(raw) { candidate in
-            state.detectAddressChainType(candidate) != nil
+            meStore.detectAddressChainType(candidate) != nil
         }
     }
 }

@@ -3,7 +3,8 @@ import SwiftUI
 import UIKit
 
 struct OrderDetailView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
+    @ObservedObject var uiStore: UIStore
     let orderSN: String
 
     var body: some View {
@@ -11,7 +12,7 @@ struct OrderDetailView: View {
             FullscreenScaffold(backgroundStyle: .globalImage) {
                 ScrollView {
                     VStack(spacing: 12) {
-                        if let detail = state.selectedOrderDetail {
+                        if let detail = meStore.selectedOrderDetail {
                             amountCard(detail: detail, widthClass: widthClass)
                             detailCard(detail: detail, widthClass: widthClass)
                         } else {
@@ -27,7 +28,7 @@ struct OrderDetailView: View {
             .navigationTitle("订单详情")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadOrderDetail(orderSN: orderSN)
+                await meStore.loadOrderDetail(orderSN: orderSN)
             }
         }
     }
@@ -101,7 +102,7 @@ struct OrderDetailView: View {
             if let copyValue, !copyValue.isEmpty {
                 Button {
                     UIPasteboard.general.string = copyValue
-                    state.showInfoToast("已复制")
+                    uiStore.showInfoToast("已复制")
                 } label: {
                     Image(systemName: "doc.on.doc")
                         .font(.system(size: 14, weight: .semibold))

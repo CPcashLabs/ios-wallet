@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct TransferSelectNetworkView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var transferStore: TransferStore
+    @ObservedObject var uiStore: UIStore
     let onSelect: () -> Void
     @State private var selectingNetworkID: String?
 
@@ -16,12 +18,12 @@ struct TransferSelectNetworkView: View {
                             title: "In-App Channel (Free)",
                             infoMessage: "Suitable for in-platform transfers with low friction and zero fee"
                         )
-                        if state.isLoading(.transferSelectNetwork), state.transferNormalNetworks.isEmpty {
+                        if transferStore.isLoading(.transferSelectNetwork), transferStore.transferNormalNetworks.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 60)
                         } else {
                             VStack(spacing: 0) {
-                                ForEach(state.transferNormalNetworks) { item in
+                                ForEach(transferStore.transferNormalNetworks) { item in
                                     networkRow(item, widthClass: widthClass)
                                 }
                             }
@@ -31,17 +33,17 @@ struct TransferSelectNetworkView: View {
                             title: "Proxy Settlement",
                             infoMessage: "Suitable for cross-network settlement routed by CPcash"
                         )
-                        if state.isLoading(.transferSelectNetwork), state.transferProxyNetworks.isEmpty {
+                        if transferStore.isLoading(.transferSelectNetwork), transferStore.transferProxyNetworks.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 90)
-                        } else if state.transferProxyNetworks.isEmpty {
+                        } else if transferStore.transferProxyNetworks.isEmpty {
                             Text("No networks available")
                                 .font(.system(size: widthClass.bodySize))
                                 .foregroundStyle(ThemeTokens.secondary)
                                 .padding(.top, 8)
                         } else {
                             VStack(spacing: 0) {
-                                ForEach(state.transferProxyNetworks) { item in
+                                ForEach(transferStore.transferProxyNetworks) { item in
                                     networkRow(item, widthClass: widthClass)
                                 }
                             }
@@ -56,10 +58,10 @@ struct TransferSelectNetworkView: View {
             .navigationTitle("Select Network")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadTransferSelectNetwork()
+                await transferStore.loadTransferSelectNetwork()
             }
             .refreshable {
-                await state.loadTransferSelectNetwork()
+                await transferStore.loadTransferSelectNetwork()
             }
         }
     }
@@ -86,7 +88,7 @@ struct TransferSelectNetworkView: View {
 
     private func sectionHeader(title: String, infoMessage: String) -> some View {
         Button {
-            state.showInfoToast(infoMessage)
+            uiStore.showInfoToast(infoMessage)
         } label: {
             HStack(spacing: 8) {
                 Text(title)
@@ -103,7 +105,7 @@ struct TransferSelectNetworkView: View {
     }
 
     private func networkRow(_ item: TransferNetworkItem, widthClass: DeviceWidthClass) -> some View {
-        let selected = state.transferSelectedNetworkId == item.id
+        let selected = transferStore.transferSelectedNetworkId == item.id
         let disabled = !item.isAvailable
         let selecting = selectingNetworkID == item.id
         return Button {
@@ -111,7 +113,7 @@ struct TransferSelectNetworkView: View {
             selectingNetworkID = item.id
             Haptics.lightImpact()
             Task {
-                await state.selectTransferNetwork(item: item)
+                await transferStore.selectTransferNetwork(item: item)
                 if item.isAvailable {
                     onSelect()
                 }
@@ -153,7 +155,7 @@ struct TransferSelectNetworkView: View {
         NetworkLogoView(
             networkName: item.name,
             logoURL: item.logoURL,
-            baseURL: state.environment.baseURL,
+            baseURL: sessionStore.environment.baseURL,
             isNormalChannel: item.isNormalChannel
         )
     }

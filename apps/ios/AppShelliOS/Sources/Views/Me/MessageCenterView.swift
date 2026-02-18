@@ -2,7 +2,7 @@ import SwiftUI
 import BackendAPI
 
 struct MessageCenterView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var meStore: MeStore
     @State private var loadMoreTask: Task<Void, Never>?
     @State private var paginationGate = PaginationGate()
 
@@ -10,10 +10,10 @@ struct MessageCenterView: View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading(.meMessageList) && state.messageList.isEmpty {
+                    if meStore.isLoading(.meMessageList) && meStore.messageList.isEmpty {
                         ProgressView("正在加载消息...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if state.messageList.isEmpty {
+                    } else if meStore.messageList.isEmpty {
                         EmptyStateView(asset: "message_no_data", title: "暂无消息")
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -24,8 +24,8 @@ struct MessageCenterView: View {
                                     messageRow(row.item)
                                         .onAppear {
                                             if row.index == messageRows.count - 1,
-                                               !state.messageLastPage,
-                                               !state.isLoading(.meMessageList)
+                                               !meStore.messageLastPage,
+                                               !meStore.isLoading(.meMessageList)
                                             {
                                                 triggerLoadMoreIfNeeded()
                                             }
@@ -33,10 +33,10 @@ struct MessageCenterView: View {
                                     Divider()
                                 }
 
-                                if state.isLoading(.meMessageList) {
+                                if meStore.isLoading(.meMessageList) {
                                     ProgressView()
                                         .padding(.vertical, 12)
-                                } else if state.messageLastPage {
+                                } else if meStore.messageLastPage {
                                     Text("无更多数据")
                                         .font(.system(size: 12))
                                         .foregroundStyle(ThemeTokens.tertiary)
@@ -54,14 +54,14 @@ struct MessageCenterView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("全部已读") {
-                        Task { await state.markAllMessagesRead() }
+                        Task { await meStore.markAllMessagesRead() }
                     }
                     .font(.system(size: 14))
                 }
             }
             .task {
                 paginationGate.reset()
-                await state.loadMessages(page: 1, append: false)
+                await meStore.loadMessages(page: 1, append: false)
             }
             .onDisappear {
                 loadMoreTask?.cancel()
@@ -72,7 +72,7 @@ struct MessageCenterView: View {
     }
 
     private var messageRows: [MessageRow] {
-        let seeds = state.messageList.map { item in
+        let seeds = meStore.messageList.map { item in
             StableRowID.make(
                 item.id.map(String.init),
                 item.createdAt.map(String.init),
@@ -81,15 +81,15 @@ struct MessageCenterView: View {
             )
         }
         let ids = StableRowID.uniqued(seeds)
-        return Array(zip(state.messageList, ids).enumerated()).map { index, pair in
+        return Array(zip(meStore.messageList, ids).enumerated()).map { index, pair in
             MessageRow(id: pair.1, index: index, item: pair.0)
         }
     }
 
     private func triggerLoadMoreIfNeeded() {
-        guard !state.messageLastPage else { return }
-        guard !state.isLoading(.meMessageList) else { return }
-        let nextPage = max(1, state.messagePage + 1)
+        guard !meStore.messageLastPage else { return }
+        guard !meStore.isLoading(.meMessageList) else { return }
+        let nextPage = max(1, meStore.messagePage + 1)
         let token = "message.page.\(nextPage)"
         guard paginationGate.begin(token: token) else { return }
         guard loadMoreTask == nil else {
@@ -101,14 +101,14 @@ struct MessageCenterView: View {
                 paginationGate.end(token: token)
                 loadMoreTask = nil
             }
-            await state.loadMessages(page: nextPage, append: true)
+            await meStore.loadMessages(page: nextPage, append: true)
         }
     }
 
     private func messageRow(_ item: MessageItem) -> some View {
         Button {
             if let id = item.id {
-                Task { await state.markMessageRead(id: String(id)) }
+                Task { await meStore.markMessageRead(id: String(id)) }
             }
         } label: {
             HStack(alignment: .top, spacing: 10) {

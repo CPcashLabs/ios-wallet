@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TransferConfirmView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var transferStore: TransferStore
     let onSuccess: () -> Void
 
     @State private var lastTapAt: Date?
@@ -36,7 +36,7 @@ struct TransferConfirmView: View {
                 Spacer()
             }
 
-            Text(state.transferDomainState.selectedPayChain)
+            Text(transferStore.transferDomainState.selectedPayChain)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(ThemeTokens.secondary)
                 .padding(.horizontal, 8)
@@ -54,8 +54,8 @@ struct TransferConfirmView: View {
                 row("Transfer Note", noteText)
             }
 
-            if state.transferDraft.mode == .proxy {
-                row("OrderSN", state.transferDraft.orderSN ?? "-")
+            if transferStore.transferDraft.mode == .proxy {
+                row("OrderSN", transferStore.transferDraft.orderSN ?? "-")
             }
         }
         .padding(14)
@@ -81,14 +81,14 @@ struct TransferConfirmView: View {
         VStack(spacing: 0) {
             Divider()
             Button {
-                guard !state.isLoading(.transferPay) else { return }
+                guard !transferStore.isLoading(.transferPay) else { return }
                 let now = Date()
                 if let lastTapAt, now.timeIntervalSince(lastTapAt) < 2 {
                     return
                 }
                 self.lastTapAt = now
                 Task {
-                    let ok = await state.executeTransferPayment()
+                    let ok = await transferStore.executeTransferPayment()
                     if ok {
                         onSuccess()
                     }
@@ -96,7 +96,7 @@ struct TransferConfirmView: View {
             } label: {
                 HStack {
                     Spacer()
-                    if state.isLoading(.transferPay) {
+                    if transferStore.isLoading(.transferPay) {
                         ProgressView()
                             .tint(.white)
                     } else {
@@ -115,46 +115,46 @@ struct TransferConfirmView: View {
                 .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
-            .disabled(state.isLoading(.transferPay))
+            .disabled(transferStore.isLoading(.transferPay))
         }
     }
 
     private var noteText: String {
-        state.transferDraft.note
+        transferStore.transferDraft.note
     }
 
     private var recipientText: String {
-        if let detail = state.transferDraft.orderDetail,
+        if let detail = transferStore.transferDraft.orderDetail,
            let to = detail.receiveAddress ?? detail.depositAddress,
            !to.isEmpty {
             return shortAddress(to)
         }
-        return shortAddress(state.transferDraft.recipientAddress)
+        return shortAddress(transferStore.transferDraft.recipientAddress)
     }
 
     private var amountReceivingText: String {
-        if let detail = state.transferDraft.orderDetail,
+        if let detail = transferStore.transferDraft.orderDetail,
            let recv = detail.recvEstimateAmount?.description ?? detail.recvAmount?.description {
-            return "\(recv) \(detail.recvCoinName ?? state.transferDomainState.selectedRecvCoinName)"
+            return "\(recv) \(detail.recvCoinName ?? transferStore.transferDomainState.selectedRecvCoinName)"
         }
-        return "\(state.transferDraft.amountText) \(state.transferDomainState.selectedRecvCoinName)"
+        return "\(transferStore.transferDraft.amountText) \(transferStore.transferDomainState.selectedRecvCoinName)"
     }
 
     private var totalAmountText: String {
-        if let detail = state.transferDraft.orderDetail,
+        if let detail = transferStore.transferDraft.orderDetail,
            let send = detail.sendEstimateAmount?.description ?? detail.sendAmount?.description {
-            return "\(send) \(detail.sendCoinName ?? state.transferDomainState.selectedSendCoinName)"
+            return "\(send) \(detail.sendCoinName ?? transferStore.transferDomainState.selectedSendCoinName)"
         }
-        return "\(state.transferDraft.amountText) \(state.transferDomainState.selectedSendCoinName)"
+        return "\(transferStore.transferDraft.amountText) \(transferStore.transferDomainState.selectedSendCoinName)"
     }
 
     private var feeText: String? {
-        guard let detail = state.transferDraft.orderDetail,
+        guard let detail = transferStore.transferDraft.orderDetail,
               let fee = detail.sendEstimateFeeAmount?.description,
               fee != "0", !fee.isEmpty else {
             return nil
         }
-        return "+ \(fee) \(detail.sendCoinName ?? state.transferDomainState.selectedSendCoinName)"
+        return "+ \(fee) \(detail.sendCoinName ?? transferStore.transferDomainState.selectedSendCoinName)"
     }
 
     private func shortAddress(_ value: String) -> String {

@@ -8,6 +8,7 @@ final class MeStore: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     @Published private(set) var profile: UserProfile?
+    @Published private(set) var selectedOrderDetail: OrderDetail?
     @Published private(set) var messageList: [MessageItem]
     @Published private(set) var messagePage: Int
     @Published private(set) var messageLastPage: Bool
@@ -28,6 +29,7 @@ final class MeStore: ObservableObject {
     init(appState: AppState) {
         self.appState = appState
         profile = appState.meProfile
+        selectedOrderDetail = appState.selectedOrderDetail
         messageList = appState.messageList
         messagePage = appState.messagePage
         messageLastPage = appState.messageLastPage
@@ -56,6 +58,14 @@ final class MeStore: ObservableObject {
         await appState.loadMessages(page: page, append: append)
     }
 
+    func markMessageRead(id: String) async {
+        await appState.markMessageRead(id: id)
+    }
+
+    func markAllMessagesRead() async {
+        await appState.markAllMessagesRead()
+    }
+
     func loadAddressBooks() async {
         await appState.loadAddressBooks()
     }
@@ -82,6 +92,30 @@ final class MeStore: ObservableObject {
 
     func updateAvatar(fileData: Data, fileName: String = "avatar.jpg", mimeType: String = "image/jpeg") async {
         await appState.updateAvatar(fileData: fileData, fileName: fileName, mimeType: mimeType)
+    }
+
+    func createAddressBook(name: String, walletAddress: String, chainType: String = "EVM") async -> Bool {
+        await appState.createAddressBook(name: name, walletAddress: walletAddress, chainType: chainType)
+    }
+
+    func updateAddressBook(id: String, name: String, walletAddress: String, chainType: String = "EVM") async -> Bool {
+        await appState.updateAddressBook(id: id, name: name, walletAddress: walletAddress, chainType: chainType)
+    }
+
+    func deleteAddressBook(id: String) async {
+        await appState.deleteAddressBook(id: id)
+    }
+
+    func detectAddressChainType(_ address: String) -> String? {
+        appState.detectAddressChainType(address)
+    }
+
+    func loadOrderDetail(orderSN: String) async {
+        await appState.loadOrderDetail(orderSN: orderSN)
+    }
+
+    func showInfoToast(_ message: String) {
+        appState.showInfoToast(message)
     }
 
     func setBillAddressFilter(_ address: String?) {
@@ -127,6 +161,10 @@ final class MeStore: ObservableObject {
 
         appState.$messageList
             .sink { [weak self] in self?.messageList = $0 }
+            .store(in: &cancellables)
+
+        appState.$selectedOrderDetail
+            .sink { [weak self] in self?.selectedOrderDetail = $0 }
             .store(in: &cancellables)
 
         appState.$messagePage

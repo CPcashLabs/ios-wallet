@@ -7,7 +7,7 @@ private enum TransferAddressTab: String, CaseIterable {
 }
 
 struct TransferAddressView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var transferStore: TransferStore
     let onNext: () -> Void
 
     @State private var addressInput = ""
@@ -17,13 +17,13 @@ struct TransferAddressView: View {
     @State private var nextResetTask: Task<Void, Never>?
 
     private var validationMessage: String? {
-        state.transferAddressValidationMessage(addressInput)
+        transferStore.transferAddressValidationMessage(addressInput)
     }
 
     private var nextDisabled: Bool {
         let trimmed = addressInput.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return true }
-        return !state.isValidTransferAddress(trimmed) || nextTriggered
+        return !transferStore.isValidTransferAddress(trimmed) || nextTriggered
     }
 
     private var keyword: String {
@@ -31,7 +31,7 @@ struct TransferAddressView: View {
     }
 
     private var addressBookCandidates: [AddressBookItem] {
-        state.transferAddressBookCandidates()
+        transferStore.transferAddressBookCandidates()
     }
 
     private var addressBookAliasByAddress: [String: String] {
@@ -55,7 +55,7 @@ struct TransferAddressView: View {
     }
 
     private var filteredRecentContacts: [TransferReceiveContact] {
-        let deduped = Dictionary(grouping: state.transferRecentContacts) { item in
+        let deduped = Dictionary(grouping: transferStore.transferRecentContacts) { item in
             (item.address ?? "").lowercased()
         }.compactMap(\.value.first)
 
@@ -63,7 +63,7 @@ struct TransferAddressView: View {
             guard let address = item.address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty else {
                 return false
             }
-            return state.isValidTransferAddress(address)
+            return transferStore.isValidTransferAddress(address)
         }
 
         guard !keyword.isEmpty else { return valid }
@@ -100,22 +100,22 @@ struct TransferAddressView: View {
                 QRCodeScannerSheet { scannedValue in
                     let normalized = normalizeScannedAddress(scannedValue)
                     guard !normalized.isEmpty else {
-                        state.showInfoToast("未识别到有效地址")
+                        transferStore.showInfoToast("未识别到有效地址")
                         return
                     }
                     addressInput = normalized
-                    state.updateTransferRecipientAddress(normalized)
+                    transferStore.updateTransferRecipientAddress(normalized)
                 }
             }
             .task {
                 if addressInput.isEmpty {
-                    addressInput = state.transferDraft.recipientAddress
+                    addressInput = transferStore.transferDraft.recipientAddress
                 }
-                if state.addressBooks.isEmpty {
-                    await state.loadAddressBooks()
+                if transferStore.addressBooks.isEmpty {
+                    await transferStore.loadAddressBooks()
                 }
-                await state.loadTransferAddressCandidates()
-                if state.transferRecentContacts.isEmpty {
+                await transferStore.loadTransferAddressCandidates()
+                if transferStore.transferRecentContacts.isEmpty {
                     selectedTab = .addressBook
                 }
             }
@@ -124,7 +124,7 @@ struct TransferAddressView: View {
                 if sanitized != value {
                     addressInput = sanitized
                 }
-                state.updateTransferRecipientAddress(sanitized)
+                transferStore.updateTransferRecipientAddress(sanitized)
             }
             .onDisappear {
                 nextResetTask?.cancel()
@@ -180,7 +180,7 @@ struct TransferAddressView: View {
     private func addAddressBookSection(widthClass: DeviceWidthClass) -> some View {
         if shouldShowAddAddressBook {
             Button {
-                state.showInfoToast("请前往“我的-地址簿”添加")
+                transferStore.showInfoToast("请前往“我的-地址簿”添加")
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "plus.circle")
@@ -218,7 +218,7 @@ struct TransferAddressView: View {
     private func contentSection(widthClass: DeviceWidthClass) -> some View {
         switch selectedTab {
         case .recent:
-            if state.isLoading(.transferAddressCandidates), filteredRecentContacts.isEmpty {
+            if transferStore.isLoading(.transferAddressCandidates), filteredRecentContacts.isEmpty {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 80)
             } else if filteredRecentContacts.isEmpty {
@@ -262,7 +262,7 @@ struct TransferAddressView: View {
         let bookName = addressBookAliasByAddress[address.lowercased()]
         return Button {
             addressInput = address
-            state.updateTransferRecipientAddress(address)
+            transferStore.updateTransferRecipientAddress(address)
             triggerNext()
         } label: {
             HStack(spacing: 10) {
@@ -300,7 +300,7 @@ struct TransferAddressView: View {
         let walletAddress = item.walletAddress ?? ""
         return Button {
             addressInput = walletAddress
-            state.updateTransferRecipientAddress(walletAddress)
+            transferStore.updateTransferRecipientAddress(walletAddress)
             triggerNext()
         } label: {
             HStack(spacing: 10) {
@@ -333,7 +333,7 @@ struct TransferAddressView: View {
         VStack(spacing: 0) {
             Divider()
             Button {
-                state.updateTransferRecipientAddress(addressInput)
+                transferStore.updateTransferRecipientAddress(addressInput)
                 triggerNext()
             } label: {
                 HStack {
@@ -370,7 +370,7 @@ struct TransferAddressView: View {
 
     private var shouldShowAddAddressBook: Bool {
         let trimmed = addressInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, state.isValidTransferAddress(trimmed) else { return false }
+        guard !trimmed.isEmpty, transferStore.isValidTransferAddress(trimmed) else { return false }
         let exists = addressBookCandidates.contains {
             ($0.walletAddress ?? "").caseInsensitiveCompare(trimmed) == .orderedSame
         }
@@ -413,7 +413,7 @@ struct TransferAddressView: View {
 
     private func normalizeScannedAddress(_ raw: String) -> String {
         AddressInputParser.normalizeScannedAddress(raw) { candidate in
-            state.isValidTransferAddress(candidate) || state.detectAddressChainType(candidate) != nil
+            transferStore.isValidTransferAddress(candidate) || transferStore.detectAddressChainType(candidate) != nil
         }
     }
 
@@ -463,6 +463,6 @@ private struct TransferAddressBookRow: Identifiable {
 
 #Preview("TransferAddressView") {
     NavigationStack {
-        TransferAddressView(state: AppState(), onNext: {})
+        TransferAddressView(transferStore: TransferStore(appState: AppState()), onNext: {})
     }
 }

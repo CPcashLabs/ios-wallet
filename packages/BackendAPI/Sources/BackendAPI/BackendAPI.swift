@@ -178,7 +178,7 @@ public final class BackendAPI {
     public let settings: SettingsServicing
     public let executor: RequestExecutor
 
-    public init(environment: EnvironmentConfig = .default, tokenStore: TokenStore = UserDefaultsTokenStore()) {
+    public init(environment: EnvironmentConfig = .default, tokenStore: TokenStore = KeychainTokenStore()) {
         let executor = RequestExecutor(environment: environment, tokenStore: tokenStore)
         self.executor = executor
         auth = AuthService(executor: executor)

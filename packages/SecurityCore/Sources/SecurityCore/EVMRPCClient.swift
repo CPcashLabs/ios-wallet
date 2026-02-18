@@ -47,6 +47,7 @@ struct EVMRPCClient {
         self.session = session
     }
 
+    @available(*, deprecated, message: "Use async version instead")
     func nextNonce(address: String) throws -> String {
         let result = try call(method: "eth_getTransactionCount", params: [address, "pending"])
         return try decimalQuantity(fromHexQuantity: result)
@@ -57,6 +58,7 @@ struct EVMRPCClient {
         return try decimalQuantity(fromHexQuantity: result)
     }
 
+    @available(*, deprecated, message: "Use async version instead")
     func gasPrice() throws -> String {
         let result = try call(method: "eth_gasPrice", params: [])
         return try decimalQuantity(fromHexQuantity: result)
@@ -67,6 +69,7 @@ struct EVMRPCClient {
         return try decimalQuantity(fromHexQuantity: result)
     }
 
+    @available(*, deprecated, message: "Use async version instead")
     func estimateGas(from: String, to: String, value: String, data: String?) throws -> String {
         var txObject: [String: String] = [
             "from": from,
@@ -93,6 +96,7 @@ struct EVMRPCClient {
         return try decimalQuantity(fromHexQuantity: result)
     }
 
+    @available(*, deprecated, message: "Use async version instead")
     func sendRawTransaction(_ rawTransactionHex: String) throws -> String {
         let value = rawTransactionHex.hasPrefix("0x") ? rawTransactionHex : "0x" + rawTransactionHex
         return try call(method: "eth_sendRawTransaction", params: [value])
@@ -103,6 +107,7 @@ struct EVMRPCClient {
         return try await callAsync(method: "eth_sendRawTransaction", params: [value])
     }
 
+    @available(*, deprecated, message: "Use async version instead")
     private func call(method: String, params: [Any]) throws -> String {
         let payload: [String: Any] = [
             "jsonrpc": "2.0",

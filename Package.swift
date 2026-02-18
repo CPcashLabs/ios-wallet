@@ -63,5 +63,10 @@ let package = Package(
             dependencies: ["CoreRuntime"],
             path: "Tests/CoreRuntimeTests"
         ),
+        .testTarget(
+            name: "SecurityCoreTests",
+            dependencies: ["SecurityCore"],
+            path: "Tests/SecurityCoreTests"
+        ),
     ]
 )

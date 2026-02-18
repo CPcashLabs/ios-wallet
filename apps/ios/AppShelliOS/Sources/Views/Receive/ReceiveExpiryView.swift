@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ReceiveExpiryView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var receiveStore: ReceiveStore
 
     @State private var selectedDuration: Int?
     @State private var initialDuration: Int?
@@ -13,7 +13,7 @@ struct ReceiveExpiryView: View {
                 ScrollView {
                     VStack(spacing: 10) {
                         VStack(spacing: 0) {
-                            ForEach(state.receiveExpiryConfig.durations, id: \.self) { duration in
+                            ForEach(receiveStore.receiveExpiryConfig.durations, id: \.self) { duration in
                                 Button {
                                     selectedDuration = duration
                                 } label: {
@@ -34,7 +34,7 @@ struct ReceiveExpiryView: View {
                                 }
                                 .buttonStyle(.plain)
 
-                                if duration != state.receiveExpiryConfig.durations.last {
+                                if duration != receiveStore.receiveExpiryConfig.durations.last {
                                     Divider()
                                         .padding(.leading, 14)
                                 }
@@ -58,10 +58,10 @@ struct ReceiveExpiryView: View {
             .navigationTitle("Expiry Date")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadReceiveExpiryConfig()
+                await receiveStore.loadReceiveExpiryConfig()
                 syncFromState()
             }
-            .onChange(of: state.receiveExpiryConfig) { _, _ in
+            .onChange(of: receiveStore.receiveExpiryConfig) { _, _ in
                 syncFromState()
             }
         }
@@ -75,7 +75,7 @@ struct ReceiveExpiryView: View {
                 guard !saving else { return }
                 saving = true
                 Task {
-                    await state.updateReceiveExpiry(duration: selectedDuration)
+                    await receiveStore.updateReceiveExpiry(duration: selectedDuration)
                     saving = false
                     initialDuration = selectedDuration
                 }
@@ -111,7 +111,7 @@ struct ReceiveExpiryView: View {
     }
 
     private func syncFromState() {
-        let selected = state.receiveExpiryConfig.selectedDuration ?? state.receiveExpiryConfig.durations.first
+        let selected = receiveStore.receiveExpiryConfig.selectedDuration ?? receiveStore.receiveExpiryConfig.durations.first
         if initialDuration == nil {
             initialDuration = selected
         } else if selected == initialDuration {

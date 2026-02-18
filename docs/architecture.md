@@ -46,7 +46,8 @@
 - `TransferStore`：转账域（网络、地址候选、下单与支付）
 - `UIStore`：Toast/Loading/Error 等 UI 状态域
 
-> 当前策略：保持 `AppState` 作为兼容层，新增领域 Store 做解耦；后续页面逐步从 `AppState` 直接依赖迁移到领域 Store。
+> 当前策略：保持 `AppState` 作为兼容层，新增领域 Store 做解耦。  
+> 当前状态：View 层已完成对 `AppState` 直连迁移，统一通过 `AppStore` 注入领域 Store（`SessionStore/HomeStore/MeStore/ReceiveStore/TransferStore/UIStore`）。
 
 ## iOS 导航契约
 - 根导航容器：`HomeShellView` 维护 `homePath` 与 `mePath` 两套路径状态

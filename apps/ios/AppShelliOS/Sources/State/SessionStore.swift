@@ -14,6 +14,7 @@ final class SessionStore: ObservableObject {
     @Published private(set) var networkOptions: [NetworkOption]
     @Published private(set) var isAuthenticated: Bool
     @Published private(set) var approvalSessionState: ApprovalSessionState
+    @Published private(set) var passkeyAccounts: [LocalPasskeyAccount]
 
     init(appState: AppState) {
         self.appState = appState
@@ -24,6 +25,7 @@ final class SessionStore: ObservableObject {
         networkOptions = appState.networkOptions
         isAuthenticated = appState.isAuthenticated
         approvalSessionState = appState.approvalSessionState
+        passkeyAccounts = appState.passkeyAccounts
 
         bind()
     }
@@ -46,6 +48,22 @@ final class SessionStore: ObservableObject {
 
     func selectNetwork(chainId: Int) {
         appState.selectNetwork(chainId: chainId)
+    }
+
+    func refreshPasskeyAccounts() {
+        appState.refreshPasskeyAccounts()
+    }
+
+    func registerPasskey(displayName: String) async {
+        await appState.registerPasskey(displayName: displayName)
+    }
+
+    func loginWithPasskey(rawId: String?) async {
+        await appState.loginWithPasskey(rawId: rawId)
+    }
+
+    func cycleEnvironmentForDebug() {
+        appState.cycleEnvironmentForDebug()
     }
 
     private func bind() {
@@ -75,6 +93,10 @@ final class SessionStore: ObservableObject {
 
         appState.$approvalSessionState
             .sink { [weak self] in self?.approvalSessionState = $0 }
+            .store(in: &cancellables)
+
+        appState.$passkeyAccounts
+            .sink { [weak self] in self?.passkeyAccounts = $0 }
             .store(in: &cancellables)
     }
 }

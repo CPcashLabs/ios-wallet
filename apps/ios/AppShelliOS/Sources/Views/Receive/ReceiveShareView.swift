@@ -2,7 +2,9 @@ import SwiftUI
 import UIKit
 
 struct ReceiveShareView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var receiveStore: ReceiveStore
+    @ObservedObject var uiStore: UIStore
     let orderSN: String
     @State private var shareSheetPresented = false
     @State private var shareImage: UIImage?
@@ -12,7 +14,7 @@ struct ReceiveShareView: View {
         FullscreenScaffold(backgroundStyle: .globalImage) {
             ScrollView {
                 VStack(spacing: 16) {
-                    if state.isLoading(.receiveShare) {
+                    if receiveStore.isLoading(.receiveShare) {
                         ProgressView("生成分享卡片...")
                             .padding(.top, 30)
                     } else {
@@ -29,7 +31,7 @@ struct ReceiveShareView: View {
             ActivityShareSheet(activityItems: shareItems)
         }
         .task {
-            await state.loadReceiveShare(orderSN: orderSN)
+            await receiveStore.loadReceiveShare(orderSN: orderSN)
         }
     }
 
@@ -38,7 +40,7 @@ struct ReceiveShareView: View {
             model: ShareCardRenderModel(
                 chainName: shareChainName,
                 address: shareAddress,
-                chainColorHex: state.receiveDomainState.selectedChainColor,
+                chainColorHex: receiveStore.receiveDomainState.selectedChainColor,
                 title: "Receive",
                 subtitle: "Only supports \(shareChainName) network assets",
                 modeTitle: "For individuals",
@@ -64,7 +66,7 @@ struct ReceiveShareView: View {
 
             Button("复制地址") {
                 UIPasteboard.general.string = shareAddress
-                state.showInfoToast("地址已复制")
+                uiStore.showInfoToast("地址已复制")
             }
             .frame(maxWidth: .infinity, minHeight: 48)
             .foregroundStyle(ThemeTokens.cpPrimary)
@@ -82,7 +84,7 @@ struct ReceiveShareView: View {
     private func shareCaptureCard() {
         guard !shareBusy else { return }
         guard canShareAddress else {
-            state.showInfoToast("地址数据加载中")
+            uiStore.showInfoToast("地址数据加载中")
             return
         }
         shareBusy = true
@@ -90,7 +92,7 @@ struct ReceiveShareView: View {
         let capture = sharePreviewCard
             .frame(width: 340, height: 620)
         guard let image = ViewImageRenderer.render(capture, size: CGSize(width: 340, height: 620)) else {
-            state.showInfoToast("分享图片生成失败")
+            uiStore.showInfoToast("分享图片生成失败")
             return
         }
         shareImage = image
@@ -105,10 +107,10 @@ struct ReceiveShareView: View {
     }
 
     private var shareAddress: String {
-        let raw = state.receiveShareDetail?.depositAddress ??
-            state.receiveShareDetail?.receiveAddress ??
+        let raw = receiveStore.receiveShareDetail?.depositAddress ??
+            receiveStore.receiveShareDetail?.receiveAddress ??
             traceFallbackAddress ??
-            state.activeAddress
+            sessionStore.activeAddress
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty || trimmed == "-" {
             return "0x0000000000000000000000000000000000000000"
@@ -117,17 +119,17 @@ struct ReceiveShareView: View {
     }
 
     private var traceFallbackAddress: String? {
-        if state.receiveDomainState.individualOrderSN == orderSN {
-            return state.individualTraceDetail?.depositAddress ??
-                state.individualTraceDetail?.receiveAddress ??
-                state.individualTraceOrder?.depositAddress ??
-                state.individualTraceOrder?.receiveAddress
+        if receiveStore.receiveDomainState.individualOrderSN == orderSN {
+            return receiveStore.individualTraceDetail?.depositAddress ??
+                receiveStore.individualTraceDetail?.receiveAddress ??
+                receiveStore.individualTraceOrder?.depositAddress ??
+                receiveStore.individualTraceOrder?.receiveAddress
         }
-        if state.receiveDomainState.businessOrderSN == orderSN {
-            return state.businessTraceDetail?.depositAddress ??
-                state.businessTraceDetail?.receiveAddress ??
-                state.businessTraceOrder?.depositAddress ??
-                state.businessTraceOrder?.receiveAddress
+        if receiveStore.receiveDomainState.businessOrderSN == orderSN {
+            return receiveStore.businessTraceDetail?.depositAddress ??
+                receiveStore.businessTraceDetail?.receiveAddress ??
+                receiveStore.businessTraceOrder?.depositAddress ??
+                receiveStore.businessTraceOrder?.receiveAddress
         }
         return nil
     }
@@ -138,17 +140,17 @@ struct ReceiveShareView: View {
     }
 
     private var shareChainName: String {
-        let value = state.receiveDomainState.selectedPayChain.trimmingCharacters(in: .whitespacesAndNewlines)
+        let value = receiveStore.receiveDomainState.selectedPayChain.trimmingCharacters(in: .whitespacesAndNewlines)
         return value.isEmpty ? "BTT_TEST" : value
     }
 
     private var minimumDepositText: String {
-        let value = state.receiveDomainState.receiveMinAmount
+        let value = receiveStore.receiveDomainState.receiveMinAmount
         if value > 0 {
             let formatted = value.rounded() == value ? String(format: "%.0f", value) : String(format: "%.2f", value)
-            return "\(formatted) \(state.receiveDomainState.selectedSendCoinName)"
+            return "\(formatted) \(receiveStore.receiveDomainState.selectedSendCoinName)"
         }
-        return "-- \(state.receiveDomainState.selectedSendCoinName)"
+        return "-- \(receiveStore.receiveDomainState.selectedSendCoinName)"
     }
 
 }

@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct ReceiveSelectNetworkView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var receiveStore: ReceiveStore
+    @ObservedObject var uiStore: UIStore
     let onSelect: () -> Void
     @State private var selectingNetworkID: String?
 
@@ -16,12 +18,12 @@ struct ReceiveSelectNetworkView: View {
                             title: "In-App Channel (Free)",
                             infoMessage: "Suitable for in-platform transfers with low friction and zero fee"
                         )
-                        if state.isLoading(.receiveSelectNetwork), state.receiveNormalNetworks.isEmpty {
+                        if receiveStore.isLoading(.receiveSelectNetwork), receiveStore.receiveNormalNetworks.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 60)
                         } else {
                             VStack(spacing: 0) {
-                                ForEach(state.receiveNormalNetworks) { item in
+                                ForEach(receiveStore.receiveNormalNetworks) { item in
                                     networkRow(item, widthClass: widthClass)
                                 }
                             }
@@ -31,17 +33,17 @@ struct ReceiveSelectNetworkView: View {
                             title: "Proxy Settlement",
                             infoMessage: "Suitable for cross-network settlement routed by CPcash"
                         )
-                        if state.isLoading(.receiveSelectNetwork), state.receiveProxyNetworks.isEmpty {
+                        if receiveStore.isLoading(.receiveSelectNetwork), receiveStore.receiveProxyNetworks.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity, minHeight: 90)
-                        } else if state.receiveProxyNetworks.isEmpty {
+                        } else if receiveStore.receiveProxyNetworks.isEmpty {
                             Text("No networks available")
                                 .font(.system(size: widthClass.bodySize))
                                 .foregroundStyle(ThemeTokens.secondary)
                                 .padding(.top, 8)
                         } else {
                             VStack(spacing: 0) {
-                                ForEach(state.receiveProxyNetworks) { item in
+                                ForEach(receiveStore.receiveProxyNetworks) { item in
                                     networkRow(item, widthClass: widthClass)
                                 }
                             }
@@ -56,10 +58,10 @@ struct ReceiveSelectNetworkView: View {
             .navigationTitle("Select Network")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadReceiveSelectNetwork()
+                await receiveStore.loadReceiveSelectNetwork()
             }
             .refreshable {
-                await state.loadReceiveSelectNetwork()
+                await receiveStore.loadReceiveSelectNetwork()
             }
         }
     }
@@ -86,7 +88,7 @@ struct ReceiveSelectNetworkView: View {
 
     private func sectionHeader(title: String, infoMessage: String) -> some View {
         Button {
-            state.showInfoToast(infoMessage)
+            uiStore.showInfoToast(infoMessage)
         } label: {
             HStack(spacing: 8) {
                 Text(title)
@@ -103,14 +105,14 @@ struct ReceiveSelectNetworkView: View {
     }
 
     private func networkRow(_ item: ReceiveNetworkItem, widthClass: DeviceWidthClass) -> some View {
-        let selected = state.receiveSelectedNetworkId == item.id
+        let selected = receiveStore.receiveSelectedNetworkId == item.id
         let disabled = selectingNetworkID == item.id
         return Button {
             guard selectingNetworkID == nil else { return }
             selectingNetworkID = item.id
             Haptics.lightImpact()
             Task {
-                await state.selectReceiveNetwork(item: item, preloadHome: false)
+                await receiveStore.selectReceiveNetwork(item: item, preloadHome: false)
                 onSelect()
                 try? await Task.sleep(nanoseconds: 600_000_000)
                 guard !Task.isCancelled else { return }
@@ -147,7 +149,7 @@ struct ReceiveSelectNetworkView: View {
         NetworkLogoView(
             networkName: item.name,
             logoURL: item.logoURL,
-            baseURL: state.environment.baseURL,
+            baseURL: sessionStore.environment.baseURL,
             isNormalChannel: item.isNormalChannel
         )
     }

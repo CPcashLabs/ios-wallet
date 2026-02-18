@@ -2,17 +2,17 @@ import BackendAPI
 import SwiftUI
 
 struct ReceiveTxLogsView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var receiveStore: ReceiveStore
     let orderSN: String
 
     var body: some View {
         AdaptiveReader { widthClass in
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
-                    if state.isLoading(.receiveChildren) && state.receiveTraceChildren.isEmpty {
+                    if receiveStore.isLoading(.receiveChildren) && receiveStore.receiveTraceChildren.isEmpty {
                         ProgressView("加载收款记录...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if state.receiveTraceChildren.isEmpty {
+                    } else if receiveStore.receiveTraceChildren.isEmpty {
                         EmptyStateView(asset: "bill_no_data", title: "暂无记录")
                             .padding(.horizontal, widthClass.horizontalPadding)
                     } else {
@@ -26,7 +26,7 @@ struct ReceiveTxLogsView: View {
                             .padding(.vertical, 12)
                         }
                         .refreshable {
-                            await state.loadReceiveTraceChildren(orderSN: orderSN)
+                            await receiveStore.loadReceiveTraceChildren(orderSN: orderSN)
                         }
                     }
                 }
@@ -34,13 +34,13 @@ struct ReceiveTxLogsView: View {
             .navigationTitle("收款记录")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadReceiveTraceChildren(orderSN: orderSN)
+                await receiveStore.loadReceiveTraceChildren(orderSN: orderSN)
             }
         }
     }
 
     private var txRows: [ReceiveTxRow] {
-        let seeds = state.receiveTraceChildren.map { item in
+        let seeds = receiveStore.receiveTraceChildren.map { item in
             StableRowID.make(
                 item.orderSn,
                 item.receiveAddress,
@@ -48,7 +48,7 @@ struct ReceiveTxLogsView: View {
             )
         }
         let ids = StableRowID.uniqued(seeds)
-        return Array(zip(state.receiveTraceChildren, ids)).map { pair in
+        return Array(zip(receiveStore.receiveTraceChildren, ids)).map { pair in
             ReceiveTxRow(id: pair.1, item: pair.0)
         }
     }

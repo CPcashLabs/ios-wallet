@@ -7,7 +7,9 @@ private enum AssetSegment: String, CaseIterable {
 }
 
 struct TotalAssetsView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var homeStore: HomeStore
+    @ObservedObject var meStore: MeStore
 
     private static let balanceFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -189,7 +191,7 @@ struct TotalAssetsView: View {
     private func coinIcon(_ coin: CoinItem) -> some View {
         RemoteImageView(
             rawURL: coin.coinLogo,
-            baseURL: state.environment.baseURL,
+            baseURL: sessionStore.environment.baseURL,
             contentMode: .fill
         ) {
             coinFallbackIcon(coin)
@@ -210,7 +212,7 @@ struct TotalAssetsView: View {
     }
 
     private var filteredCoins: [CoinItem] {
-        let source = state.coins.filter { coin in
+        let source = homeStore.coins.filter { coin in
             let name = displayCoinTitle(coin).uppercased()
             switch selectedSegment {
             case .usdt:
@@ -239,10 +241,10 @@ struct TotalAssetsView: View {
     }
 
     private var currencyRate: Double {
-        if state.selectedCurrency.uppercased() == "USD" {
+        if meStore.selectedCurrency.uppercased() == "USD" {
             return 1
         }
-        guard let item = state.exchangeRates.first(where: { ($0.currency ?? "").uppercased() == state.selectedCurrency.uppercased() }),
+        guard let item = meStore.exchangeRates.first(where: { ($0.currency ?? "").uppercased() == meStore.selectedCurrency.uppercased() }),
               let text = item.value,
               let rate = Double(text),
               rate > 0
@@ -253,7 +255,7 @@ struct TotalAssetsView: View {
     }
 
     private var currencySymbol: String {
-        if let item = state.exchangeRates.first(where: { ($0.currency ?? "").uppercased() == state.selectedCurrency.uppercased() }),
+        if let item = meStore.exchangeRates.first(where: { ($0.currency ?? "").uppercased() == meStore.selectedCurrency.uppercased() }),
            let symbol = item.symbol,
            !symbol.isEmpty
         {
@@ -263,7 +265,7 @@ struct TotalAssetsView: View {
     }
 
     private var formattedTotalBalance: String {
-        let totalUSD = state.coins.reduce(0.0) { partial, coin in
+        let totalUSD = homeStore.coins.reduce(0.0) { partial, coin in
             partial + ((coin.coinPrice ?? 0) * coinBalance(coin))
         }
         let total = totalUSD * currencyRate
@@ -296,8 +298,8 @@ struct TotalAssetsView: View {
 
     private func refreshAssets(withHaptic: Bool) async {
         refreshing = true
-        await state.loadExchangeRates()
-        await state.refreshHomeData()
+        await meStore.loadExchangeRates()
+        await homeStore.refreshHomeData()
         refreshing = false
         if withHaptic {
             Haptics.lightImpact()

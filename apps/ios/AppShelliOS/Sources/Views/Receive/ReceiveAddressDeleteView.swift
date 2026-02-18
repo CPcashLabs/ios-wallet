@@ -2,7 +2,7 @@ import BackendAPI
 import SwiftUI
 
 struct ReceiveAddressDeleteView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var receiveStore: ReceiveStore
 
     var body: some View {
         AdaptiveReader { widthClass in
@@ -38,16 +38,16 @@ struct ReceiveAddressDeleteView: View {
             .navigationTitle("删除地址")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadReceiveAddresses(validity: .invalid)
+                await receiveStore.loadReceiveAddresses(validity: .invalid)
             }
         }
     }
 
     private var filteredInvalidItems: [TraceOrderItem] {
-        let source = state.receiveRecentInvalid
+        let source = receiveStore.receiveRecentInvalid
         return source.filter { item in
             let orderType = (item.orderType ?? "").uppercased()
-            switch state.receiveDomainState.activeTab {
+            switch receiveStore.receiveDomainState.activeTab {
             case .individuals:
                 return !orderType.contains("LONG")
             case .business:
@@ -90,9 +90,9 @@ struct ReceiveAddressDeleteView: View {
                 Button("重新生成") {
                     Task {
                         if (item.orderType ?? "").uppercased().contains("LONG") {
-                            await state.createLongTraceOrder()
+                            await receiveStore.createLongTraceOrder()
                         } else {
-                            await state.createShortTraceOrder()
+                            await receiveStore.createShortTraceOrder()
                         }
                     }
                 }

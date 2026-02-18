@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct LoginView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var sessionStore: SessionStore
+    @ObservedObject var uiStore: UIStore
 
     @State private var passkeyLogsVisible = false
     @State private var passkeySignUpVisible = false
@@ -41,7 +42,7 @@ struct LoginView: View {
                     .presentationDragIndicator(.visible)
             }
             .onAppear {
-                state.refreshPasskeyAccounts()
+                sessionStore.refreshPasskeyAccounts()
             }
         }
     }
@@ -79,8 +80,8 @@ struct LoginView: View {
                 .frame(maxWidth: .infinity, minHeight: 54)
                 .background(ThemeTokens.cpPrimary, in: Capsule())
             }
-            .disabled(state.loginBusy)
-            .opacity(state.loginBusy ? 0.65 : 1)
+            .disabled(uiStore.loginBusy)
+            .opacity(uiStore.loginBusy ? 0.65 : 1)
 
             HStack(spacing: 8) {
                 Text("没有 Passkey 账号？")
@@ -97,16 +98,16 @@ struct LoginView: View {
 
     private var debugInfoSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            infoRow("当前地址", state.activeAddress)
-            infoRow("ENV", "\(state.environment.tag.rawValue) / \(state.environment.baseURL.host ?? "-")")
-            if state.loginBusy {
+            infoRow("当前地址", sessionStore.activeAddress)
+            infoRow("ENV", "\(sessionStore.environment.tag.rawValue) / \(sessionStore.environment.baseURL.host ?? "-")")
+            if uiStore.loginBusy {
                 Text("登录处理中...")
                     .font(.system(size: 12))
                     .foregroundStyle(ThemeTokens.tertiary)
             }
             #if DEBUG
                 Button("切换环境（Debug）") {
-                    state.cycleEnvironmentForDebug()
+                    sessionStore.cycleEnvironmentForDebug()
                 }
                 .font(.system(size: 13))
                 .foregroundStyle(ThemeTokens.cpPrimary)
@@ -123,26 +124,26 @@ struct LoginView: View {
                     .font(.system(size: 16, weight: .medium))
                     .padding(.top, 6)
 
-                if state.passkeyAccounts.isEmpty {
+                if sessionStore.passkeyAccounts.isEmpty {
                     Text("暂无 Passkey 账户")
                         .font(.system(size: 13))
                         .foregroundStyle(ThemeTokens.secondary)
                         .padding(.vertical, 4)
                 } else {
-                    ForEach(state.passkeyAccounts) { account in
+                    ForEach(sessionStore.passkeyAccounts) { account in
                         passkeyAccountButton(
                             title: account.displayName,
                             subtitle: shortAddress(account.address)
                         ) {
                             passkeyLogsVisible = false
-                            Task { await state.loginWithPasskey(rawId: account.rawId) }
+                            Task { await sessionStore.loginWithPasskey(rawId: account.rawId) }
                         }
                     }
                 }
 
                 passkeyAccountButton(title: "其他账户", subtitle: "使用系统认证选择账号") {
                     passkeyLogsVisible = false
-                    Task { await state.loginWithPasskey(rawId: nil) }
+                    Task { await sessionStore.loginWithPasskey(rawId: nil) }
                 }
 
                 HStack(spacing: 6) {
@@ -189,8 +190,8 @@ struct LoginView: View {
                 Button {
                     let value = passkeySignUpName.trimmingCharacters(in: .whitespacesAndNewlines)
                     Task {
-                        await state.registerPasskey(displayName: value)
-                        if state.isAuthenticated {
+                        await sessionStore.registerPasskey(displayName: value)
+                        if sessionStore.isAuthenticated {
                             passkeySignUpVisible = false
                         }
                     }
@@ -200,11 +201,11 @@ struct LoginView: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 50)
                         .background(
-                            (passkeySignUpName.isEmpty || state.loginBusy ? Color.gray.opacity(0.35) : ThemeTokens.cpPrimary),
+                            (passkeySignUpName.isEmpty || uiStore.loginBusy ? Color.gray.opacity(0.35) : ThemeTokens.cpPrimary),
                             in: Capsule()
                         )
                 }
-                .disabled(passkeySignUpName.isEmpty || state.loginBusy)
+                .disabled(passkeySignUpName.isEmpty || uiStore.loginBusy)
                 .padding(.top, 8)
 
                 Spacer()
@@ -260,8 +261,8 @@ struct LoginView: View {
                     .stroke(ThemeTokens.divider, lineWidth: 1)
             )
         }
-        .disabled(state.loginBusy)
-        .opacity(state.loginBusy ? 0.65 : 1)
+        .disabled(uiStore.loginBusy)
+        .opacity(uiStore.loginBusy ? 0.65 : 1)
     }
 
     private func infoRow(_ name: String, _ value: String) -> some View {

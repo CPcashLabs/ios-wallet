@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ReceiveAddressEditView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var receiveStore: ReceiveStore
     let orderSN: String
 
     @Environment(\.dismiss) private var dismiss
@@ -34,7 +34,7 @@ struct ReceiveAddressEditView: View {
                 Button {
                     submitting = true
                     Task {
-                        await state.markTraceOrder(orderSN: orderSN)
+                        await receiveStore.markTraceOrder(orderSN: orderSN)
                         submitting = false
                         dismiss()
                     }

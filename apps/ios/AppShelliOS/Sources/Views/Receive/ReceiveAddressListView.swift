@@ -2,7 +2,7 @@ import BackendAPI
 import SwiftUI
 
 struct ReceiveAddressListView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var receiveStore: ReceiveStore
     let validity: ReceiveAddressValidityState
     var onNavigate: ((ReceiveRoute) -> Void)? = nil
 
@@ -27,7 +27,7 @@ struct ReceiveAddressListView: View {
                             .padding(.vertical, 12)
                         }
                         .refreshable {
-                            await state.loadReceiveAddresses(validity: validity)
+                            await receiveStore.loadReceiveAddresses(validity: validity)
                         }
                     }
                 }
@@ -35,16 +35,16 @@ struct ReceiveAddressListView: View {
             .navigationTitle(validity == .valid ? "有效地址" : "失效地址")
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                await state.loadReceiveAddresses(validity: validity)
+                await receiveStore.loadReceiveAddresses(validity: validity)
             }
         }
     }
 
     private var items: [TraceOrderItem] {
-        let source = validity == .valid ? state.receiveRecentValid : state.receiveRecentInvalid
+        let source = validity == .valid ? receiveStore.receiveRecentValid : receiveStore.receiveRecentInvalid
         return source.filter { item in
             let orderType = (item.orderType ?? "").uppercased()
-            switch state.receiveDomainState.activeTab {
+            switch receiveStore.receiveDomainState.activeTab {
             case .individuals:
                 return !orderType.contains("LONG")
             case .business:
@@ -54,7 +54,7 @@ struct ReceiveAddressListView: View {
     }
 
     private var isLoading: Bool {
-        state.isLoading(validity == .valid ? "receive.home" : "receive.invalid")
+        receiveStore.isLoading(validity == .valid ? .receiveHome : .receiveInvalid)
     }
 
     private var addressRows: [ReceiveAddressRow] {
@@ -109,7 +109,7 @@ struct ReceiveAddressListView: View {
                 if validity == .valid, let orderSN = item.orderSn {
                     actionButton("设为默认") {
                         Task {
-                            await state.markTraceOrder(
+                            await receiveStore.markTraceOrder(
                                 orderSN: orderSN,
                                 sendCoinCode: item.sendCoinCode,
                                 recvCoinCode: item.recvCoinCode,
@@ -127,9 +127,9 @@ struct ReceiveAddressListView: View {
                     actionButton("重新生成") {
                         Task {
                             if orderType.uppercased().contains("LONG") {
-                                await state.createLongTraceOrder()
+                                await receiveStore.createLongTraceOrder()
                             } else {
-                                await state.createShortTraceOrder()
+                                await receiveStore.createShortTraceOrder()
                             }
                         }
                     }

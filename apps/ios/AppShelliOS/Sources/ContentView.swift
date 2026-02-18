@@ -11,7 +11,7 @@ struct ContentView: View {
             Group {
                 switch appStore.rootScreen {
                 case .login:
-                    LoginView(state: appStore.appState)
+                    LoginView(sessionStore: appStore.sessionStore, uiStore: appStore.uiStore)
                 case .home:
                     HomeShellView(appStore: appStore)
                 }

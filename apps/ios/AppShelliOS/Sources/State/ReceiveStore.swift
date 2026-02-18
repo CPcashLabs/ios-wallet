@@ -21,6 +21,8 @@ final class ReceiveStore: ObservableObject {
     @Published private(set) var businessTraceDetail: TraceShowDetail?
     @Published private(set) var receiveShareDetail: ReceiveOrderDetail?
     @Published private(set) var receiveExpiryConfig: ReceiveExpiryConfig
+    @Published private(set) var activeAddress: String
+    @Published private(set) var environment: EnvironmentConfig
 
     init(appState: AppState) {
         self.appState = appState
@@ -38,6 +40,8 @@ final class ReceiveStore: ObservableObject {
         businessTraceDetail = appState.businessTraceDetail
         receiveShareDetail = appState.receiveShareDetail
         receiveExpiryConfig = appState.receiveExpiryConfig
+        activeAddress = appState.activeAddress
+        environment = appState.environment
 
         bind()
     }
@@ -98,6 +102,18 @@ final class ReceiveStore: ObservableObject {
         await appState.updateReceiveExpiry(duration: duration)
     }
 
+    func isLoading(_ key: LoadKey) -> Bool {
+        appState.isLoading(key)
+    }
+
+    func errorMessage(_ key: LoadKey) -> String? {
+        appState.errorMessage(key)
+    }
+
+    func showInfoToast(_ message: String) {
+        appState.showInfoToast(message)
+    }
+
     private func bind() {
         appState.$receiveDomainState
             .sink { [weak self] in self?.receiveDomainState = $0 }
@@ -153,6 +169,14 @@ final class ReceiveStore: ObservableObject {
 
         appState.$receiveExpiryConfig
             .sink { [weak self] in self?.receiveExpiryConfig = $0 }
+            .store(in: &cancellables)
+
+        appState.$activeAddress
+            .sink { [weak self] in self?.activeAddress = $0 }
+            .store(in: &cancellables)
+
+        appState.$environment
+            .sink { [weak self] in self?.environment = $0 }
             .store(in: &cancellables)
     }
 }

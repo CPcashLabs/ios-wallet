@@ -3,7 +3,8 @@ import SwiftUI
 import UIKit
 
 struct ReceiveHomeView: View {
-    @ObservedObject var state: AppState
+    @ObservedObject var receiveStore: ReceiveStore
+    @ObservedObject var uiStore: UIStore
     let onNavigate: (ReceiveRoute) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
@@ -49,30 +50,30 @@ struct ReceiveHomeView: View {
                 }
             }
             .confirmationDialog("更多操作", isPresented: $optionMenuVisible, titleVisibility: .visible) {
-                if !state.receiveDomainState.selectedIsNormalChannel {
+                if !receiveStore.receiveDomainState.selectedIsNormalChannel {
                     Button("地址有效期设置") {
                         onNavigate(.expiry)
                     }
-                    if let orderSN = state.receiveDomainState.individualOrderSN, !orderSN.isEmpty {
+                    if let orderSN = receiveStore.receiveDomainState.individualOrderSN, !orderSN.isEmpty {
                         Button("编辑个人收款地址") {
-                            state.setReceiveActiveTab(.individuals)
+                            receiveStore.setReceiveActiveTab(.individuals)
                             expandedDrawer = .individuals
                             onNavigate(.editAddress(orderSN: orderSN))
                         }
                         Button("个人收款记录") {
-                            state.setReceiveActiveTab(.individuals)
+                            receiveStore.setReceiveActiveTab(.individuals)
                             expandedDrawer = .individuals
                             onNavigate(.txLogs(orderSN: orderSN))
                         }
                     }
-                    if let orderSN = state.receiveDomainState.businessOrderSN, !orderSN.isEmpty {
+                    if let orderSN = receiveStore.receiveDomainState.businessOrderSN, !orderSN.isEmpty {
                         Button("编辑经营收款地址") {
-                            state.setReceiveActiveTab(.business)
+                            receiveStore.setReceiveActiveTab(.business)
                             expandedDrawer = .business
                             onNavigate(.editAddress(orderSN: orderSN))
                         }
                         Button("经营收款记录") {
-                            state.setReceiveActiveTab(.business)
+                            receiveStore.setReceiveActiveTab(.business)
                             expandedDrawer = .business
                             onNavigate(.txLogs(orderSN: orderSN))
                         }
@@ -92,18 +93,18 @@ struct ReceiveHomeView: View {
                 }
             }
             .task {
-                if state.receiveSelectedNetworkId == nil {
-                    await state.loadReceiveSelectNetwork()
+                if receiveStore.receiveSelectedNetworkId == nil {
+                    await receiveStore.loadReceiveSelectNetwork()
                 }
                 syncExpandedDrawer()
-                await state.loadReceiveHome()
+                await receiveStore.loadReceiveHome()
                 syncExpandedDrawer()
             }
-            .onChange(of: state.receiveDomainState.activeTab) { _, newValue in
+            .onChange(of: receiveStore.receiveDomainState.activeTab) { _, newValue in
                 expandedDrawer = newValue
             }
             .refreshable {
-                await state.loadReceiveHome()
+                await receiveStore.loadReceiveHome()
             }
             .sheet(isPresented: $normalShareSheetVisible) {
                 ActivityShareSheet(activityItems: normalShareItems)
@@ -112,7 +113,7 @@ struct ReceiveHomeView: View {
     }
 
     private var receiveTopColor: Color {
-        let base = Color(hex: state.receiveDomainState.selectedChainColor, fallback: ThemeTokens.cpGold)
+        let base = Color(hex: receiveStore.receiveDomainState.selectedChainColor, fallback: ThemeTokens.cpGold)
         if colorScheme == .dark {
             return base.opacity(0.76)
         }
@@ -121,7 +122,7 @@ struct ReceiveHomeView: View {
 
     private func cardSection(widthClass: DeviceWidthClass) -> some View {
         VStack(spacing: 10) {
-            if state.receiveDomainState.isPolling {
+            if receiveStore.receiveDomainState.isPolling {
                 HStack(spacing: 8) {
                     ProgressView()
                     Text("地址生成中...")
@@ -131,7 +132,7 @@ struct ReceiveHomeView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
             }
 
-            if state.receiveDomainState.selectedIsNormalChannel {
+            if receiveStore.receiveDomainState.selectedIsNormalChannel {
                 normalReceiveCard(widthClass: widthClass)
             } else {
                 VStack(spacing: 12) {
@@ -142,34 +143,34 @@ struct ReceiveHomeView: View {
                         widthClass: widthClass
                     ) {
                         ReceiveCardView(
-                            order: state.individualTraceOrder,
-                            traceDetail: state.individualTraceDetail,
-                            payChain: state.receiveDomainState.selectedPayChain,
-                            sendCoinName: state.receiveDomainState.selectedSendCoinName,
-                            minAmount: state.receiveDomainState.receiveMinAmount,
-                            maxAmount: state.receiveDomainState.receiveMaxAmount,
+                            order: receiveStore.individualTraceOrder,
+                            traceDetail: receiveStore.individualTraceDetail,
+                            payChain: receiveStore.receiveDomainState.selectedPayChain,
+                            sendCoinName: receiveStore.receiveDomainState.selectedSendCoinName,
+                            minAmount: receiveStore.receiveDomainState.receiveMinAmount,
+                            maxAmount: receiveStore.receiveDomainState.receiveMaxAmount,
                             qrSide: receiveCardQRSide(widthClass),
                             onGenerate: {
-                                state.setReceiveActiveTab(.individuals)
+                                receiveStore.setReceiveActiveTab(.individuals)
                                 expandedDrawer = .individuals
-                                Task { await state.createShortTraceOrder() }
+                                Task { await receiveStore.createShortTraceOrder() }
                             },
                             onShare: {
-                                if let orderSN = state.receiveDomainState.individualOrderSN {
-                                    state.setReceiveActiveTab(.individuals)
+                                if let orderSN = receiveStore.receiveDomainState.individualOrderSN {
+                                    receiveStore.setReceiveActiveTab(.individuals)
                                     expandedDrawer = .individuals
                                     onNavigate(.share(orderSN: orderSN))
                                 }
                             },
                             onTxLogs: {
-                                if let orderSN = state.receiveDomainState.individualOrderSN {
-                                    state.setReceiveActiveTab(.individuals)
+                                if let orderSN = receiveStore.receiveDomainState.individualOrderSN {
+                                    receiveStore.setReceiveActiveTab(.individuals)
                                     expandedDrawer = .individuals
                                     onNavigate(.txLogs(orderSN: orderSN))
                                 }
                             },
                             onCopyAddress: {
-                                state.showInfoToast("地址已复制")
+                                uiStore.showInfoToast("地址已复制")
                             }
                         )
                     }
@@ -180,42 +181,42 @@ struct ReceiveHomeView: View {
                         mode: .business,
                         widthClass: widthClass
                     ) {
-                        if state.businessTraceOrder == nil {
+                        if receiveStore.businessTraceOrder == nil {
                             ReceiveBusinessStartView {
-                                state.setReceiveActiveTab(.business)
+                                receiveStore.setReceiveActiveTab(.business)
                                 expandedDrawer = .business
-                                Task { await state.createLongTraceOrder() }
+                                Task { await receiveStore.createLongTraceOrder() }
                             }
                         } else {
                             ReceiveCardView(
-                                order: state.businessTraceOrder,
-                                traceDetail: state.businessTraceDetail,
-                                payChain: state.receiveDomainState.selectedPayChain,
-                                sendCoinName: state.receiveDomainState.selectedSendCoinName,
-                                minAmount: state.receiveDomainState.receiveMinAmount,
-                                maxAmount: state.receiveDomainState.receiveMaxAmount,
+                                order: receiveStore.businessTraceOrder,
+                                traceDetail: receiveStore.businessTraceDetail,
+                                payChain: receiveStore.receiveDomainState.selectedPayChain,
+                                sendCoinName: receiveStore.receiveDomainState.selectedSendCoinName,
+                                minAmount: receiveStore.receiveDomainState.receiveMinAmount,
+                                maxAmount: receiveStore.receiveDomainState.receiveMaxAmount,
                                 qrSide: receiveCardQRSide(widthClass),
                                 onGenerate: {
-                                    state.setReceiveActiveTab(.business)
+                                    receiveStore.setReceiveActiveTab(.business)
                                     expandedDrawer = .business
-                                    Task { await state.createLongTraceOrder() }
+                                    Task { await receiveStore.createLongTraceOrder() }
                                 },
                                 onShare: {
-                                    if let orderSN = state.receiveDomainState.businessOrderSN {
-                                        state.setReceiveActiveTab(.business)
+                                    if let orderSN = receiveStore.receiveDomainState.businessOrderSN {
+                                        receiveStore.setReceiveActiveTab(.business)
                                         expandedDrawer = .business
                                         onNavigate(.share(orderSN: orderSN))
                                     }
                                 },
                                 onTxLogs: {
-                                    if let orderSN = state.receiveDomainState.businessOrderSN {
-                                        state.setReceiveActiveTab(.business)
+                                    if let orderSN = receiveStore.receiveDomainState.businessOrderSN {
+                                        receiveStore.setReceiveActiveTab(.business)
                                         expandedDrawer = .business
                                         onNavigate(.txLogs(orderSN: orderSN))
                                     }
                                 },
                                 onCopyAddress: {
-                                    state.showInfoToast("地址已复制")
+                                    uiStore.showInfoToast("地址已复制")
                                 }
                             )
                         }
@@ -238,7 +239,7 @@ struct ReceiveHomeView: View {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.92)) {
                     expandedDrawer = mode
                 }
-                state.setReceiveActiveTab(mode)
+                receiveStore.setReceiveActiveTab(mode)
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: icon)
@@ -278,7 +279,7 @@ struct ReceiveHomeView: View {
 
     private func normalReceiveCard(widthClass: DeviceWidthClass) -> some View {
         VStack(spacing: 12) {
-            QRCodeView(value: state.activeAddress, side: receiveCardQRSide(widthClass))
+            QRCodeView(value: receiveStore.activeAddress, side: receiveCardQRSide(widthClass))
                 .padding(8)
                 .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
@@ -290,7 +291,7 @@ struct ReceiveHomeView: View {
                 Text("Address")
                     .font(.system(size: 14))
                     .foregroundStyle(ThemeTokens.secondary)
-                Text(shortAddress(state.activeAddress))
+                Text(shortAddress(receiveStore.activeAddress))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(ThemeTokens.title)
                     .lineLimit(2)
@@ -315,8 +316,8 @@ struct ReceiveHomeView: View {
                 .disabled(normalShareBusy)
 
                 Button("复制") {
-                    UIPasteboard.general.string = state.activeAddress
-                    state.showInfoToast("地址已复制")
+                    UIPasteboard.general.string = receiveStore.activeAddress
+                    uiStore.showInfoToast("地址已复制")
                 }
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 48)
@@ -343,7 +344,7 @@ struct ReceiveHomeView: View {
             .frame(width: 340, height: 620)
 
         guard let image = ViewImageRenderer.render(capture, size: CGSize(width: 340, height: 620)) else {
-            state.showInfoToast("分享图片生成失败")
+            uiStore.showInfoToast("分享图片生成失败")
             return
         }
 
@@ -354,11 +355,11 @@ struct ReceiveHomeView: View {
     private func normalShareCaptureCard(widthClass: DeviceWidthClass) -> some View {
         ReceiveShareCardTemplate(
             model: ShareCardRenderModel(
-                chainName: state.receiveDomainState.selectedPayChain,
+                chainName: receiveStore.receiveDomainState.selectedPayChain,
                 address: shareAddress,
-                chainColorHex: state.receiveDomainState.selectedChainColor,
+                chainColorHex: receiveStore.receiveDomainState.selectedChainColor,
                 title: "Receive",
-                subtitle: "Only supports \(state.receiveDomainState.selectedPayChain) network assets",
+                subtitle: "Only supports \(receiveStore.receiveDomainState.selectedPayChain) network assets",
                 modeTitle: "For individuals",
                 minimumDepositText: minimumDepositText
             ),
@@ -367,11 +368,11 @@ struct ReceiveHomeView: View {
     }
 
     private func syncExpandedDrawer() {
-        if state.receiveDomainState.activeTab == .business {
+        if receiveStore.receiveDomainState.activeTab == .business {
             expandedDrawer = .business
             return
         }
-        if state.businessTraceOrder != nil, state.individualTraceOrder == nil {
+        if receiveStore.businessTraceOrder != nil, receiveStore.individualTraceOrder == nil {
             expandedDrawer = .business
             return
         }
@@ -396,7 +397,7 @@ struct ReceiveHomeView: View {
     }
 
     private var shareAddress: String {
-        let trimmed = state.activeAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = receiveStore.activeAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty || trimmed == "-" {
             return "0x0000000000000000000000000000000000000000"
         }
@@ -404,17 +405,18 @@ struct ReceiveHomeView: View {
     }
 
     private var minimumDepositText: String {
-        let value = state.receiveDomainState.receiveMinAmount
+        let value = receiveStore.receiveDomainState.receiveMinAmount
         if value > 0 {
             let formatted = value.rounded() == value ? String(format: "%.0f", value) : String(format: "%.2f", value)
-            return "\(formatted) \(state.receiveDomainState.selectedSendCoinName)"
+            return "\(formatted) \(receiveStore.receiveDomainState.selectedSendCoinName)"
         }
-        return "-- \(state.receiveDomainState.selectedSendCoinName)"
+        return "-- \(receiveStore.receiveDomainState.selectedSendCoinName)"
     }
 }
 
 #Preview("ReceiveHomeView") {
+    let appState = AppState()
     NavigationStack {
-        ReceiveHomeView(state: AppState()) { _ in }
+        ReceiveHomeView(receiveStore: ReceiveStore(appState: appState), uiStore: UIStore(appState: appState)) { _ in }
     }
 }

@@ -55,10 +55,6 @@ struct HomeShellView: View {
     @State private var mePath: [MeRoute] = []
     @State private var homePath: [HomeRoute] = []
 
-    private var state: AppState {
-        appStore.appState
-    }
-
     var body: some View {
         TabView(selection: $selectedTab) {
             homeTab
@@ -87,7 +83,7 @@ struct HomeShellView: View {
                 sessionStore: appStore.sessionStore,
                 homeStore: appStore.homeStore,
                 onShortcutTap: handleShortcutTap,
-                onBannerTap: { state.showInfoToast("Banner 跳转功能开发中") },
+                onBannerTap: { appStore.uiStore.showInfoToast("Banner 跳转功能开发中") },
                 onRecentMessageTap: {
                     pushHomeRoute(.messageCenter)
                 }
@@ -99,31 +95,40 @@ struct HomeShellView: View {
                 case .messageCenter:
                     hideTabBar(MessageCenterView(meStore: appStore.meStore))
                 case .receiveSelectNetwork:
-                    hideTabBar(ReceiveSelectNetworkView(state: state) {
+                    hideTabBar(ReceiveSelectNetworkView(
+                        sessionStore: appStore.sessionStore,
+                        receiveStore: appStore.receiveStore,
+                        uiStore: appStore.uiStore
+                    ) {
                         pushHomeRoute(.receiveRoot)
                     })
                 case .receiveRoot:
-                    hideTabBar(ReceiveHomeView(state: state) { nested in
+                    hideTabBar(ReceiveHomeView(receiveStore: appStore.receiveStore, uiStore: appStore.uiStore) { nested in
                         pushReceiveRoute(nested)
                     })
                 case .receiveFAQ:
                     hideTabBar(ReceiveFAQView())
                 case let .receiveAddressList(validity):
-                    hideTabBar(ReceiveAddressListView(state: state, validity: validity) { nested in
+                    hideTabBar(ReceiveAddressListView(receiveStore: appStore.receiveStore, validity: validity) { nested in
                         pushReceiveRoute(nested)
                     })
                 case .receiveInvalidAddress:
-                    hideTabBar(ReceiveInvalidAddressView(state: state))
+                    hideTabBar(ReceiveInvalidAddressView(receiveStore: appStore.receiveStore))
                 case let .receiveEditAddress(orderSN):
-                    hideTabBar(ReceiveAddressEditView(state: state, orderSN: orderSN))
+                    hideTabBar(ReceiveAddressEditView(receiveStore: appStore.receiveStore, orderSN: orderSN))
                 case .receiveDeleteAddress:
-                    hideTabBar(ReceiveAddressDeleteView(state: state))
+                    hideTabBar(ReceiveAddressDeleteView(receiveStore: appStore.receiveStore))
                 case .receiveExpiry:
-                    hideTabBar(ReceiveExpiryView(state: state))
+                    hideTabBar(ReceiveExpiryView(receiveStore: appStore.receiveStore))
                 case let .receiveTxLogs(orderSN):
-                    hideTabBar(ReceiveTxLogsView(state: state, orderSN: orderSN))
+                    hideTabBar(ReceiveTxLogsView(receiveStore: appStore.receiveStore, orderSN: orderSN))
                 case let .receiveShare(orderSN):
-                    hideTabBar(ReceiveShareView(state: state, orderSN: orderSN))
+                    hideTabBar(ReceiveShareView(
+                        sessionStore: appStore.sessionStore,
+                        receiveStore: appStore.receiveStore,
+                        uiStore: appStore.uiStore,
+                        orderSN: orderSN
+                    ))
 
                 case .transferSelectNetwork:
                     hideTabBar(TransferSelectNetworkView(
@@ -245,7 +250,11 @@ struct HomeShellView: View {
                 case .settingUnit:
                     hideTabBar(SettingUnitView(meStore: appStore.meStore))
                 case .totalAssets:
-                    hideTabBar(TotalAssetsView(state: state))
+                    hideTabBar(TotalAssetsView(
+                        sessionStore: appStore.sessionStore,
+                        homeStore: appStore.homeStore,
+                        meStore: appStore.meStore
+                    ))
                 case .invite:
                     hideTabBar(MePlaceholderView(title: "邀请好友", description: "邀请功能在下一批次继续对齐"))
                 case .inviteCode:
@@ -313,7 +322,7 @@ struct HomeShellView: View {
     private func handleShortcutTap(_ shortcut: HomeShortcut) {
         switch shortcut {
         case .transfer:
-            state.resetTransferFlow()
+            appStore.transferStore.resetTransferFlow()
             homePath = [.transferSelectNetwork]
         case .receive:
             homePath = [.receiveSelectNetwork]

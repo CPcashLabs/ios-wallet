@@ -267,6 +267,18 @@ final class AppShelliOSFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons[TestID.Home.shortcutReceive].waitForExistence(timeout: 8))
     }
 
+    func testTransferReceiptAppearsOnlyAfterSlowConfirmation() {
+        let page = launchApp(scenario: "slowConfirm")
+        openTransferAddress(page: page)
+        page.inputTransferAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        moveToTransferConfirm(page: page, amount: "1")
+
+        app.buttons[TestID.Transfer.confirm].tap()
+
+        XCTAssertFalse(app.buttons[TestID.Transfer.receiptDone].waitForExistence(timeout: 1))
+        XCTAssertTrue(app.buttons[TestID.Transfer.receiptDone].waitForExistence(timeout: 12))
+    }
+
     func testMeTabShowsSettingsButton() {
         let page = launchApp()
         page.tapTab("我的")

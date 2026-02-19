@@ -8,6 +8,7 @@ enum UITestScenario: String, CaseIterable {
     case empty = "empty"
     case error = "error"
     case limitExceeded = "limitExceeded"
+    case slowConfirm = "slowConfirm"
 }
 
 struct UITestLaunchOptions {
@@ -60,7 +61,7 @@ extension AppDependencies {
         let backend = MockBackend(scenario: scenario)
         let passkey = MockPasskeyService()
         return AppDependencies(
-            securityService: MockSecurityService(),
+            securityService: MockSecurityService(scenario: scenario),
             backendFactory: { _ in backend },
             passkeyService: passkey,
             clock: SystemAppClock(),
@@ -499,6 +500,8 @@ private final class MockBackend: BackendServing,
             throw BackendAPIError.serverError(code: 500, message: "mock limit-count failed")
         case .limitExceeded:
             return 5
+        case .slowConfirm:
+            return 5
         }
     }
 
@@ -905,7 +908,12 @@ private final class MockPasskeyService: PasskeyServing {
 }
 
 private struct MockSecurityService: SecurityServing {
+    private let scenario: UITestScenario
     private let address = Address("0x1111111111111111111111111111111111111111")
+
+    init(scenario: UITestScenario) {
+        self.scenario = scenario
+    }
 
     func createAccount() throws -> Address {
         address
@@ -929,6 +937,13 @@ private struct MockSecurityService: SecurityServing {
 
     func signAndSendTransaction(_: SendTxRequest) throws -> TxHash {
         TxHash("0x3333333333333333333333333333333333333333333333333333333333333333")
+    }
+
+    func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation {
+        if scenario == .slowConfirm {
+            try await Task.sleep(nanoseconds: 2_000_000_000)
+        }
+        return TxConfirmation(txHash: req.txHash, blockNumber: 1, status: 1)
     }
 }
 

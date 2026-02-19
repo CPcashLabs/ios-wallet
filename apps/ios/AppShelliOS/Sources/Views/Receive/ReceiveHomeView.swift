@@ -252,6 +252,7 @@ struct ReceiveHomeView: View {
                             onCopyAddress: {
                                 uiStore.showInfoToast("地址已复制")
                             },
+                            addressTapA11yID: A11yID.Receive.cardAddressTapIndividuals,
                             onAddressTap: {
                                 receiveStore.setReceiveActiveTab(.individuals)
                                 expandedDrawer = .individuals
@@ -304,6 +305,7 @@ struct ReceiveHomeView: View {
                                 onCopyAddress: {
                                     uiStore.showInfoToast("地址已复制")
                                 },
+                                addressTapA11yID: A11yID.Receive.cardAddressTapBusiness,
                                 onAddressTap: {
                                     receiveStore.setReceiveActiveTab(.business)
                                     expandedDrawer = .business
@@ -350,6 +352,7 @@ struct ReceiveHomeView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.pressFeedback)
+            .accessibilityIdentifier(mode == .individuals ? A11yID.Receive.drawerIndividuals : A11yID.Receive.drawerBusiness)
 
             if expanded {
                 Divider()
@@ -402,6 +405,7 @@ struct ReceiveHomeView: View {
                 .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(A11yID.Receive.cardAddressTap)
 
             HStack(spacing: 10) {
                 Button("分享") {

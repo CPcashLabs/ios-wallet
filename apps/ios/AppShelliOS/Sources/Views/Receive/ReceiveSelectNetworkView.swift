@@ -143,6 +143,7 @@ struct ReceiveSelectNetworkView: View {
         }
         .buttonStyle(.pressFeedback)
         .disabled(disabled)
+        .accessibilityIdentifier(receiveNetworkIdentifier(item))
     }
 
     private func networkIcon(_ item: ReceiveNetworkItem) -> some View {
@@ -152,5 +153,12 @@ struct ReceiveSelectNetworkView: View {
             baseURL: sessionStore.environment.baseURL,
             isNormalChannel: item.isNormalChannel
         )
+    }
+
+    private func receiveNetworkIdentifier(_ item: ReceiveNetworkItem) -> String {
+        if item.isNormalChannel {
+            return A11yID.Receive.selectNetworkInApp
+        }
+        return A11yID.Receive.selectNetworkProxyPrefix + item.id
     }
 }

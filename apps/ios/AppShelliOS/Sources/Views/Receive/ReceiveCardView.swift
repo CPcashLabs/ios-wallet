@@ -15,7 +15,40 @@ struct ReceiveCardView: View {
     let onShare: () -> Void
     let onTxLogs: () -> Void
     let onCopyAddress: () -> Void
+    let addressTapA11yID: String
     var onAddressTap: (() -> Void)? = nil
+
+    init(
+        order: TraceOrderItem?,
+        traceDetail: TraceShowDetail?,
+        payChain: String,
+        sendCoinName: String,
+        minAmount: Double,
+        maxAmount: Double,
+        qrSide: CGFloat,
+        isPolling: Bool,
+        onGenerate: @escaping () -> Void,
+        onShare: @escaping () -> Void,
+        onTxLogs: @escaping () -> Void,
+        onCopyAddress: @escaping () -> Void,
+        addressTapA11yID: String = A11yID.Receive.cardAddressTap,
+        onAddressTap: (() -> Void)? = nil
+    ) {
+        self.order = order
+        self.traceDetail = traceDetail
+        self.payChain = payChain
+        self.sendCoinName = sendCoinName
+        self.minAmount = minAmount
+        self.maxAmount = maxAmount
+        self.qrSide = qrSide
+        self.isPolling = isPolling
+        self.onGenerate = onGenerate
+        self.onShare = onShare
+        self.onTxLogs = onTxLogs
+        self.onCopyAddress = onCopyAddress
+        self.addressTapA11yID = addressTapA11yID
+        self.onAddressTap = onAddressTap
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -66,35 +99,39 @@ struct ReceiveCardView: View {
     }
 
     private func addressSection(address: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Text("地址")
-                    .font(.system(size: 14))
-                    .foregroundStyle(ThemeTokens.title)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(ThemeTokens.tertiary)
+        Button {
+            if let onAddressTap {
+                onAddressTap()
+                return
             }
-            Text(isPolling ? "生成中..." : formatAddress(address))
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(isPolling ? ThemeTokens.secondary : ThemeTokens.title)
-                .lineLimit(2)
-                .truncationMode(.middle)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .onTapGesture {
             if !isPolling {
-                if let onAddressTap {
-                    onAddressTap()
-                } else {
-                    UIPasteboard.general.string = address
-                    onCopyAddress()
-                }
+                UIPasteboard.general.string = address
+                onCopyAddress()
             }
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Text("地址")
+                        .font(.system(size: 14))
+                        .foregroundStyle(ThemeTokens.title)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ThemeTokens.tertiary)
+                }
+                Text(isPolling ? "生成中..." : formatAddress(address))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(isPolling ? ThemeTokens.secondary : ThemeTokens.title)
+                    .lineLimit(2)
+                    .truncationMode(.middle)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ThemeTokens.softSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+        .buttonStyle(.plain)
+        .disabled(isPolling && onAddressTap == nil)
+        .accessibilityIdentifier(addressTapA11yID)
     }
 
     private func actionButtons(address: String) -> some View {
@@ -314,4 +351,3 @@ struct ReceiveCardView: View {
         return remaining <= 30 * 24 * 3600
     }
 }
-

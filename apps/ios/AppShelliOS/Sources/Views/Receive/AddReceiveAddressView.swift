@@ -16,9 +16,7 @@ struct AddReceiveAddressView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            SafeAreaScreen(
-                backgroundStyle: .globalImage,
-                content: {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         if receiveStore.isLoading(.receiveHome) && items.isEmpty {
@@ -26,29 +24,27 @@ struct AddReceiveAddressView: View {
                         } else if items.isEmpty {
                             EmptyStateView(asset: "bill_no_data", title: "暂无地址")
                                 .padding(.top, 40)
+                                .accessibilityIdentifier(A11yID.Receive.addAddressEmpty)
                         } else {
                             headerView
-                            ForEach(items, id: \.orderSn) { item in
-                                addressCard(item)
+                            ForEach(addressRows) { row in
+                                addressCard(row.item)
                                     .onTapGesture {
-                                        handleItemTap(item)
+                                        handleItemTap(row.item)
                                     }
                             }
                         }
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.vertical, 16)
-                    .padding(.bottom, 110)
                 }
                 .refreshable {
                     await receiveStore.loadReceiveAddresses(validity: .valid)
                     await receiveStore.loadReceiveAddressLimit()
                 }
-                },
-                bottomInset: {
-                    bottomBar(widthClass)
-                }
-            )
+            } bottomInset: {
+                bottomBar(widthClass)
+            }
             .navigationTitle("地址")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -81,6 +77,7 @@ struct AddReceiveAddressView: View {
                 await receiveStore.loadReceiveAddressLimit()
             }
         }
+        .accessibilityIdentifier(A11yID.Receive.addAddressTitle)
         .sheet(isPresented: $showEditSheet) {
             editAddressSheet
         }
@@ -101,6 +98,21 @@ struct AddReceiveAddressView: View {
             case .business:
                 return orderType.contains("LONG")
             }
+        }
+    }
+
+    private var addressRows: [AddReceiveAddressRow] {
+        let seeds = items.map { item in
+            StableRowID.make(
+                item.orderSn,
+                item.address,
+                item.receiveAddress,
+                fallback: "receive-add-address-row"
+            )
+        }
+        let ids = StableRowID.uniqued(seeds)
+        return Array(zip(items, ids)).map { pair in
+            AddReceiveAddressRow(id: pair.1, item: pair.0)
         }
     }
 
@@ -126,6 +138,9 @@ struct AddReceiveAddressView: View {
         }
         .foregroundStyle(ThemeTokens.secondary)
         .padding(.bottom, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(items.count)/\(addressLimit) 已添加地址")
+        .accessibilityIdentifier(A11yID.Receive.addAddressHeader)
     }
 
     // MARK: - Skeleton
@@ -152,6 +167,7 @@ struct AddReceiveAddressView: View {
             .padding(16)
             .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .redacted(reason: .placeholder)
+            .accessibilityIdentifier(A11yID.Receive.addAddressSkeleton)
         }
     }
 
@@ -216,6 +232,7 @@ struct AddReceiveAddressView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(isSelected && !isEditMode ? ThemeTokens.cpPrimary : Color.clear, lineWidth: 1)
         )
+        .accessibilityIdentifier(A11yID.Receive.addAddressCardPrefix + (item.orderSn ?? item.address ?? "unknown"))
     }
 
     // MARK: - Bottom Bar
@@ -249,6 +266,7 @@ struct AddReceiveAddressView: View {
                 }
                 .buttonStyle(.pressFeedback)
                 .disabled(isButtonDisabled)
+                .accessibilityIdentifier(A11yID.Receive.addAddressButton)
             }
 
             Button {
@@ -262,11 +280,15 @@ struct AddReceiveAddressView: View {
                 .foregroundStyle(ThemeTokens.secondary)
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(A11yID.Receive.invalidAddressButton)
         }
         .padding(.horizontal, widthClass.horizontalPadding)
         .padding(.top, 16)
-        .padding(.bottom, 24)
-        .background(.ultraThinMaterial)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity)
+        .background(ThemeTokens.groupBackground.opacity(0.95))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(A11yID.Receive.addAddressBottomBar)
     }
 
     // MARK: - Business Address Type Sheet
@@ -311,6 +333,7 @@ struct AddReceiveAddressView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
+            .accessibilityIdentifier(A11yID.Receive.businessTypeRandom)
 
             Button {
                 showBusinessAddressSheet = false
@@ -343,6 +366,7 @@ struct AddReceiveAddressView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
             .padding(.top, 12)
+            .accessibilityIdentifier(A11yID.Receive.businessTypeRare)
 
             Spacer()
                 .frame(height: 40)
@@ -460,4 +484,9 @@ struct AddReceiveAddressView: View {
         guard let timestamp else { return "-" }
         return DateTextFormatter.yearMonthDay(fromTimestamp: timestamp, fallback: "-")
     }
+}
+
+private struct AddReceiveAddressRow: Identifiable {
+    let id: String
+    let item: TraceOrderItem
 }

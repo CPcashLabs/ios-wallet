@@ -30,6 +30,37 @@ public struct TxHash: Hashable, Codable, Sendable, CustomStringConvertible {
     public var description: String { value }
 }
 
+public struct WaitTxConfirmationRequest: Hashable, Codable, Sendable {
+    public let txHash: String
+    public let chainId: Int
+    public let timeoutSeconds: TimeInterval
+    public let pollIntervalSeconds: TimeInterval
+
+    public init(
+        txHash: String,
+        chainId: Int,
+        timeoutSeconds: TimeInterval = 90,
+        pollIntervalSeconds: TimeInterval = 2
+    ) {
+        self.txHash = txHash
+        self.chainId = chainId
+        self.timeoutSeconds = timeoutSeconds
+        self.pollIntervalSeconds = pollIntervalSeconds
+    }
+}
+
+public struct TxConfirmation: Hashable, Codable, Sendable {
+    public let txHash: String
+    public let blockNumber: UInt64
+    public let status: Int?
+
+    public init(txHash: String, blockNumber: UInt64, status: Int?) {
+        self.txHash = txHash
+        self.blockNumber = blockNumber
+        self.status = status
+    }
+}
+
 public struct EncryptedImportBlob: Hashable, Codable, Sendable {
     public let payload: String
 

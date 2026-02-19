@@ -95,4 +95,9 @@ public final class StubSecurityCore: SecurityService {
         let rpcHash = try await rpc.sendRawTransaction(signed.rawTransactionHex)
         return TxHash(rpcHash)
     }
+
+    public func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation {
+        let rpc = try EVMRPCClient(chainId: req.chainId)
+        return try await rpc.waitForTransactionConfirmation(req)
+    }
 }

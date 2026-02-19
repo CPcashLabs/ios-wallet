@@ -8,6 +8,13 @@ public protocol SecurityService {
     func signPersonalMessage(_ req: SignMessageRequest) throws -> Signature
     func signTypedData(_ req: SignTypedDataRequest) throws -> Signature
     func signAndSendTransaction(_ req: SendTxRequest) throws -> TxHash
+    func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation
+}
+
+public extension SecurityService {
+    func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation {
+        TxConfirmation(txHash: req.txHash, blockNumber: 1, status: 1)
+    }
 }
 
 public protocol ChainConfigProviding {

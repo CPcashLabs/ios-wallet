@@ -1,5 +1,6 @@
 import Foundation
 import BigInt
+import CoreRuntime
 
 enum EVMRPCError: Error, CustomStringConvertible {
     case unsupportedChain(Int)
@@ -7,6 +8,9 @@ enum EVMRPCError: Error, CustomStringConvertible {
     case invalidResponse
     case rpcFailure(code: Int, message: String)
     case invalidHexQuantity(String)
+    case invalidReceiptField(String)
+    case transactionConfirmationTimeout(String)
+    case transactionExecutionFailed(String)
 
     var description: String {
         switch self {
@@ -20,6 +24,12 @@ enum EVMRPCError: Error, CustomStringConvertible {
             return "RPC failure [\(code)] \(message)"
         case let .invalidHexQuantity(value):
             return "Invalid hex quantity: \(value)"
+        case let .invalidReceiptField(value):
+            return "Invalid receipt field: \(value)"
+        case let .transactionConfirmationTimeout(txHash):
+            return "Transaction confirmation timeout: \(txHash)"
+        case let .transactionExecutionFailed(txHash):
+            return "Transaction execution failed: \(txHash)"
         }
     }
 }
@@ -31,6 +41,34 @@ private struct RPCEnvelope: Decodable {
     }
 
     let result: String?
+    let error: RPCErrorBody?
+}
+
+struct EVMTransactionReceipt: Hashable, Sendable {
+    let txHash: String
+    let blockNumber: UInt64?
+    let status: Int?
+}
+
+private struct RPCReceiptEnvelope: Decodable {
+    struct RPCErrorBody: Decodable {
+        let code: Int
+        let message: String
+    }
+
+    struct ReceiptPayload: Decodable {
+        let transactionHash: String?
+        let blockNumber: String?
+        let status: String?
+
+        enum CodingKeys: String, CodingKey {
+            case transactionHash
+            case blockNumber
+            case status
+        }
+    }
+
+    let result: ReceiptPayload?
     let error: RPCErrorBody?
 }
 
@@ -105,6 +143,42 @@ struct EVMRPCClient {
     func sendRawTransaction(_ rawTransactionHex: String) async throws -> String {
         let value = rawTransactionHex.hasPrefix("0x") ? rawTransactionHex : "0x" + rawTransactionHex
         return try await callAsync(method: "eth_sendRawTransaction", params: [value])
+    }
+
+    func transactionReceipt(txHash: String) async throws -> EVMTransactionReceipt? {
+        let value = txHash.hasPrefix("0x") ? txHash : "0x" + txHash
+        let envelope = try await callAsyncReceipt(method: "eth_getTransactionReceipt", params: [value])
+        guard let payload = envelope.result else {
+            return nil
+        }
+        let hash = payload.transactionHash ?? value
+        let block = try payload.blockNumber.map(uint64Quantity(fromHexQuantity:))
+        let status = try payload.status.map(intQuantity(fromHexQuantity:))
+        return EVMTransactionReceipt(txHash: hash, blockNumber: block, status: status)
+    }
+
+    func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation {
+        let timeout = max(0.1, req.timeoutSeconds)
+        let interval = max(0.1, req.pollIntervalSeconds)
+        let start = Date()
+
+        while Date().timeIntervalSince(start) <= timeout {
+            if Task.isCancelled {
+                throw CancellationError()
+            }
+            if let receipt = try await transactionReceipt(txHash: req.txHash),
+               let blockNumber = receipt.blockNumber,
+               blockNumber > 0
+            {
+                if let status = receipt.status, status == 0 {
+                    throw EVMRPCError.transactionExecutionFailed(receipt.txHash)
+                }
+                return TxConfirmation(txHash: receipt.txHash, blockNumber: blockNumber, status: receipt.status)
+            }
+            try await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        }
+
+        throw EVMRPCError.transactionConfirmationTimeout(req.txHash)
     }
 
     @available(*, deprecated, message: "Use async version instead")
@@ -187,6 +261,34 @@ struct EVMRPCClient {
         return result
     }
 
+    private func callAsyncReceipt(method: String, params: [Any]) async throws -> RPCReceiptEnvelope {
+        let payload: [String: Any] = [
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params,
+        ]
+        let requestData = try JSONSerialization.data(withJSONObject: payload)
+
+        var request = URLRequest(url: rpcURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = requestData
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse,
+              (200 ... 299).contains(http.statusCode)
+        else {
+            throw EVMRPCError.invalidResponse
+        }
+
+        let envelope = try JSONDecoder().decode(RPCReceiptEnvelope.self, from: data)
+        if let error = envelope.error {
+            throw EVMRPCError.rpcFailure(code: error.code, message: error.message)
+        }
+        return envelope
+    }
+
     private func decimalQuantity(fromHexQuantity value: String) throws -> String {
         let trimmed = value.hasPrefix("0x") ? String(value.dropFirst(2)) : value
         guard !trimmed.isEmpty else {
@@ -196,6 +298,22 @@ struct EVMRPCClient {
             throw EVMRPCError.invalidHexQuantity(value)
         }
         return decimal.description
+    }
+
+    private func uint64Quantity(fromHexQuantity value: String) throws -> UInt64 {
+        let decimal = try decimalQuantity(fromHexQuantity: value)
+        guard let parsed = UInt64(decimal) else {
+            throw EVMRPCError.invalidReceiptField(value)
+        }
+        return parsed
+    }
+
+    private func intQuantity(fromHexQuantity value: String) throws -> Int {
+        let decimal = try decimalQuantity(fromHexQuantity: value)
+        guard let parsed = Int(decimal) else {
+            throw EVMRPCError.invalidReceiptField(value)
+        }
+        return parsed
     }
 
     private func hexQuantity(fromDecimalQuantity value: String) -> String {

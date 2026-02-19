@@ -180,8 +180,8 @@ struct TransferDomainState: Equatable {
 final class AppState: ObservableObject {
     @Published var environment: EnvironmentConfig
     @Published var activeAddress: String = "-"
-    @Published var userProfile: UserProfile?
     @Published var coins: [CoinItem] = []
+    @Published var allCoins: [CoinItem] = []
     @Published var recentTransfers: [TransferItem] = []
     @Published var transferRecentContacts: [TransferReceiveContact] = []
     @Published var homeRecentMessages: [MessageItem] = []
@@ -319,20 +319,23 @@ final class AppState: ObservableObject {
     func refreshHomeData() async {
         do {
             async let profileTask = backend.auth.currentUser()
-            async let coinTask = backend.wallet.coinList(chainName: selectedChainName)
+            async let allCoinTask = backend.wallet.coinList(chainName: nil)
+            async let currentChainCoinTask = backend.wallet.coinList(chainName: selectedChainName)
             async let transferTask = backend.wallet.recentTransferList()
             async let homeMessagesTask = backend.message.list(page: 1, perPage: 10)
             async let receiveTask = backend.receive.recentValidReceives(page: 1, perPage: 20)
             async let orderTask = backend.order.list(page: 1, perPage: 20, address: nil)
 
-            userProfile = try await profileTask
-            coins = try await coinTask
+            let profile = try await profileTask
+            meProfile = profile
+            allCoins = try await allCoinTask
+            coins = try await currentChainCoinTask
             recentTransfers = try await transferTask
             let homeMessageResponse = try await homeMessagesTask
             homeRecentMessages = Array(homeMessageResponse.data.prefix(3))
             receives = try await receiveTask
             orders = try await orderTask.data
-            log("基础数据刷新完成: coin=\(coins.count), transfer=\(recentTransfers.count), message=\(homeRecentMessages.count), receive=\(receives.count), order=\(orders.count)")
+            log("基础数据刷新完成: allCoin=\(allCoins.count), currentCoin=\(coins.count), transfer=\(recentTransfers.count), message=\(homeRecentMessages.count)")
         } catch {
             log("刷新数据失败: \(error)")
         }

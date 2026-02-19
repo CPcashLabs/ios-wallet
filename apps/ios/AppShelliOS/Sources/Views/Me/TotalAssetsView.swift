@@ -212,7 +212,7 @@ struct TotalAssetsView: View {
     }
 
     private var filteredCoins: [CoinItem] {
-        let source = homeStore.coins.filter { coin in
+        let source = homeStore.allCoins.filter { coin in
             let name = displayCoinTitle(coin).uppercased()
             switch selectedSegment {
             case .usdt:
@@ -265,7 +265,7 @@ struct TotalAssetsView: View {
     }
 
     private var formattedTotalBalance: String {
-        let totalUSD = homeStore.coins.reduce(0.0) { partial, coin in
+        let totalUSD = homeStore.allCoins.reduce(0.0) { partial, coin in
             partial + ((coin.coinPrice ?? 0) * coinBalance(coin))
         }
         let total = totalUSD * currencyRate

@@ -9,11 +9,13 @@ enum TestID {
         static let shortcutTransfer = "home.shortcut.transfer"
         static let shortcutReceive = "home.shortcut.receive"
         static let shortcutStatistics = "home.shortcut.statistics"
+        static let recentMessageButton = "home.recent.message"
     }
 
     enum Receive {
         static let networkInApp = "receive.select.network.inApp"
         static let networkProxyPrefix = "receive.select.network.proxy."
+        static let homeMenuButton = "receive.home.menu"
         static let drawerIndividuals = "receive.drawer.individuals"
         static let drawerBusiness = "receive.drawer.business"
         static let addressTap = "receive.card.address.tap"
@@ -25,6 +27,8 @@ enum TestID {
         static let invalidButton = "receive.invalid.button"
         static let addBottomBar = "receive.add.bottomBar"
         static let addEmpty = "receive.add.empty"
+        static let addressListActionPrefix = "receive.address.action."
+        static let expiryConfirmButton = "receive.expiry.confirm"
         static let businessRandom = "receive.business.type.random"
         static let businessRare = "receive.business.type.rare"
     }
@@ -42,10 +46,24 @@ enum TestID {
     }
 
     enum Me {
+        static let personal = "me.entry.personal"
+        static let personalPage = "me.personal.page"
+        static let personalNicknameLabel = "me.personal.nickname.label"
         static let settings = "me.settings.button"
         static let bill = "me.entry.bill"
         static let addressBook = "me.entry.addressBook"
+        static let totalAssets = "me.entry.totalAssets"
+        static let billMoreButton = "me.bill.more"
+        static let billFilterButton = "me.bill.filter"
         static let billRowPrefix = "me.bill.row."
+        static let addressBookAddButton = "me.addressBook.add"
+        static let addressBookRowPrefix = "me.addressBook.row."
+        static let addressBookNameInput = "me.addressBook.input.name"
+        static let addressBookWalletInput = "me.addressBook.input.wallet"
+        static let addressBookSaveButton = "me.addressBook.save"
+        static let addressBookDeleteButton = "me.addressBook.delete"
+        static let messageAllReadButton = "me.message.allRead"
+        static let settingsCurrencyRow = "me.settings.row.currency"
     }
 
     enum OrderDetail {

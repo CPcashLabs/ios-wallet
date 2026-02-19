@@ -35,6 +35,20 @@
                ReferencedContainer = "container:AppShelliOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AB564E4F2CE9A595881EEC17"
+               BuildableName = "AppShelliOSUITests.xctest"
+               BlueprintName = "AppShelliOSUITests"
+               ReferencedContainer = "container:AppShelliOS.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -61,6 +75,17 @@
                BlueprintIdentifier = "30AE51EC300AD1DEB7D796FA"
                BuildableName = "AppShelliOSTests.xctest"
                BlueprintName = "AppShelliOSTests"
+               ReferencedContainer = "container:AppShelliOS.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AB564E4F2CE9A595881EEC17"
+               BuildableName = "AppShelliOSUITests.xctest"
+               BlueprintName = "AppShelliOSUITests"
                ReferencedContainer = "container:AppShelliOS.xcodeproj">
             </BuildableReference>
          </TestableReference>

@@ -20,7 +20,7 @@ struct ReceiveHomeView: View {
                 ZStack(alignment: .top) {
                     Rectangle()
                         .fill(receiveTopColor)
-                        .ignoresSafeArea(edges: .top)
+                        .ignoresSafeArea(edges: .vertical)
 
                     ScrollView {
                         VStack(spacing: 12) {

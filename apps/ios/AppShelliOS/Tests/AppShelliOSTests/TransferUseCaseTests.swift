@@ -207,4 +207,86 @@ final class TransferUseCaseTests: XCTestCase {
         XCTAssertTrue(appState.lastTxHash.hasPrefix("0x"))
         XCTAssertEqual(appState.toast?.message, "支付成功")
     }
+
+    func testExecuteTransferPaymentNormalFailsWhenConfirmationTimeout() async {
+        let security = ControlledConfirmationSecurityService()
+        security.mode = .timeout
+        let appState = makeAppState(securityService: security)
+        await appState.loadTransferSelectNetwork()
+        guard let normal = appState.transferNormalNetworks.first else {
+            return XCTFail("missing normal network")
+        }
+        await appState.selectTransferNetwork(item: normal)
+        appState.transferDraft.recipientAddress = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        _ = await appState.prepareTransferPayment(amountText: "1", note: "n")
+        appState.approvalSessionState = .unlocked(lastVerifiedAt: Date())
+        appState.transferConfirmationTimeoutSeconds = 0.1
+        appState.transferConfirmationPollIntervalSeconds = 0.01
+
+        let ok = await appState.executeTransferPayment()
+
+        XCTAssertFalse(ok)
+        XCTAssertEqual(security.waitCallCount, 1)
+        XCTAssertEqual(appState.toast?.message, "链上确认超时，请稍后在账单中核对结果")
+    }
+
+    func testExecuteTransferPaymentNormalFailsWhenConfirmationStatusIsFailed() async {
+        let security = ControlledConfirmationSecurityService()
+        security.mode = .executionFailed
+        let appState = makeAppState(securityService: security)
+        await appState.loadTransferSelectNetwork()
+        guard let normal = appState.transferNormalNetworks.first else {
+            return XCTFail("missing normal network")
+        }
+        await appState.selectTransferNetwork(item: normal)
+        appState.transferDraft.recipientAddress = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        _ = await appState.prepareTransferPayment(amountText: "1", note: "n")
+        appState.approvalSessionState = .unlocked(lastVerifiedAt: Date())
+
+        let ok = await appState.executeTransferPayment()
+
+        XCTAssertFalse(ok)
+        XCTAssertEqual(security.waitCallCount, 1)
+        XCTAssertEqual(appState.toast?.message, "链上确认失败")
+    }
+
+    func testExecuteTransferPaymentNormalSuccessRequiresConfirmationCall() async {
+        let security = ControlledConfirmationSecurityService()
+        security.mode = .success(status: 1, blockNumber: 12)
+        let appState = makeAppState(securityService: security)
+        await appState.loadTransferSelectNetwork()
+        guard let normal = appState.transferNormalNetworks.first else {
+            return XCTFail("missing normal network")
+        }
+        await appState.selectTransferNetwork(item: normal)
+        appState.transferDraft.recipientAddress = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        _ = await appState.prepareTransferPayment(amountText: "1", note: "n")
+        appState.approvalSessionState = .unlocked(lastVerifiedAt: Date())
+
+        let ok = await appState.executeTransferPayment()
+
+        XCTAssertTrue(ok)
+        XCTAssertEqual(security.waitCallCount, 1)
+        XCTAssertEqual(appState.toast?.message, "支付成功")
+    }
+
+    func testExecuteTransferPaymentProxySuccessRequiresConfirmationCall() async {
+        let security = ControlledConfirmationSecurityService()
+        security.mode = .success(status: 1, blockNumber: 7)
+        let appState = makeAppState(securityService: security)
+        await appState.loadTransferSelectNetwork()
+        guard let proxy = appState.transferProxyNetworks.first else {
+            return XCTFail("missing proxy network")
+        }
+        await appState.selectTransferNetwork(item: proxy)
+        appState.transferDraft.recipientAddress = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        _ = await appState.prepareTransferPayment(amountText: "1", note: "proxy")
+        appState.approvalSessionState = .unlocked(lastVerifiedAt: Date())
+
+        let ok = await appState.executeTransferPayment()
+
+        XCTAssertTrue(ok)
+        XCTAssertEqual(security.waitCallCount, 1)
+        XCTAssertEqual(appState.toast?.message, "支付成功")
+    }
 }

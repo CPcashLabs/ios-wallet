@@ -49,6 +49,19 @@ final class AppShelliOSFlowUITests: XCTestCase {
         XCTAssertTrue(page.wait(app.textFields[TestID.Transfer.addressInput], timeout: 10))
     }
 
+    private func openOrderDetailFromBill(page: AppShellPage) {
+        page.tapTab("我的")
+        XCTAssertTrue(app.buttons[TestID.Me.bill].waitForExistence(timeout: 8))
+        app.buttons[TestID.Me.bill].tap()
+        XCTAssertTrue(app.navigationBars["账单"].waitForExistence(timeout: 8))
+        let firstBillRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", TestID.Me.billRowPrefix)).firstMatch
+        XCTAssertTrue(firstBillRow.waitForExistence(timeout: 10))
+        firstBillRow.tap()
+        let detailShown = page.waitForIdentifier(TestID.OrderDetail.summary, timeout: 10) != nil
+            || app.navigationBars["订单详情"].waitForExistence(timeout: 6)
+        XCTAssertTrue(detailShown)
+    }
+
     private func moveToTransferAmount(page: AppShellPage) {
         if page.tapIdentifier(TestID.Transfer.addressRecentPrimary, timeout: 2) {
             let byRecent = app.textFields[TestID.Transfer.amountInput].waitForExistence(timeout: 8)
@@ -278,5 +291,16 @@ final class AppShelliOSFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons[TestID.Me.settings].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.settings].tap()
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 8))
+    }
+
+    func testOrderDetailShowsSummaryAndGroupedSections() {
+        let page = launchApp()
+        openOrderDetailFromBill(page: page)
+
+        XCTAssertNotNil(page.waitForIdentifier(TestID.OrderDetail.summary, timeout: 8))
+        XCTAssertNotNil(page.waitForIdentifier(TestID.OrderDetail.transaction, timeout: 8))
+        XCTAssertNotNil(page.waitForIdentifier(TestID.OrderDetail.address, timeout: 8))
+        XCTAssertNotNil(page.waitForIdentifier(TestID.OrderDetail.chain, timeout: 8))
+        XCTAssertNotNil(page.waitForIdentifier(TestID.OrderDetail.time, timeout: 8))
     }
 }

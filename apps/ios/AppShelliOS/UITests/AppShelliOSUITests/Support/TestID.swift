@@ -45,5 +45,15 @@ enum TestID {
         static let settings = "me.settings.button"
         static let bill = "me.entry.bill"
         static let addressBook = "me.entry.addressBook"
+        static let billRowPrefix = "me.bill.row."
+    }
+
+    enum OrderDetail {
+        static let root = "order.detail.root"
+        static let summary = "order.detail.summary"
+        static let transaction = "order.detail.transaction"
+        static let address = "order.detail.address"
+        static let chain = "order.detail.chain"
+        static let time = "order.detail.time"
     }
 }

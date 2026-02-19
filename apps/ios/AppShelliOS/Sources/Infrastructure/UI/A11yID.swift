@@ -58,5 +58,16 @@ enum A11yID {
         static let settingsButton = "me.settings.button"
         static let billEntry = "me.entry.bill"
         static let addressBookEntry = "me.entry.addressBook"
+        static let billRowPrefix = "me.bill.row."
+    }
+
+    enum OrderDetail {
+        static let root = "order.detail.root"
+        static let summaryCard = "order.detail.summary"
+        static let transactionCard = "order.detail.transaction"
+        static let addressCard = "order.detail.address"
+        static let chainCard = "order.detail.chain"
+        static let timeCard = "order.detail.time"
+        static let empty = "order.detail.empty"
     }
 }

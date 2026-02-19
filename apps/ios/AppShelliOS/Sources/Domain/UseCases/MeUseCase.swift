@@ -189,7 +189,6 @@ final class MeUseCase {
             try await appState.backend.profile.update(request: ProfileUpdateRequest(nickname: nil, avatar: avatarURL))
             let profile = try await appState.backend.auth.currentUser()
             appState.meProfile = profile
-            appState.userProfile = profile
             appState.showToast("头像更新成功", theme: .success)
             appState.clearError(LoadKey.meProfileAvatar)
         } catch {

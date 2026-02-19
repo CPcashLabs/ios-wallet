@@ -2,130 +2,396 @@ import BackendAPI
 import SwiftUI
 import UIKit
 
+private struct OrderDetailLine: Identifiable {
+    let id: String
+    let title: String
+    let value: String
+    let copyValue: String?
+}
+
 struct OrderDetailView: View {
     @ObservedObject var meStore: MeStore
     @ObservedObject var uiStore: UIStore
     let orderSN: String
+
+    @State private var isLoading = true
 
     var body: some View {
         AdaptiveReader { widthClass in
             FullscreenScaffold(backgroundStyle: .globalImage) {
                 ScrollView {
                     VStack(spacing: 12) {
-                        if let detail = meStore.selectedOrderDetail {
-                            amountCard(detail: detail, widthClass: widthClass)
-                            detailCard(detail: detail, widthClass: widthClass)
+                        if isLoading, meStore.selectedOrderDetail == nil {
+                            loadingSkeleton(widthClass: widthClass)
+                        } else if let detail = meStore.selectedOrderDetail {
+                            summaryCard(detail: detail, widthClass: widthClass)
+
+                            detailSection(
+                                title: "交易信息",
+                                symbol: "doc.text.magnifyingglass",
+                                rows: transactionRows(detail),
+                                widthClass: widthClass,
+                                accessibilityID: A11yID.OrderDetail.transactionCard
+                            )
+
+                            detailSection(
+                                title: "地址信息",
+                                symbol: "person.2",
+                                rows: addressRows(detail),
+                                widthClass: widthClass,
+                                accessibilityID: A11yID.OrderDetail.addressCard
+                            )
+
+                            detailSection(
+                                title: "链上信息",
+                                symbol: "link",
+                                rows: chainRows(detail),
+                                widthClass: widthClass,
+                                accessibilityID: A11yID.OrderDetail.chainCard
+                            )
+
+                            detailSection(
+                                title: "时间与备注",
+                                symbol: "clock",
+                                rows: timeRows(detail),
+                                widthClass: widthClass,
+                                accessibilityID: A11yID.OrderDetail.timeCard
+                            )
                         } else {
-                            ProgressView("加载中...")
-                                .frame(maxWidth: .infinity, minHeight: 220)
-                                .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+                            emptyState(widthClass: widthClass)
                         }
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.vertical, 12)
                 }
+                .accessibilityIdentifier(A11yID.OrderDetail.root)
+                .refreshable {
+                    await reload()
+                }
             }
             .navigationTitle("订单详情")
             .navigationBarTitleDisplayMode(.inline)
-            .task {
-                await meStore.loadOrderDetail(orderSN: orderSN)
+            .task(id: orderSN) {
+                await reload()
             }
         }
+        .accessibilityIdentifier(A11yID.OrderDetail.root)
     }
 
-    private func amountCard(detail: OrderDetail, widthClass: DeviceWidthClass) -> some View {
-        VStack(spacing: 8) {
-            Text(statusTitle(detail.status))
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(statusColor(detail.status))
+    private func reload() async {
+        isLoading = true
+        await meStore.loadOrderDetail(orderSN: orderSN)
+        isLoading = false
+    }
+
+    private func loadingSkeleton(widthClass: DeviceWidthClass) -> some View {
+        VStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius)
+                .fill(ThemeTokens.cardBackground)
+                .frame(height: 158)
+                .overlay(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.18)).frame(width: 86, height: 12)
+                        RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.16)).frame(width: 180, height: 28)
+                        RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.14)).frame(width: 220, height: 14)
+                    }
+                    .padding(16)
+                }
+
+            ForEach(0 ..< 3, id: \.self) { _ in
+                RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius)
+                    .fill(ThemeTokens.cardBackground)
+                    .frame(height: 168)
+                    .overlay(alignment: .topLeading) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.18)).frame(width: 90, height: 14)
+                            RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.14)).frame(height: 12)
+                            RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.14)).frame(height: 12)
+                            RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.14)).frame(height: 12)
+                        }
+                        .padding(16)
+                    }
+            }
+        }
+        .redacted(reason: .placeholder)
+    }
+
+    private func emptyState(widthClass: DeviceWidthClass) -> some View {
+        VStack(spacing: 14) {
+            EmptyStateView(asset: "bill_no_data", title: "暂无订单详情")
+            Button("重试") {
+                Task {
+                    await reload()
+                }
+            }
+            .font(.system(size: widthClass.bodySize, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: widthClass.metrics.buttonHeight)
+            .background(ThemeTokens.cpPrimary, in: Capsule())
+            .buttonStyle(.pressFeedback)
+        }
+        .padding(.top, 52)
+        .accessibilityIdentifier(A11yID.OrderDetail.empty)
+    }
+
+    private func summaryCard(detail: OrderDetail, widthClass: DeviceWidthClass) -> some View {
+        let color = statusColor(detail.status)
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label {
+                    Text(statusTitle(detail.status))
+                        .font(.system(size: 13, weight: .semibold))
+                } icon: {
+                    Image(systemName: statusSymbol(detail.status))
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .foregroundStyle(color)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(statusColor(detail.status).opacity(0.12), in: Capsule())
+                .padding(.vertical, 5)
+                .background(color.opacity(0.12), in: Capsule())
+
+                Spacer()
+
+                Text(directionTitle(detail))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(ThemeTokens.secondary)
+            }
 
             Text(primaryAmount(detail))
-                .font(.system(size: widthClass.titleSize + 10, weight: .bold))
+                .font(.system(size: widthClass.titleSize + 11, weight: .bold))
                 .foregroundStyle(ThemeTokens.title)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.65)
+
+            Text(secondaryAmountText(detail))
+                .font(.system(size: widthClass.footnoteSize))
+                .foregroundStyle(ThemeTokens.secondary)
+                .lineLimit(2)
+
+            HStack(spacing: 8) {
+                chip(title: "网络", value: networkText(detail))
+                chip(title: "订单号", value: shortOrderSN(detail.orderSn ?? orderSN))
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [color.opacity(0.12), ThemeTokens.cardBackground],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous)
+                .stroke(color.opacity(0.22), lineWidth: 1)
+        )
+        .accessibilityIdentifier(A11yID.OrderDetail.summaryCard)
     }
 
-    private func detailCard(detail: OrderDetail, widthClass: DeviceWidthClass) -> some View {
+    private func chip(title: String, value: String) -> some View {
+        HStack(spacing: 4) {
+            Text(title)
+                .foregroundStyle(ThemeTokens.secondary)
+            Text(value)
+                .foregroundStyle(ThemeTokens.title)
+        }
+        .font(.system(size: 11, weight: .medium))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(ThemeTokens.softSurface, in: Capsule())
+    }
+
+    private func detailSection(
+        title: String,
+        symbol: String,
+        rows: [OrderDetailLine],
+        widthClass: DeviceWidthClass,
+        accessibilityID: String
+    ) -> some View {
         SectionCard {
-            VStack(alignment: .leading, spacing: 10) {
-                row(
-                    title: "对手账户",
-                    value: reciprocalAddress(detail),
-                    copyValue: reciprocalAddress(detail)
-                )
-                row(title: "网络", value: networkText(detail))
-                row(
-                    title: "金额",
-                    value: primaryAmount(detail).replacingOccurrences(of: "+", with: "").replacingOccurrences(of: "-", with: "")
-                )
-                if let fee = detail.sendFeeAmount?.doubleValue, fee > 0 {
-                    row(title: "手续费", value: "\(formatAmount(fee)) \(detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")")
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 7) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ThemeTokens.cpPrimary)
+                    Text(title)
+                        .font(.system(size: widthClass.bodySize + 1, weight: .semibold))
+                        .foregroundStyle(ThemeTokens.title)
                 }
-                if let createdAt = detail.createdAt {
-                    row(title: "创建时间", value: formatTimestamp(createdAt))
-                }
-                if let receivedAt = detail.recvActualReceivedAt, receivedAt > 0 {
-                    row(title: "收款时间", value: formatTimestamp(receivedAt))
-                }
-                row(title: "订单号", value: detail.orderSn ?? orderSN, copyValue: detail.orderSn ?? orderSN)
-                if let txid = detail.txid, !txid.isEmpty {
-                    row(title: "TXID", value: txid, copyValue: txid)
-                }
-                if let note = detail.note, !note.isEmpty {
-                    row(title: "备注", value: note)
+                .padding(.bottom, 12)
+
+                if rows.isEmpty {
+                    Text("暂无数据")
+                        .font(.system(size: 13))
+                        .foregroundStyle(ThemeTokens.secondary)
+                        .padding(.vertical, 4)
+                } else {
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        detailRow(row, showDivider: index < rows.count - 1, widthClass: widthClass)
+                    }
                 }
             }
             .padding(14)
         }
+        .accessibilityIdentifier(accessibilityID)
     }
 
-    private func row(title: String, value: String, copyValue: String? = nil) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Text(title)
-                .font(.system(size: 13))
-                .foregroundStyle(ThemeTokens.secondary)
-                .frame(width: 76, alignment: .leading)
-            Text(value)
-                .font(.system(size: 14))
-                .foregroundStyle(ThemeTokens.title)
-                .textSelection(.enabled)
-                .lineLimit(4)
-                .truncationMode(.middle)
-            if let copyValue, !copyValue.isEmpty {
-                Button {
-                    UIPasteboard.general.string = copyValue
-                    uiStore.showInfoToast("已复制")
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(ThemeTokens.cpPrimary)
+    private func detailRow(_ row: OrderDetailLine, showDivider: Bool, widthClass: DeviceWidthClass) -> some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 10) {
+                Text(row.title)
+                    .font(.system(size: widthClass.footnoteSize))
+                    .foregroundStyle(ThemeTokens.secondary)
+                    .frame(width: 82, alignment: .leading)
+
+                Text(row.value)
+                    .font(.system(size: widthClass.bodySize))
+                    .foregroundStyle(ThemeTokens.title)
+                    .lineLimit(4)
+                    .truncationMode(.middle)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if let copyValue = row.copyValue {
+                    Button {
+                        UIPasteboard.general.string = copyValue
+                        uiStore.showInfoToast("已复制")
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(ThemeTokens.cpPrimary)
+                    }
+                    .buttonStyle(.pressFeedback)
                 }
-                .buttonStyle(.pressFeedback)
+            }
+            .padding(.vertical, 10)
+
+            if showDivider {
+                Divider()
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func reciprocalAddress(_ detail: OrderDetail) -> String {
-        if isReceiveType(detail.orderType) {
-            return detail.paymentAddress ?? detail.receiveAddress ?? "-"
+    private func transactionRows(_ detail: OrderDetail) -> [OrderDetailLine] {
+        var rows: [OrderDetailLine] = []
+        rows.append(line(title: "订单类型", value: directionTitle(detail)))
+        rows.append(line(title: "订单状态", value: statusTitle(detail.status)))
+        rows.append(line(title: "交易网络", value: networkText(detail)))
+        rows.append(line(title: "发送金额", value: amountText(detail.sendActualAmount ?? detail.sendAmount, detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")))
+        rows.append(line(title: "到账金额", value: amountText(detail.recvActualAmount ?? detail.recvAmount, detail.recvCoinName ?? detail.recvCoinCode ?? "USDT")))
+        if let fee = displayFee(detail) {
+            rows.append(line(title: "手续费", value: fee))
         }
-        return detail.receiveAddress ?? detail.paymentAddress ?? "-"
+        return rows
+    }
+
+    private func addressRows(_ detail: OrderDetail) -> [OrderDetailLine] {
+        var rows: [OrderDetailLine] = []
+        var seen = Set<String>()
+
+        appendAddressRow(&rows, &seen, title: "我的地址", value: ownAddress(detail))
+        appendAddressRow(&rows, &seen, title: "对手地址", value: reciprocalAddress(detail))
+        appendAddressRow(&rows, &seen, title: "充值地址", value: detail.depositAddress)
+        appendAddressRow(&rows, &seen, title: "中转地址", value: detail.transferAddress)
+
+        return rows
+    }
+
+    private func chainRows(_ detail: OrderDetail) -> [OrderDetailLine] {
+        var rows: [OrderDetailLine] = []
+        if let txid = normalized(detail.txid) {
+            rows.append(line(title: "TxID", value: txid, copyValue: txid))
+        }
+        if let contract = normalized(detail.sendCoinContract) {
+            rows.append(line(title: "代币合约", value: contract, copyValue: contract))
+        }
+        if let multisigAddress = normalized(detail.multisigWalletAddress) {
+            rows.append(line(title: "多签地址", value: multisigAddress, copyValue: multisigAddress))
+        }
+        if let multisigName = normalized(detail.multisigWalletName) {
+            rows.append(line(title: "多签名称", value: multisigName))
+        }
+        return rows
+    }
+
+    private func timeRows(_ detail: OrderDetail) -> [OrderDetailLine] {
+        var rows: [OrderDetailLine] = []
+        if let createdAt = detail.createdAt {
+            rows.append(line(title: "创建时间", value: formatTimestamp(createdAt)))
+        }
+        if let receivedAt = detail.recvActualReceivedAt, receivedAt > 0 {
+            rows.append(line(title: "完成时间", value: formatTimestamp(receivedAt)))
+        }
+        rows.append(line(title: "订单号", value: detail.orderSn ?? orderSN, copyValue: detail.orderSn ?? orderSN))
+        if let note = normalized(detail.note) {
+            rows.append(line(title: "备注", value: note))
+        }
+        return rows
+    }
+
+    private func line(title: String, value: String, copyValue: String? = nil) -> OrderDetailLine {
+        OrderDetailLine(id: "\(title):\(value)", title: title, value: value, copyValue: copyValue)
+    }
+
+    private func appendAddressRow(_ rows: inout [OrderDetailLine], _ seen: inout Set<String>, title: String, value: String?) {
+        guard let normalizedValue = normalized(value) else { return }
+        let key = normalizedValue.lowercased()
+        guard !seen.contains(key) else { return }
+        seen.insert(key)
+        rows.append(line(title: title, value: normalizedValue, copyValue: normalizedValue))
+    }
+
+    private func ownAddress(_ detail: OrderDetail) -> String? {
+        if isReceiveType(detail.orderType) {
+            return detail.receiveAddress ?? detail.paymentAddress
+        }
+        return detail.paymentAddress ?? detail.receiveAddress
+    }
+
+    private func reciprocalAddress(_ detail: OrderDetail) -> String? {
+        if isReceiveType(detail.orderType) {
+            return detail.paymentAddress ?? detail.receiveAddress
+        }
+        return detail.receiveAddress ?? detail.paymentAddress
     }
 
     private func primaryAmount(_ detail: OrderDetail) -> String {
         let receive = isReceiveType(detail.orderType)
-        let amount = receive ? jsonNumber(detail.recvAmount) : jsonNumber(detail.sendAmount)
+        let amount = receive ? jsonNumber(detail.recvActualAmount ?? detail.recvAmount) : jsonNumber(detail.sendActualAmount ?? detail.sendAmount)
         let coin = receive ? (detail.recvCoinName ?? detail.recvCoinCode ?? "USDT") : (detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")
-        return "\(receive ? "+" : "-")\(formatAmount(amount)) \(coin)"
+        let sign = receive ? "+" : "-"
+        return "\(sign)\(formatAmount(amount)) \(coin)"
+    }
+
+    private func secondaryAmountText(_ detail: OrderDetail) -> String {
+        let send = amountText(detail.sendActualAmount ?? detail.sendAmount, detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")
+        let receive = amountText(detail.recvActualAmount ?? detail.recvAmount, detail.recvCoinName ?? detail.recvCoinCode ?? "USDT")
+        return "发送 \(send) · 到账 \(receive)"
+    }
+
+    private func amountText(_ value: JSONValue?, _ coin: String) -> String {
+        let number = jsonNumber(value)
+        return "\(formatAmount(number)) \(coin)"
+    }
+
+    private func displayFee(_ detail: OrderDetail) -> String? {
+        let fee = jsonNumber(detail.sendActualFeeAmount ?? detail.sendFeeAmount ?? detail.sendEstimateFeeAmount)
+        guard fee > 0 else { return nil }
+        let coin = detail.sendCoinName ?? detail.sendCoinCode ?? "USDT"
+        return "\(formatAmount(fee)) \(coin)"
+    }
+
+    private func directionTitle(_ detail: OrderDetail) -> String {
+        isReceiveType(detail.orderType) ? "收款订单" : "转账订单"
+    }
+
+    private func shortOrderSN(_ value: String) -> String {
+        AddressFormatter.shortened(value, leading: 6, trailing: 4, threshold: 14)
     }
 
     private func networkText(_ detail: OrderDetail) -> String {
@@ -160,8 +426,23 @@ struct OrderDetailView: View {
             return ThemeTokens.success
         case -2, -5:
             return ThemeTokens.danger
+        case 3:
+            return ThemeTokens.warning
         default:
             return ThemeTokens.cpPrimary
+        }
+    }
+
+    private func statusSymbol(_ status: Int?) -> String {
+        switch status {
+        case 4:
+            return "checkmark.seal.fill"
+        case -2, -5:
+            return "xmark.octagon.fill"
+        case 3:
+            return "clock.badge.exclamationmark.fill"
+        default:
+            return "arrow.triangle.2.circlepath.circle.fill"
         }
     }
 
@@ -180,8 +461,25 @@ struct OrderDetailView: View {
         return 0
     }
 
+    private func normalized(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     private func formatAmount(_ value: Double) -> String {
-        String(format: "%.2f", value)
+        let raw = String(format: "%.6f", value)
+        let noTrailingZeros = raw.replacingOccurrences(
+            of: #"(\.\d*?[1-9])0+$"#,
+            with: "$1",
+            options: .regularExpression
+        )
+        let noTrailingDotZero = noTrailingZeros.replacingOccurrences(
+            of: #"\.0+$"#,
+            with: "",
+            options: .regularExpression
+        )
+        return noTrailingDotZero
     }
 
     private func formatTimestamp(_ timestamp: Int) -> String {

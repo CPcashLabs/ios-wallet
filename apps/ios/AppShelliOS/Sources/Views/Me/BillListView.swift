@@ -259,6 +259,7 @@ struct BillListView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.pressFeedback)
+        .accessibilityIdentifier(A11yID.Me.billRowPrefix + (item.orderSn ?? "unknown"))
     }
 
     private func rowAvatar(_ item: OrderSummary) -> some View {

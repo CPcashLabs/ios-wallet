@@ -20,10 +20,11 @@ final class SessionUseCase {
             appState.restoreSelectedChain()
             appState.log("钱包已就绪: \(address.value)")
             appState.log("当前后端环境: \(appState.environment.tag.rawValue) -> \(appState.environment.baseURL.absoluteString)")
+            let state = appState
             Task {
-                await appState.refreshNetworkOptions()
-                await appState.loadReceiveExpiryConfig()
-                await appState.loadTransferSelectNetwork()
+                await state.refreshNetworkOptions()
+                await state.loadReceiveExpiryConfig()
+                await state.loadTransferSelectNetwork()
             }
         } catch {
             appState.log("钱包初始化失败: \(error)")

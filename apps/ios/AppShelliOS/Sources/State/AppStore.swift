@@ -28,6 +28,10 @@ final class AppStore: ObservableObject {
         self.init(appState: AppState())
     }
 
+    convenience init(dependencies: AppDependencies) {
+        self.init(appState: AppState(dependencies: dependencies))
+    }
+
     var rootScreen: RootScreen {
         sessionStore.rootScreen
     }

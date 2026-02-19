@@ -76,7 +76,7 @@ struct TransferAddressView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            FullscreenScaffold(backgroundStyle: .globalImage) {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         addressInputSection(widthClass: widthClass)
@@ -87,14 +87,13 @@ struct TransferAddressView: View {
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.top, 14)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 16)
                 }
+            } bottomInset: {
+                bottomButton(widthClass: widthClass)
             }
             .navigationTitle("Send")
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
-                bottomButton(widthClass: widthClass)
-            }
             .scrollDismissesKeyboard(.interactively)
             .sheet(isPresented: $scannerPresented) {
                 QRCodeScannerSheet { scannedValue in
@@ -146,6 +145,7 @@ struct TransferAddressView: View {
                     .submitLabel(.done)
                     .autocorrectionDisabled()
                     .font(.system(size: widthClass.bodySize + 2))
+                    .accessibilityIdentifier(A11yID.Transfer.addressInput)
 
                 Button {
                     scannerPresented = true
@@ -294,6 +294,7 @@ struct TransferAddressView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.pressFeedback)
+        .accessibilityIdentifier(A11yID.Transfer.addressRecentPrefix + address.lowercased())
     }
 
     private func addressBookRow(_ item: AddressBookItem, widthClass: DeviceWidthClass) -> some View {
@@ -349,11 +350,13 @@ struct TransferAddressView: View {
                 .padding(.horizontal, widthClass.horizontalPadding)
                 .padding(.top, 10)
                 .padding(.bottom, 10)
-                .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
             .disabled(nextDisabled)
+            .accessibilityIdentifier(A11yID.Transfer.addressNextButton)
         }
+        .frame(maxWidth: .infinity)
+        .background(ThemeTokens.groupBackground.opacity(0.95))
     }
 
     private func triggerNext() {

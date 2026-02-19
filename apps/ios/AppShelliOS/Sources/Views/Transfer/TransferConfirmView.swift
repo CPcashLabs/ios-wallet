@@ -8,21 +8,20 @@ struct TransferConfirmView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            FullscreenScaffold(backgroundStyle: .globalImage) {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 ScrollView {
                     VStack(spacing: 12) {
                         summaryCard(widthClass: widthClass)
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.top, 14)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 16)
                 }
+            } bottomInset: {
+                bottomButton(widthClass: widthClass)
             }
             .navigationTitle("确认转账")
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
-                bottomButton(widthClass: widthClass)
-            }
         }
     }
 
@@ -112,11 +111,13 @@ struct TransferConfirmView: View {
                 .padding(.horizontal, widthClass.horizontalPadding)
                 .padding(.top, 10)
                 .padding(.bottom, 10)
-                .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
             .disabled(transferStore.isLoading(.transferPay))
+            .accessibilityIdentifier(A11yID.Transfer.confirmButton)
         }
+        .frame(maxWidth: .infinity)
+        .background(ThemeTokens.groupBackground.opacity(0.95))
     }
 
     private var noteText: String {

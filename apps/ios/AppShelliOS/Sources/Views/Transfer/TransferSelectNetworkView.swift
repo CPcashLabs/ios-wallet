@@ -149,6 +149,7 @@ struct TransferSelectNetworkView: View {
         }
         .buttonStyle(.pressFeedback)
         .disabled(disabled || selecting)
+        .accessibilityIdentifier(transferNetworkIdentifier(item))
     }
 
     private func networkIcon(_ item: TransferNetworkItem) -> some View {
@@ -158,5 +159,12 @@ struct TransferSelectNetworkView: View {
             baseURL: sessionStore.environment.baseURL,
             isNormalChannel: item.isNormalChannel
         )
+    }
+
+    private func transferNetworkIdentifier(_ item: TransferNetworkItem) -> String {
+        if item.isNormalChannel {
+            return A11yID.Transfer.networkNormalPrefix + item.id
+        }
+        return A11yID.Transfer.networkProxyPrefix + item.id
     }
 }

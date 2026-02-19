@@ -55,6 +55,7 @@ struct TransferReceiptView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: widthClass.metrics.buttonHeight / 2))
                         }
                         .buttonStyle(.pressFeedback)
+                        .accessibilityIdentifier(A11yID.Transfer.receiptDoneButton)
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.bottom, 20)

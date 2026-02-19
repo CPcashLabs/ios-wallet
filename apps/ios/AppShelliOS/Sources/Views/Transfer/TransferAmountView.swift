@@ -1,6 +1,11 @@
 import SwiftUI
 
 struct TransferAmountView: View {
+    private enum InputField: Hashable {
+        case amount
+        case note
+    }
+
     @ObservedObject var transferStore: TransferStore
     let onNext: () -> Void
 
@@ -9,10 +14,11 @@ struct TransferAmountView: View {
     @State private var showPairPicker = false
     @State private var showCoinPicker = false
     @State private var nextTriggered = false
+    @FocusState private var focusedField: InputField?
 
     var body: some View {
         AdaptiveReader { widthClass in
-            FullscreenScaffold(backgroundStyle: .globalImage) {
+            SafeAreaScreen(backgroundStyle: .globalImage) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
                         addressCard(widthClass: widthClass)
@@ -21,15 +27,22 @@ struct TransferAmountView: View {
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.top, 14)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 16)
                 }
+            } bottomInset: {
+                bottomButton(widthClass: widthClass)
             }
             .navigationTitle("Send")
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
-                bottomButton(widthClass: widthClass)
-            }
             .scrollDismissesKeyboard(.interactively)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                }
+            }
             .task {
                 if amountText.isEmpty {
                     amountText = transferStore.transferDraft.amountText
@@ -83,8 +96,10 @@ struct TransferAmountView: View {
             HStack(spacing: 8) {
                 TextField("0.00", text: $amountText)
                     .keyboardType(.decimalPad)
+                    .focused($focusedField, equals: .amount)
                     .font(.system(size: widthClass.titleSize + 8, weight: .semibold))
                     .foregroundStyle(ThemeTokens.title)
+                    .accessibilityIdentifier(A11yID.Transfer.amountInput)
                 Text(transferStore.transferDomainState.selectedCoinSymbol)
                     .font(.system(size: widthClass.bodySize + 1, weight: .medium))
                     .foregroundStyle(ThemeTokens.secondary)
@@ -123,6 +138,7 @@ struct TransferAmountView: View {
                 .foregroundStyle(ThemeTokens.title)
             TextField("add note", text: $noteText, axis: .vertical)
                 .lineLimit(3)
+                .focused($focusedField, equals: .note)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(.system(size: widthClass.bodySize))
@@ -138,6 +154,7 @@ struct TransferAmountView: View {
         VStack(spacing: 0) {
             Divider()
             Button {
+                focusedField = nil
                 guard !nextTriggered else { return }
                 nextTriggered = true
                 Task {
@@ -170,11 +187,13 @@ struct TransferAmountView: View {
                 .padding(.horizontal, widthClass.horizontalPadding)
                 .padding(.top, 10)
                 .padding(.bottom, 10)
-                .background(.ultraThinMaterial)
             }
             .buttonStyle(.pressFeedback)
             .disabled(!canSubmit || transferStore.isLoading(.transferPrepare) || nextTriggered)
+            .accessibilityIdentifier(A11yID.Transfer.amountNextButton)
         }
+        .frame(maxWidth: .infinity)
+        .background(ThemeTokens.groupBackground.opacity(0.95))
     }
 
     private var pairOptions: [(id: String, title: String, sendCoinCode: String, recvCoinCode: String)] {

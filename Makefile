@@ -13,7 +13,7 @@ SWIFT_ENV = DEVELOPER_DIR=$(DEVELOPER_DIR) \
 	SWIFT_MODULECACHE_PATH=$(SWIFT_MODULE_CACHE) \
 	CLANG_MODULE_CACHE_PATH=$(CLANG_MODULE_CACHE)
 
-.PHONY: help swift-build swift-test ios-generate ios-build ios-test cli-run registry ci
+.PHONY: help swift-build swift-test ios-generate ios-build ios-test ios-test-coverage cli-run registry ci
 
 help:
 	@echo "Targets:"
@@ -23,6 +23,7 @@ help:
 	@echo "  make ios-generate  - Generate Xcode project via xcodegen"
 	@echo "  make ios-build     - Build AppShelliOS for iOS Simulator"
 	@echo "  make ios-test      - Run AppShelliOS unit tests on iOS Simulator"
+	@echo "  make ios-test-coverage - Run iOS tests with coverage gate (line>=80, branch>=70)"
 	@echo "  make registry      - Regenerate CLI module registry"
 	@echo "  make ci            - Run local CI pipeline"
 
@@ -55,10 +56,13 @@ ios-test:
 	  -derivedDataPath $(IOS_DERIVED_DATA) \
 	  CODE_SIGNING_ALLOWED=NO test
 
+ios-test-coverage:
+	$(SWIFT_ENV) IOS_DERIVED_DATA=$(IOS_DERIVED_DATA) bash tools/testing/ios_coverage_gate.sh
+
 cli-run:
 	$(SWIFT_ENV) swift run AppShell
 
 registry:
 	bash tools/ModuleRegistryPlugin/generate_registry.sh
 
-ci: swift-build swift-test ios-generate ios-build ios-test
+ci: swift-build swift-test ios-generate ios-test-coverage

@@ -65,15 +65,30 @@ targets:
       - package: WalletAppSwift
         product: BackendAPI
 
+  AppShelliOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - UITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cpcash.appshell.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: AppShelliOS
+
 schemes:
   AppShelliOS:
     build:
       targets:
         AppShelliOS: all
         AppShelliOSTests: [test]
+        AppShelliOSUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - name: AppShelliOSTests
+        - name: AppShelliOSUITests

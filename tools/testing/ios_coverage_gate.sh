@@ -38,7 +38,11 @@ xcodebuild -project AppShelliOS.xcodeproj \
   test
 
 PROFDATA="$(find "$IOS_DERIVED_DATA/Build/ProfileData" -name Coverage.profdata | head -n 1)"
-APP_BINARY="$IOS_DERIVED_DATA/Build/Products/Debug-iphonesimulator/AppShelliOS.app/AppShelliOS"
+APP_BUNDLE_DIR="$IOS_DERIVED_DATA/Build/Products/Debug-iphonesimulator/AppShelliOS.app"
+APP_BINARY="$APP_BUNDLE_DIR/AppShelliOS.debug.dylib"
+if [[ ! -f "$APP_BINARY" ]]; then
+  APP_BINARY="$APP_BUNDLE_DIR/AppShelliOS"
+fi
 
 if [[ -z "$PROFDATA" || ! -f "$PROFDATA" ]]; then
   echo "[ios-coverage] Coverage.profdata not found"
@@ -49,6 +53,7 @@ if [[ ! -f "$APP_BINARY" ]]; then
   exit 1
 fi
 
+DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}" \
 xcrun llvm-cov export \
   --format=lcov \
   --show-branch-summary \

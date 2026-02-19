@@ -279,24 +279,4 @@ final class AppShelliOSFlowUITests: XCTestCase {
         app.buttons[TestID.Me.settings].tap()
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 8))
     }
-
-    func testDebugBottomBarGeometry() {
-        let page = launchApp()
-        openAddReceiveAddress(page: page)
-        let add = app.buttons[TestID.Receive.addButton]
-        let invalid = app.buttons[TestID.Receive.invalidButton]
-        let tabBar = app.tabBars.firstMatch
-        let window = app.windows.firstMatch
-        print("DEBUG receive window=\(window.frame) tabBarExists=\(tabBar.exists) tabBarHittable=\(tabBar.isHittable) tabBarFrame=\(tabBar.frame)")
-        print("DEBUG receive add exists=\(add.exists) hittable=\(add.isHittable) enabled=\(add.isEnabled) frame=\(add.frame)")
-        print("DEBUG receive invalid exists=\(invalid.exists) hittable=\(invalid.isHittable) enabled=\(invalid.isEnabled) frame=\(invalid.frame)")
-
-        page.openTransferSelectFromHome()
-        XCTAssertTrue(page.firstButton(withPrefix: TestID.Transfer.networkNormalPrefix).waitForExistence(timeout: 10))
-        page.selectNormalTransferNetwork()
-        page.inputTransferAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        let next = app.buttons[TestID.Transfer.addressNext]
-        print("DEBUG transfer window=\(window.frame) tabBarExists=\(tabBar.exists) tabBarHittable=\(tabBar.isHittable) tabBarFrame=\(tabBar.frame)")
-        print("DEBUG transfer next exists=\(next.exists) hittable=\(next.isHittable) enabled=\(next.isEnabled) frame=\(next.frame)")
-    }
 }

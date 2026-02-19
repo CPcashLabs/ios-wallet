@@ -38,6 +38,7 @@ struct HomeView: View {
 
     @AppStorage("wallet.showBalance") private var showBalance = true
     @AppStorage("home.latestMessageId") private var latestMessageId = ""
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedBanner = 0
 
     private let banners = ["home_banner_1", "home_banner_2", "home_banner_3"]
@@ -79,6 +80,19 @@ struct HomeView: View {
                         }
                     }
                 }
+            }
+        }
+        .onAppear {
+            homeStore.startHeartbeat()
+        }
+        .onDisappear {
+            homeStore.stopHeartbeat()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                homeStore.startHeartbeat()
+            } else {
+                homeStore.stopHeartbeat()
             }
         }
     }

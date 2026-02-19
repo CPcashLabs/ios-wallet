@@ -16,34 +16,36 @@ struct AddReceiveAddressView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            SafeAreaScreen(backgroundStyle: .globalImage) {
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        if receiveStore.isLoading(.receiveHome) && items.isEmpty {
-                            skeletonView
-                        } else if items.isEmpty {
-                            EmptyStateView(asset: "bill_no_data", title: "暂无地址")
-                                .padding(.top, 40)
-                                .accessibilityIdentifier(A11yID.Receive.addAddressEmpty)
-                        } else {
-                            headerView
-                            ForEach(addressRows) { row in
-                                addressCard(row.item)
-                                    .onTapGesture {
-                                        handleItemTap(row.item)
-                                    }
+            FullscreenScaffold(backgroundStyle: .globalImage) {
+                VStack(spacing: 0) {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            if receiveStore.isLoading(.receiveHome) && items.isEmpty {
+                                skeletonView
+                            } else if items.isEmpty {
+                                EmptyStateView(asset: "bill_no_data", title: "暂无地址")
+                                    .padding(.top, 40)
+                                    .accessibilityIdentifier(A11yID.Receive.addAddressEmpty)
+                            } else {
+                                headerView
+                                ForEach(addressRows) { row in
+                                    addressCard(row.item)
+                                        .onTapGesture {
+                                            handleItemTap(row.item)
+                                        }
+                                }
                             }
                         }
+                        .padding(.horizontal, widthClass.horizontalPadding)
+                        .padding(.vertical, 16)
                     }
-                    .padding(.horizontal, widthClass.horizontalPadding)
-                    .padding(.vertical, 16)
+                    .refreshable {
+                        await receiveStore.loadReceiveAddresses(validity: .valid)
+                        await receiveStore.loadReceiveAddressLimit()
+                    }
+
+                    bottomBar(widthClass)
                 }
-                .refreshable {
-                    await receiveStore.loadReceiveAddresses(validity: .valid)
-                    await receiveStore.loadReceiveAddressLimit()
-                }
-            } bottomInset: {
-                bottomBar(widthClass)
             }
             .navigationTitle("地址")
             .navigationBarTitleDisplayMode(.inline)

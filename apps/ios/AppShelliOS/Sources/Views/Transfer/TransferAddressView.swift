@@ -76,21 +76,23 @@ struct TransferAddressView: View {
 
     var body: some View {
         AdaptiveReader { widthClass in
-            SafeAreaScreen(backgroundStyle: .globalImage) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        addressInputSection(widthClass: widthClass)
-                        validationSection(widthClass: widthClass)
-                        addAddressBookSection(widthClass: widthClass)
-                        tabSection(widthClass: widthClass)
-                        contentSection(widthClass: widthClass)
+            FullscreenScaffold(backgroundStyle: .globalImage) {
+                VStack(spacing: 0) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            addressInputSection(widthClass: widthClass)
+                            validationSection(widthClass: widthClass)
+                            addAddressBookSection(widthClass: widthClass)
+                            tabSection(widthClass: widthClass)
+                            contentSection(widthClass: widthClass)
+                        }
+                        .padding(.horizontal, widthClass.horizontalPadding)
+                        .padding(.top, 14)
+                        .padding(.bottom, 16)
                     }
-                    .padding(.horizontal, widthClass.horizontalPadding)
-                    .padding(.top, 14)
-                    .padding(.bottom, 16)
+
+                    bottomButton(widthClass: widthClass)
                 }
-            } bottomInset: {
-                bottomButton(widthClass: widthClass)
             }
             .navigationTitle("Send")
             .navigationBarTitleDisplayMode(.inline)

@@ -247,6 +247,8 @@ final class AppState: ObservableObject {
     @Published var transferProxyNetworks: [TransferNetworkItem] = []
     @Published var transferSelectedNetworkId: String?
     @Published var transferDraft = TransferDraft()
+    @Published var transferConfirmationTimeoutSeconds: TimeInterval = 90
+    @Published var transferConfirmationPollIntervalSeconds: TimeInterval = 2
 
     var rootScreen: RootScreen {
         isAuthenticated ? .home : .login

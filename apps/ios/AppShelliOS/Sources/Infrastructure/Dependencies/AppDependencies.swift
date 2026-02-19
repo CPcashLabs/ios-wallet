@@ -27,6 +27,7 @@ protocol SecurityServing {
     func signTypedData(_ req: SignTypedDataRequest) throws -> Signature
     func signAndSendTransaction(_ req: SendTxRequest) throws -> TxHash
     func signAndSendTransactionAsync(_ req: SendTxRequest) async throws -> TxHash
+    func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation
 }
 
 extension SecurityServing {
@@ -40,6 +41,10 @@ extension SecurityServing {
                 }
             }
         }
+    }
+
+    func waitForTransactionConfirmation(_ req: WaitTxConfirmationRequest) async throws -> TxConfirmation {
+        TxConfirmation(txHash: req.txHash, blockNumber: 1, status: 1)
     }
 }
 

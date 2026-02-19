@@ -340,6 +340,19 @@ final class TransferUseCase {
             appState.lastTxHash = txHash.value
             appState.log("转账签名广播成功: tx=\(txHash.value), chain=\(payChainId)")
 
+            let confirmation = try await appState.securityService.waitForTransactionConfirmation(
+                WaitTxConfirmationRequest(
+                    txHash: txHash.value,
+                    chainId: payChainId,
+                    timeoutSeconds: appState.transferConfirmationTimeoutSeconds,
+                    pollIntervalSeconds: appState.transferConfirmationPollIntervalSeconds
+                )
+            )
+            if let status = confirmation.status, status == 0 {
+                throw BackendAPIError.serverError(code: -1, message: "链上确认失败")
+            }
+            appState.log("链上确认成功: tx=\(confirmation.txHash), block=\(confirmation.blockNumber), status=\(confirmation.status ?? -1)")
+
             var callbackError: Error?
             if payment.mode == .proxy, let orderSN = payment.orderSN {
                 do {
@@ -738,6 +751,13 @@ final class TransferUseCase {
     }
 
     private func transferPaymentFailureMessage(_ error: Error) -> String {
+        let lowered = String(describing: error).lowercased()
+        if lowered.contains("confirmation timeout") {
+            return "链上确认超时，请稍后在账单中核对结果"
+        }
+        if lowered.contains("execution failed") {
+            return "链上确认失败"
+        }
         let message = appState.simplifyError(error)
         if message == "操作失败，请稍后重试" {
             return "支付失败，请稍后重试"

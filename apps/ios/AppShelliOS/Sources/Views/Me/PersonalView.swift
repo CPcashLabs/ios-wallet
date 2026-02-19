@@ -35,6 +35,7 @@ struct PersonalView: View {
                             HStack {
                                 Text("昵称")
                                     .font(.system(size: widthClass.bodySize + 1))
+                                    .accessibilityIdentifier(A11yID.Me.personalNicknameLabel)
                                 TextField("输入昵称", text: $nickname)
                                     .multilineTextAlignment(.trailing)
                                     .font(.system(size: widthClass.bodySize))
@@ -86,6 +87,7 @@ struct PersonalView: View {
                     .padding(.horizontal, widthClass.horizontalPadding)
                     .padding(.vertical, 12)
                 }
+                .accessibilityIdentifier(A11yID.Me.personalPage)
             }
             .navigationTitle("个人信息")
             .navigationBarTitleDisplayMode(.inline)

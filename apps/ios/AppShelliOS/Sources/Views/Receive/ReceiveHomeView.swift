@@ -46,6 +46,7 @@ struct ReceiveHomeView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.pressFeedback)
+                    .accessibilityIdentifier(A11yID.Receive.homeMenuButton)
                 }
             }
             .confirmationDialog("更多操作", isPresented: $optionMenuVisible, titleVisibility: .visible) {

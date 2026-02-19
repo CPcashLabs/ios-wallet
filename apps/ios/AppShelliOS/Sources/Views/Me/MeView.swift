@@ -27,6 +27,7 @@ struct MeView: View {
                                 .accessibilityIdentifier(A11yID.Me.addressBookEntry)
                             divider
                             menuButton(icon: "me_total_assets", title: "全部资产") { navigate(.totalAssets) }
+                                .accessibilityIdentifier(A11yID.Me.totalAssetsEntry)
                         }
 
                         SectionCard {
@@ -80,43 +81,48 @@ struct MeView: View {
     }
 
     private var headerCard: some View {
-        Button {
-            navigate(.personal)
-        } label: {
-            HStack(spacing: 12) {
-                avatar
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Text(displayName)
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(ThemeTokens.title)
-                        levelBadge
-                    }
-                    HStack(spacing: 8) {
+        HStack(spacing: 12) {
+            Button {
+                navigate(.personal)
+            } label: {
+                HStack(spacing: 12) {
+                    avatar
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            Text(displayName)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(ThemeTokens.title)
+                            levelBadge
+                        }
                         Text(shortAddress)
                             .font(.system(size: 13))
                             .foregroundStyle(ThemeTokens.secondary)
-                        Button {
-                            UIPasteboard.general.string = sessionStore.activeAddress
-                            uiStore.showInfoToast("地址已复制")
-                        } label: {
-                            Image(systemName: "doc.on.doc")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(ThemeTokens.cpPrimary)
-                        }
-                        .buttonStyle(.plain)
                     }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ThemeTokens.tertiary)
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(ThemeTokens.tertiary)
+                .contentShape(Rectangle())
             }
-            .padding(14)
-            .frame(maxWidth: .infinity)
-            .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(A11yID.Me.personalEntry)
+
+            Button {
+                UIPasteboard.general.string = sessionStore.activeAddress
+                uiStore.showInfoToast("地址已复制")
+            } label: {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(ThemeTokens.cpPrimary)
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(A11yID.Me.copyAddressButton)
         }
-        .buttonStyle(.pressFeedback)
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var avatar: some View {

@@ -50,6 +50,7 @@ struct AddressBookListView: View {
                                         .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                                     }
                                     .buttonStyle(.pressFeedback)
+                                    .accessibilityIdentifier(A11yID.Me.addressBookRowPrefix + (item.id.map(String.init) ?? "unknown"))
                                 }
                             }
                             .padding(.horizontal, widthClass.horizontalPadding)
@@ -75,6 +76,7 @@ struct AddressBookListView: View {
                         .background(ThemeTokens.groupBackground)
                 }
                 .buttonStyle(.pressFeedback)
+                .accessibilityIdentifier(A11yID.Me.addressBookAddButton)
             }
             .task {
                 await meStore.loadAddressBooks()

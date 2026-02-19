@@ -73,7 +73,8 @@ struct ReceiveAddressListView: View {
     }
 
     private func itemCard(_ item: TraceOrderItem) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let actionOrderSN = resolvedActionOrderSN(item)
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(item.orderSn ?? "-")
                     .font(.system(size: 12, design: .monospaced))
@@ -106,8 +107,8 @@ struct ReceiveAddressListView: View {
             .foregroundStyle(ThemeTokens.secondary)
 
             HStack(spacing: 8) {
-                if validity == .valid, let orderSN = item.orderSn {
-                    actionButton("设为默认") {
+                if validity == .valid, let orderSN = actionOrderSN {
+                    actionButton("设为默认", id: actionID(orderSN: orderSN, action: "default")) {
                         Task {
                             await receiveStore.markTraceOrder(
                                 orderSN: orderSN,
@@ -117,14 +118,14 @@ struct ReceiveAddressListView: View {
                             )
                         }
                     }
-                    actionButton("记录") {
+                    actionButton("记录", id: actionID(orderSN: orderSN, action: "logs")) {
                         onNavigate?(.txLogs(orderSN: orderSN))
                     }
-                    actionButton("分享") {
+                    actionButton("分享", id: actionID(orderSN: orderSN, action: "share")) {
                         onNavigate?(.share(orderSN: orderSN))
                     }
-                } else if let orderType = item.orderType {
-                    actionButton("重新生成") {
+                } else if let orderType = item.orderType, let orderSN = actionOrderSN {
+                    actionButton("重新生成", id: actionID(orderSN: orderSN, action: "regenerate")) {
                         Task {
                             if orderType.uppercased().contains("LONG") {
                                 await receiveStore.createLongTraceOrder()
@@ -138,9 +139,11 @@ struct ReceiveAddressListView: View {
         }
         .padding(12)
         .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("receive.address.row.\(item.orderSn ?? item.address ?? "unknown")")
     }
 
-    private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {
+    private func actionButton(_ title: String, id: String, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
             .font(.system(size: 12, weight: .medium))
             .padding(.horizontal, 10)
@@ -148,6 +151,21 @@ struct ReceiveAddressListView: View {
             .foregroundStyle(ThemeTokens.cpPrimary)
             .background(ThemeTokens.cpPrimary.opacity(0.12), in: Capsule())
             .buttonStyle(.plain)
+            .accessibilityIdentifier(id)
+    }
+
+    private func actionID(orderSN: String, action: String) -> String {
+        A11yID.Receive.addressListActionPrefix + orderSN + "." + action
+    }
+
+    private func resolvedActionOrderSN(_ item: TraceOrderItem) -> String? {
+        for candidate in [item.orderSn, item.receiveAddress, item.address] {
+            let value = candidate?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !value.isEmpty {
+                return value
+            }
+        }
+        return nil
     }
 
     private func statusText(_ value: Int?) -> String {

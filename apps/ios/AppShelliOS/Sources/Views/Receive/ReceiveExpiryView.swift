@@ -102,6 +102,7 @@ struct ReceiveExpiryView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSubmit || saving)
+            .accessibilityIdentifier(A11yID.Receive.expiryConfirmButton)
         }
     }
 

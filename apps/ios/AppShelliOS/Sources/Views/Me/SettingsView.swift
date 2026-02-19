@@ -58,6 +58,7 @@ struct SettingsView: View {
                             toggleRow(icon: "me_wallet_backup", title: "备份通知", isOn: $backupNotify)
                             Divider().padding(.leading, 48)
                             navRow(icon: "dollarsign.circle", title: "货币单位", note: meStore.selectedCurrency) { navigate(.settingUnit) }
+                                .accessibilityIdentifier(A11yID.Me.settingsCurrencyRow)
                         }
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)

@@ -19,7 +19,12 @@ struct AddressBookEditView: View {
                     VStack(spacing: 14) {
                         SectionCard {
                             VStack(spacing: 12) {
-                                input(title: "名称", text: $name, placeholder: "请输入名称")
+                                input(
+                                    title: "名称",
+                                    text: $name,
+                                    placeholder: "请输入名称",
+                                    identifier: A11yID.Me.addressBookNameInput
+                                )
                                 addressInput(widthClass: widthClass)
 
                                 if let chain = resolvedChainType {
@@ -92,6 +97,7 @@ struct AddressBookEditView: View {
                         .buttonStyle(.pressFeedback)
                         .disabled(saveDisabled)
                         .opacity(saveDisabled ? 0.6 : 1)
+                        .accessibilityIdentifier(A11yID.Me.addressBookSaveButton)
 
                         if let editingId {
                             Button {
@@ -107,6 +113,7 @@ struct AddressBookEditView: View {
                                     .overlay(Capsule().stroke(ThemeTokens.danger, lineWidth: 1))
                             }
                             .buttonStyle(.pressFeedback)
+                            .accessibilityIdentifier(A11yID.Me.addressBookDeleteButton)
                         }
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
@@ -173,6 +180,7 @@ struct AddressBookEditView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .font(.system(size: widthClass.bodySize + 1))
+                    .accessibilityIdentifier(A11yID.Me.addressBookWalletInput)
 
                 Button {
                     scannerPresented = true
@@ -194,7 +202,7 @@ struct AddressBookEditView: View {
         }
     }
 
-    private func input(title: String, text: Binding<String>, placeholder: String) -> some View {
+    private func input(title: String, text: Binding<String>, placeholder: String, identifier: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 13))
@@ -202,6 +210,7 @@ struct AddressBookEditView: View {
             TextField(placeholder, text: text)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+                .accessibilityIdentifier(identifier)
                 .padding(.horizontal, 12)
                 .frame(height: 42)
                 .background(ThemeTokens.inputBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))

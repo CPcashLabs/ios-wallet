@@ -95,6 +95,7 @@ struct BillListView: View {
                         Image(systemName: "ellipsis.circle")
                     }
                     .buttonStyle(.pressFeedback)
+                    .accessibilityIdentifier(A11yID.Me.billMoreButton)
                 }
             }
             .confirmationDialog("更多操作", isPresented: $showMoreSheet, titleVisibility: .visible) {
@@ -159,6 +160,7 @@ struct BillListView: View {
                 .foregroundStyle(filterDraft == BillFilterDraft() ? ThemeTokens.secondary : ThemeTokens.cpPrimary)
             }
             .buttonStyle(.pressFeedback)
+            .accessibilityIdentifier(A11yID.Me.billFilterButton)
         }
         .padding(.horizontal, widthClass.horizontalPadding)
         .padding(.top, 8)

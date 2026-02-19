@@ -57,6 +57,7 @@ struct MessageCenterView: View {
                         Task { await meStore.markAllMessagesRead() }
                     }
                     .font(.system(size: 14))
+                    .accessibilityIdentifier(A11yID.Me.messageAllReadButton)
                 }
             }
             .task {

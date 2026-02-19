@@ -82,6 +82,7 @@ struct LoginView: View {
             }
             .disabled(uiStore.loginBusy)
             .opacity(uiStore.loginBusy ? 0.65 : 1)
+            .accessibilityIdentifier(A11yID.Login.passkeyLoginButton)
 
             HStack(spacing: 8) {
                 Text("没有 Passkey 账号？")
@@ -90,6 +91,7 @@ struct LoginView: View {
                     passkeySignUpVisible = true
                 }
                 .foregroundStyle(ThemeTokens.cpPrimary)
+                .accessibilityIdentifier(A11yID.Login.registerButton)
             }
             .font(.system(size: 14))
             .padding(.top, 6)

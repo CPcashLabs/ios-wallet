@@ -21,8 +21,10 @@ struct MeView: View {
 
                         SectionCard {
                             menuButton(icon: "me_bill", title: "账单") { navigate(.billList) }
+                                .accessibilityIdentifier(A11yID.Me.billEntry)
                             divider
                             menuButton(icon: "me_addressbook", title: "地址簿") { navigate(.addressBookList) }
+                                .accessibilityIdentifier(A11yID.Me.addressBookEntry)
                             divider
                             menuButton(icon: "me_total_assets", title: "全部资产") { navigate(.totalAssets) }
                         }
@@ -73,6 +75,7 @@ struct MeView: View {
                     .background(ThemeTokens.cardBackground, in: Circle())
             }
             .buttonStyle(.pressFeedback)
+            .accessibilityIdentifier(A11yID.Me.settingsButton)
         }
     }
 

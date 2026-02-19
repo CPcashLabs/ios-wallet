@@ -171,6 +171,7 @@ struct HomeView: View {
                     .padding(.vertical, shortcutVerticalPadding(for: widthClass))
                 }
                 .buttonStyle(.pressFeedback)
+                .accessibilityIdentifier(shortcutIdentifier(shortcut))
             }
         }
     }
@@ -277,6 +278,7 @@ struct HomeView: View {
             .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.pressFeedback)
+        .accessibilityIdentifier(A11yID.Home.recentMessageButton)
     }
 
     private var hasNewMessage: Bool {
@@ -340,6 +342,17 @@ struct HomeView: View {
             return 18
         case .max:
             return 22
+        }
+    }
+
+    private func shortcutIdentifier(_ shortcut: HomeShortcut) -> String {
+        switch shortcut {
+        case .transfer:
+            return A11yID.Home.shortcutTransfer
+        case .receive:
+            return A11yID.Home.shortcutReceive
+        case .statistics:
+            return A11yID.Home.shortcutStatistics
         }
     }
 

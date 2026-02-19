@@ -61,10 +61,12 @@ struct HomeShellView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             homeTab
+                .accessibilityIdentifier(A11yID.Shell.tabHome)
                 .tabItem { Label("首页", systemImage: "house.fill") }
                 .tag(HomeShellTab.home)
 
             meTab
+                .accessibilityIdentifier(A11yID.Shell.tabMe)
                 .tabItem { Label("我的", systemImage: "person.fill") }
                 .tag(HomeShellTab.me)
         }

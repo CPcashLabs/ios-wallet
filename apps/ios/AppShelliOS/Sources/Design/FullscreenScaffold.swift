@@ -31,12 +31,12 @@ struct FullscreenScaffold<Content: View>: View {
     }
 
     var body: some View {
-        ZStack {
-            backgroundLayer
-
-            content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        }
+        content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background {
+                backgroundLayer
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .modifier(FullscreenNavigationModifier(hideNavigationBar: hideNavigationBar))
     }
 

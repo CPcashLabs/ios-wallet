@@ -15,16 +15,16 @@ struct AboutView: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(ThemeTokens.title)
 
-                    Text("版本 0.1.0")
+                    Text("Version 0.1.0")
                         .font(.system(size: 13))
                         .foregroundStyle(ThemeTokens.secondary)
 
                     SectionCard {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("CPCash 是面向跨链转账场景的钱包应用。本页面用于展示基础信息与支持入口。")
+                            Text("CPCash is a wallet app for cross-chain transfer scenarios. This page shows basic information and support entry points.")
                                 .font(.system(size: 14))
                                 .foregroundStyle(ThemeTokens.secondary)
-                            Text("官网：https://cp.cash")
+                            Text("Website: https://cp.cash")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(ThemeTokens.title)
                         }
@@ -35,7 +35,7 @@ struct AboutView: View {
                 .padding(.bottom, 20)
             }
         }
-        .navigationTitle("关于")
+        .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

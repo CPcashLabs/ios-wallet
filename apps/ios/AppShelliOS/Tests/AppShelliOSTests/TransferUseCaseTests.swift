@@ -31,7 +31,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         await appState.selectTransferNetwork(item: unavailable)
 
-        XCTAssertEqual(appState.toast?.message, "余额不足，请切换其他网络")
+        XCTAssertEqual(appState.toast?.message, "Insufficient balance, please switch to another network")
     }
 
     func testTransferAddressValidationMessageForInvalidInput() {
@@ -40,7 +40,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         let message = appState.transferAddressValidationMessage("abc")
 
-        XCTAssertEqual(message, "请输入正确地址")
+        XCTAssertEqual(message, "Please enter a valid address")
     }
 
     func testIsValidTransferAddressForNormalChannel() {
@@ -115,7 +115,7 @@ final class TransferUseCaseTests: XCTestCase {
         let ok = await appState.prepareTransferPayment(amountText: "1", note: "")
 
         XCTAssertFalse(ok)
-        XCTAssertEqual(appState.toast?.message, "地址格式错误")
+        XCTAssertEqual(appState.toast?.message, "Invalid address format")
     }
 
     func testPrepareTransferPaymentRejectsInvalidAmount() async {
@@ -126,7 +126,7 @@ final class TransferUseCaseTests: XCTestCase {
         let ok = await appState.prepareTransferPayment(amountText: "0", note: "")
 
         XCTAssertFalse(ok)
-        XCTAssertEqual(appState.toast?.message, "请输入正确金额")
+        XCTAssertEqual(appState.toast?.message, "Please enter a valid amount")
     }
 
     func testPrepareTransferPaymentNormalSuccess() async {
@@ -169,7 +169,7 @@ final class TransferUseCaseTests: XCTestCase {
         let ok = await appState.executeTransferPayment()
 
         XCTAssertFalse(ok)
-        XCTAssertEqual(appState.toast?.message, "登录会话失效，请重新登录")
+        XCTAssertEqual(appState.toast?.message, "Login session expired, please sign in again")
     }
 
     func testExecuteTransferPaymentNormalSuccess() async {
@@ -187,7 +187,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         XCTAssertTrue(ok)
         XCTAssertTrue(appState.lastTxHash.hasPrefix("0x"))
-        XCTAssertEqual(appState.toast?.message, "支付成功")
+        XCTAssertEqual(appState.toast?.message, "Payment successful")
     }
 
     func testExecuteTransferPaymentProxySuccess() async {
@@ -205,7 +205,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         XCTAssertTrue(ok)
         XCTAssertTrue(appState.lastTxHash.hasPrefix("0x"))
-        XCTAssertEqual(appState.toast?.message, "支付成功")
+        XCTAssertEqual(appState.toast?.message, "Payment successful")
     }
 
     func testExecuteTransferPaymentNormalFailsWhenConfirmationTimeout() async {
@@ -227,7 +227,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         XCTAssertFalse(ok)
         XCTAssertEqual(security.waitCallCount, 1)
-        XCTAssertEqual(appState.toast?.message, "链上确认超时，请稍后在账单中核对结果")
+        XCTAssertEqual(appState.toast?.message, "On-chain confirmation timed out, please check the result in bills later")
     }
 
     func testExecuteTransferPaymentNormalFailsWhenConfirmationStatusIsFailed() async {
@@ -247,7 +247,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         XCTAssertFalse(ok)
         XCTAssertEqual(security.waitCallCount, 1)
-        XCTAssertEqual(appState.toast?.message, "链上确认失败")
+        XCTAssertEqual(appState.toast?.message, "On-chain confirmation failed")
     }
 
     func testExecuteTransferPaymentNormalSuccessRequiresConfirmationCall() async {
@@ -267,7 +267,7 @@ final class TransferUseCaseTests: XCTestCase {
 
         XCTAssertTrue(ok)
         XCTAssertEqual(security.waitCallCount, 1)
-        XCTAssertEqual(appState.toast?.message, "支付成功")
+        XCTAssertEqual(appState.toast?.message, "Payment successful")
     }
 
     func testExecuteTransferPaymentProxySuccessRequiresConfirmationCall() async {
@@ -287,6 +287,6 @@ final class TransferUseCaseTests: XCTestCase {
 
         XCTAssertTrue(ok)
         XCTAssertEqual(security.waitCallCount, 1)
-        XCTAssertEqual(appState.toast?.message, "支付成功")
+        XCTAssertEqual(appState.toast?.message, "Payment successful")
     }
 }

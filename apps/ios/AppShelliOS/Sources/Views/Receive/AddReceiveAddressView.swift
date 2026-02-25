@@ -23,7 +23,7 @@ struct AddReceiveAddressView: View {
                             if receiveStore.isLoading(.receiveHome) && items.isEmpty {
                                 skeletonView
                             } else if items.isEmpty {
-                                EmptyStateView(asset: "bill_no_data", title: "暂无地址")
+                                EmptyStateView(asset: "bill_no_data", title: "No addresses")
                                     .padding(.top, 40)
                                     .accessibilityIdentifier(A11yID.Receive.addAddressEmpty)
                             } else {
@@ -47,7 +47,7 @@ struct AddReceiveAddressView: View {
                     bottomBar(widthClass)
                 }
             }
-            .navigationTitle("地址")
+            .navigationTitle("Address")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -56,14 +56,14 @@ struct AddReceiveAddressView: View {
                             isEditMode.toggle()
                         } label: {
                             Label(
-                                isEditMode ? "完成编辑" : "编辑地址名",
+                                isEditMode ? "Finish Editing" : "Edit Address Name",
                                 systemImage: isEditMode ? "checkmark" : "pencil"
                             )
                         }
                         Button(role: .destructive) {
                             onNavigate?(.deleteAddress)
                         } label: {
-                            Label("删除地址", systemImage: "trash")
+                            Label("Delete Address", systemImage: "trash")
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -134,14 +134,14 @@ struct AddReceiveAddressView: View {
                 .font(.system(size: 14))
             Text("\(items.count)/\(addressLimit)")
                 .font(.system(size: 14, weight: .bold))
-            Text("已添加地址")
+            Text("Added Addresses")
                 .font(.system(size: 14))
             Spacer()
         }
         .foregroundStyle(ThemeTokens.secondary)
         .padding(.bottom, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(items.count)/\(addressLimit) 已添加地址")
+        .accessibilityLabel("\(items.count)/\(addressLimit) Added Addresses")
         .accessibilityIdentifier(A11yID.Receive.addAddressHeader)
     }
 
@@ -255,7 +255,7 @@ struct AddReceiveAddressView: View {
                         } else {
                             Image(systemName: "plus")
                         }
-                        Text("添加地址")
+                        Text("AddAddress")
                     }
                     .font(.system(size: 16, weight: .semibold))
                     .frame(maxWidth: .infinity)
@@ -275,7 +275,7 @@ struct AddReceiveAddressView: View {
                 onNavigate?(.invalidAddress)
             } label: {
                 HStack {
-                    Text("无效地址")
+                    Text("Invalid Addresses")
                     Image(systemName: "chevron.right")
                 }
                 .font(.system(size: 14))
@@ -303,7 +303,7 @@ struct AddReceiveAddressView: View {
                 .padding(.top, 10)
                 .padding(.bottom, 20)
 
-            Text("选择地址类型")
+            Text("Select Address Type")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(ThemeTokens.title)
                 .padding(.bottom, 20)
@@ -319,10 +319,10 @@ struct AddReceiveAddressView: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("随机地址")
+                        Text("Random Address")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(ThemeTokens.title)
-                        Text("系统随机分配一个收款地址")
+                        Text("System randomly assigns a receiving address")
                             .font(.system(size: 13))
                             .foregroundStyle(ThemeTokens.secondary)
                     }
@@ -344,7 +344,7 @@ struct AddReceiveAddressView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 6) {
-                            Text("靓号地址")
+                            Text("Vanity Address")
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundStyle(ThemeTokens.title)
                             Text("Rare")
@@ -354,7 +354,7 @@ struct AddReceiveAddressView: View {
                                 .padding(.vertical, 2)
                                 .background(Color.orange, in: RoundedRectangle(cornerRadius: 12))
                         }
-                        Text("选择一个靓号作为收款地址")
+                        Text("Choose a vanity address as receiving address")
                             .font(.system(size: 13))
                             .foregroundStyle(ThemeTokens.secondary)
                     }
@@ -382,7 +382,7 @@ struct AddReceiveAddressView: View {
     private var editAddressSheet: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text("编辑地址名")
+                Text("Edit Address Name")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(ThemeTokens.title)
                     .padding(.top, 12)
@@ -396,7 +396,7 @@ struct AddReceiveAddressView: View {
                         .padding(.horizontal, 16)
                 }
 
-                TextField("输入地址备注名称", text: $editRemarkName)
+                TextField("Enter address remark name", text: $editRemarkName)
                     .font(.system(size: 15))
                     .padding(14)
                     .background(ThemeTokens.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
@@ -418,7 +418,7 @@ struct AddReceiveAddressView: View {
                         }
                     }
                 } label: {
-                    Text("确认")
+                    Text("Confirm")
                         .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)

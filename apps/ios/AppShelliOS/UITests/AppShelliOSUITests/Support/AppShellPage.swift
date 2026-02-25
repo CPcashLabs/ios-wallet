@@ -145,24 +145,24 @@ final class AppShellPage {
             app.keyboards.buttons["Done"].tap()
             return
         }
-        if app.keyboards.buttons["完成"].exists {
-            app.keyboards.buttons["完成"].tap()
+        if app.keyboards.buttons["Done"].exists {
+            app.keyboards.buttons["Done"].tap()
             return
         }
         if app.keyboards.buttons["Return"].exists {
             app.keyboards.buttons["Return"].tap()
             return
         }
-        if app.keyboards.buttons["收起"].exists {
-            app.keyboards.buttons["收起"].tap()
+        if app.keyboards.buttons["Collapse"].exists {
+            app.keyboards.buttons["Collapse"].tap()
             return
         }
         if app.toolbars.buttons["Done"].exists {
             app.toolbars.buttons["Done"].tap()
             return
         }
-        if app.toolbars.buttons["完成"].exists {
-            app.toolbars.buttons["完成"].tap()
+        if app.toolbars.buttons["Done"].exists {
+            app.toolbars.buttons["Done"].tap()
             return
         }
 

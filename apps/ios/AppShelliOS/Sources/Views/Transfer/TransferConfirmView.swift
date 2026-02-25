@@ -20,7 +20,7 @@ struct TransferConfirmView: View {
             } bottomInset: {
                 bottomButton(widthClass: widthClass)
             }
-            .navigationTitle("确认转账")
+            .navigationTitle("Confirm Transfer")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

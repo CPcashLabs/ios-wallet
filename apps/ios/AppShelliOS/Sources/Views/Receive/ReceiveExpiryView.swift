@@ -42,7 +42,7 @@ struct ReceiveExpiryView: View {
                         }
                         .background(ThemeTokens.cardBackground, in: RoundedRectangle(cornerRadius: widthClass.metrics.cardCornerRadius, style: .continuous))
 
-                        Text("设置后会自动应用到新生成的收款地址")
+                        Text("This setting will be automatically applied to newly generated receiving addresses")
                             .font(.system(size: widthClass.footnoteSize))
                             .foregroundStyle(ThemeTokens.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -126,19 +126,19 @@ struct ReceiveExpiryView: View {
     private func durationTitle(_ value: Int) -> String {
         if value >= 3_600 {
             if value >= 2_592_000 {
-                return "\(value / 2_592_000) 月"
+                return "\(value / 2_592_000)  month"
             }
             if value >= 604_800 {
-                return "\(value / 604_800) 周"
+                return "\(value / 604_800)  weeks"
             }
             if value >= 86_400 {
-                return "\(value / 86_400) 天"
+                return "\(value / 86_400)  days"
             }
-            return "\(value / 3_600) 小时"
+            return "\(value / 3_600)  hours"
         }
         if value >= 24, value % 24 == 0 {
-            return "\(value / 24) 天"
+            return "\(value / 24)  days"
         }
-        return "\(value) 小时"
+        return "\(value)  hours"
     }
 }

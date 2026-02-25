@@ -29,7 +29,7 @@ struct LoginView: View {
                     }
                 }
             }
-            .navigationTitle("登录")
+            .navigationTitle("Sign In")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $passkeyLogsVisible) {
                 passkeyLogsSheet
@@ -71,7 +71,7 @@ struct LoginView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)
-                    Text("使用通行密钥登录")
+                    Text("Sign in with Passkey")
                         .font(.system(size: 16, weight: .semibold))
                     Spacer()
                 }
@@ -85,9 +85,9 @@ struct LoginView: View {
             .accessibilityIdentifier(A11yID.Login.passkeyLoginButton)
 
             HStack(spacing: 8) {
-                Text("没有 Passkey 账号？")
+                Text("No Passkey account?")
                     .foregroundStyle(ThemeTokens.secondary)
-                Button("注册") {
+                Button("Register") {
                     passkeySignUpVisible = true
                 }
                 .foregroundStyle(ThemeTokens.cpPrimary)
@@ -100,15 +100,15 @@ struct LoginView: View {
 
     private var debugInfoSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            infoRow("当前地址", sessionStore.activeAddress)
+            infoRow("Current Address", sessionStore.activeAddress)
             infoRow("ENV", "\(sessionStore.environment.tag.rawValue) / \(sessionStore.environment.baseURL.host ?? "-")")
             if uiStore.loginBusy {
-                Text("登录处理中...")
+                Text("Signing in...")
                     .font(.system(size: 12))
                     .foregroundStyle(ThemeTokens.tertiary)
             }
             #if DEBUG
-                Button("切换环境（Debug）") {
+                Button("Switch Environment (Debug)") {
                     sessionStore.cycleEnvironmentForDebug()
                 }
                 .font(.system(size: 13))
@@ -122,12 +122,12 @@ struct LoginView: View {
     private var passkeyLogsSheet: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
-                Text("最近登录")
+                Text("Recent Sign-in")
                     .font(.system(size: 16, weight: .medium))
                     .padding(.top, 6)
 
                 if sessionStore.passkeyAccounts.isEmpty {
-                    Text("暂无 Passkey 账户")
+                    Text("No Passkey account")
                         .font(.system(size: 13))
                         .foregroundStyle(ThemeTokens.secondary)
                         .padding(.vertical, 4)
@@ -143,15 +143,15 @@ struct LoginView: View {
                     }
                 }
 
-                passkeyAccountButton(title: "其他账户", subtitle: "使用系统认证选择账号") {
+                passkeyAccountButton(title: "Other Accounts", subtitle: "Use system authentication to choose an account") {
                     passkeyLogsVisible = false
                     Task { await sessionStore.loginWithPasskey(rawId: nil) }
                 }
 
                 HStack(spacing: 6) {
-                    Text("没有账户？")
+                    Text("No account?")
                         .foregroundStyle(ThemeTokens.secondary)
-                    Button("注册") {
+                    Button("Register") {
                         passkeyLogsVisible = false
                         passkeySignUpVisible = true
                     }
@@ -173,11 +173,11 @@ struct LoginView: View {
     private var passkeySignUpSheet: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
-                Text("请输入 1-12 位用户名")
+                Text("Please enter a 1-12 character username")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(ThemeTokens.title)
 
-                TextField("请输入用户名", text: $passkeySignUpName)
+                TextField("Please enter username", text: $passkeySignUpName)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .padding(.horizontal, 12)
@@ -198,7 +198,7 @@ struct LoginView: View {
                         }
                     }
                 } label: {
-                    Text("下一步")
+                    Text("Next")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 50)
@@ -214,7 +214,7 @@ struct LoginView: View {
 
                 HStack {
                     Spacer()
-                    Text("什么是 Passkey")
+                    Text("What is Passkey")
                         .font(.system(size: 14))
                         .foregroundStyle(ThemeTokens.cpPrimary)
                     Spacer()
@@ -222,11 +222,11 @@ struct LoginView: View {
             }
             .padding(16)
             .background(ThemeTokens.groupBackground)
-            .navigationTitle("注册")
+            .navigationTitle("Register")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("关闭") {
+                    Button("Close") {
                         passkeySignUpVisible = false
                     }
                 }

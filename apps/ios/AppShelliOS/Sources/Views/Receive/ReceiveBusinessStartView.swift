@@ -5,15 +5,15 @@ struct ReceiveBusinessStartView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Text("经营收款地址尚未创建")
+            Text("Business receiving address has not been created")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(ThemeTokens.title)
-            Text("创建后可长期收款，并支持地址失效管理")
+            Text("After creation, you can receive long-term and manage address invalidation")
                 .font(.system(size: 12))
                 .foregroundStyle(ThemeTokens.secondary)
                 .multilineTextAlignment(.center)
 
-            Button("开始创建") {
+            Button("Start Creating") {
                 onStart()
             }
             .font(.system(size: 14, weight: .semibold))

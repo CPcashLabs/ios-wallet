@@ -11,7 +11,7 @@ struct SettingUnitView: View {
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
                     if meStore.isLoading(.meSettingsRates) {
-                        ProgressView("加载中...")
+                        ProgressView("Loading...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         ScrollView {
@@ -49,11 +49,11 @@ struct SettingUnitView: View {
                     }
                 }
             }
-            .navigationTitle("货币单位")
+            .navigationTitle("Currency Unit")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("保存") {
+                    Button("Save") {
                         if !currentCurrency.isEmpty {
                             meStore.saveCurrencyUnit(currency: currentCurrency)
                         }

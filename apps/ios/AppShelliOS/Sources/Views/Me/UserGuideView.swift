@@ -2,10 +2,10 @@ import SwiftUI
 
 struct UserGuideView: View {
     private let guides: [String] = [
-        "使用 Passkey 登录钱包",
-        "如何发起转账",
-        "如何创建收款码",
-        "如何查看账单与统计"
+        "Use Passkey to sign in to wallet",
+        "How to start a transfer",
+        "How to create a receive QR code",
+        "How to view bills and statistics"
     ]
 
     var body: some View {
@@ -35,7 +35,7 @@ struct UserGuideView: View {
                 .padding(.vertical, 12)
             }
         }
-        .navigationTitle("用户指南")
+        .navigationTitle("User Guide")
         .navigationBarTitleDisplayMode(.inline)
     }
 

@@ -25,7 +25,7 @@ enum DateTextFormatter {
         return formatter
     }()
 
-    static func yearMonth(fromTimestamp timestamp: Int?, fallback: String = "未知月份") -> String {
+    static func yearMonth(fromTimestamp timestamp: Int?, fallback: String = "Unknown month") -> String {
         guard let date = date(fromTimestamp: timestamp) else { return fallback }
         return yearMonthFormatter.string(from: date)
     }

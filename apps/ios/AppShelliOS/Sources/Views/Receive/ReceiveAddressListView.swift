@@ -11,10 +11,10 @@ struct ReceiveAddressListView: View {
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
                     if isLoading && items.isEmpty {
-                        ProgressView("正在加载...")
+                        ProgressView("Loading...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if items.isEmpty {
-                        EmptyStateView(asset: "bill_no_data", title: "暂无地址")
+                        EmptyStateView(asset: "bill_no_data", title: "No addresses")
                             .padding(.horizontal, widthClass.horizontalPadding)
                     } else {
                         ScrollView {
@@ -32,7 +32,7 @@ struct ReceiveAddressListView: View {
                     }
                 }
             }
-            .navigationTitle(validity == .valid ? "有效地址" : "失效地址")
+            .navigationTitle(validity == .valid ? "Valid Addresses" : "Invalid Addresses")
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 await receiveStore.loadReceiveAddresses(validity: validity)
@@ -81,7 +81,7 @@ struct ReceiveAddressListView: View {
                     .lineLimit(1)
                 Spacer()
                 if item.isMarked == true {
-                    Text("默认")
+                    Text("Default")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(ThemeTokens.cpPrimary)
                         .padding(.horizontal, 8)
@@ -98,9 +98,9 @@ struct ReceiveAddressListView: View {
                 .truncationMode(.middle)
 
             HStack(spacing: 10) {
-                Text("状态: \(statusText(item.status))")
+                Text("Status: \(statusText(item.status))")
                 if let expiredAt = item.expiredAt {
-                    Text("到期: \(formatTimestamp(expiredAt))")
+                    Text("Expires: \(formatTimestamp(expiredAt))")
                 }
             }
             .font(.system(size: 12))
@@ -108,7 +108,7 @@ struct ReceiveAddressListView: View {
 
             HStack(spacing: 8) {
                 if validity == .valid, let orderSN = actionOrderSN {
-                    actionButton("设为默认", id: actionID(orderSN: orderSN, action: "default")) {
+                    actionButton("Set as Default", id: actionID(orderSN: orderSN, action: "default")) {
                         Task {
                             await receiveStore.markTraceOrder(
                                 orderSN: orderSN,
@@ -118,14 +118,14 @@ struct ReceiveAddressListView: View {
                             )
                         }
                     }
-                    actionButton("记录", id: actionID(orderSN: orderSN, action: "logs")) {
+                    actionButton("records", id: actionID(orderSN: orderSN, action: "logs")) {
                         onNavigate?(.txLogs(orderSN: orderSN))
                     }
-                    actionButton("分享", id: actionID(orderSN: orderSN, action: "share")) {
+                    actionButton("Share", id: actionID(orderSN: orderSN, action: "share")) {
                         onNavigate?(.share(orderSN: orderSN))
                     }
                 } else if let orderType = item.orderType, let orderSN = actionOrderSN {
-                    actionButton("重新生成", id: actionID(orderSN: orderSN, action: "regenerate")) {
+                    actionButton("Regenerate", id: actionID(orderSN: orderSN, action: "regenerate")) {
                         Task {
                             if orderType.uppercased().contains("LONG") {
                                 await receiveStore.createLongTraceOrder()
@@ -171,11 +171,11 @@ struct ReceiveAddressListView: View {
     private func statusText(_ value: Int?) -> String {
         switch value ?? -1 {
         case 1:
-            return "有效"
+            return "Valid"
         case 2:
-            return "处理中"
+            return "Processing"
         default:
-            return "失效"
+            return "Invalid"
         }
     }
 

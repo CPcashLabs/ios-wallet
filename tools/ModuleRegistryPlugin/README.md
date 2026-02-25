@@ -1,8 +1,8 @@
-# ModuleRegistryPlugin（占位）
+# ModuleRegistryPlugin (Placeholder)
 
-Phase 1 先提供 `apps/cli/AppShell/Generated/ModuleRegistry.swift` 作为静态注册表。
+Phase 1 First provide `apps/cli/AppShell/Generated/ModuleRegistry.swift` as a static registry.
 
-后续 Phase 2 将替换为 SPM Build Tool Plugin：
-1. 扫描 `modules/*` 的 manifest 声明
-2. 自动生成 `Generated/ModuleRegistry.swift`
-3. 主壳启动时安装 manifests，无需手改主壳列表
+Later in Phase 2, replace with an SPM Build Tool Plugin:
+1. Scan manifest declarations under `modules/*`
+2. Auto-generate `Generated/ModuleRegistry.swift`
+3. Install manifests at shell startup, without manually editing shell lists

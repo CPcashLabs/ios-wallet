@@ -895,8 +895,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DGDH98B728;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "扫码转账需要访问相机";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择头像需要访问相册";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is required to scan QR codes for transfers";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Photo library access is required to choose an avatar";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -919,8 +919,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "扫码转账需要访问相机";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择头像需要访问相册";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is required to scan QR codes for transfers";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Photo library access is required to choose an avatar";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

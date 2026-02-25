@@ -11,10 +11,10 @@ struct MessageCenterView: View {
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
                     if meStore.isLoading(.meMessageList) && meStore.messageList.isEmpty {
-                        ProgressView("正在加载消息...")
+                        ProgressView("LoadingMessages...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if meStore.messageList.isEmpty {
-                        EmptyStateView(asset: "message_no_data", title: "暂无消息")
+                        EmptyStateView(asset: "message_no_data", title: "No messages")
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     } else {
@@ -37,7 +37,7 @@ struct MessageCenterView: View {
                                     ProgressView()
                                         .padding(.vertical, 12)
                                 } else if meStore.messageLastPage {
-                                    Text("无更多数据")
+                                    Text("No more data")
                                         .font(.system(size: 12))
                                         .foregroundStyle(ThemeTokens.tertiary)
                                         .padding(.vertical, 12)
@@ -49,11 +49,11 @@ struct MessageCenterView: View {
                     }
                 }
             }
-            .navigationTitle("消息")
+            .navigationTitle("Messages")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("全部已读") {
+                    Button("Mark all as read") {
                         Task { await meStore.markAllMessagesRead() }
                     }
                     .font(.system(size: 14))
@@ -144,11 +144,11 @@ struct MessageCenterView: View {
     private func titleByType(_ value: String?) -> String {
         switch value {
         case "RE_ALLOCATE":
-            return "多签重分配通知"
+            return "Multisig Reassignment Notification"
         case "OWNER_REMOVED":
-            return "多签成员变更通知"
+            return "Multisig Member Change Notification"
         default:
-            return "系统消息"
+            return "System Messages"
         }
     }
 }

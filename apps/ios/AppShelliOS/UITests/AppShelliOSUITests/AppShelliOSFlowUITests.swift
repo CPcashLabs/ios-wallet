@@ -57,10 +57,10 @@ final class AppShelliOSFlowUITests: XCTestCase {
     }
 
     private func openMeBillList(page: AppShellPage) {
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.bill].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.bill].tap()
-        XCTAssertTrue(app.navigationBars["账单"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Bills"].waitForExistence(timeout: 8))
     }
 
     private func inputText(_ value: String, identifier: String, page: AppShellPage) {
@@ -77,15 +77,15 @@ final class AppShelliOSFlowUITests: XCTestCase {
     }
 
     private func openOrderDetailFromBill(page: AppShellPage) {
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.bill].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.bill].tap()
-        XCTAssertTrue(app.navigationBars["账单"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Bills"].waitForExistence(timeout: 8))
         let firstBillRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", TestID.Me.billRowPrefix)).firstMatch
         XCTAssertTrue(firstBillRow.waitForExistence(timeout: 10))
         firstBillRow.tap()
         let detailShown = page.waitForIdentifier(TestID.OrderDetail.summary, timeout: 10) != nil
-            || app.navigationBars["订单详情"].waitForExistence(timeout: 6)
+            || app.navigationBars["Order Details"].waitForExistence(timeout: 6)
         XCTAssertTrue(detailShown)
     }
 
@@ -156,21 +156,21 @@ final class AppShelliOSFlowUITests: XCTestCase {
     func testHomeRecentMessageCanOpenMessageCenter() {
         let page = launchApp()
         XCTAssertTrue(page.tapIdentifier(TestID.Home.recentMessageButton, timeout: 8))
-        XCTAssertTrue(app.navigationBars["消息"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Messages"].waitForExistence(timeout: 8))
     }
 
     func testMessageCenterShowsAllReadButton() {
         let page = launchApp()
         XCTAssertTrue(page.tapIdentifier(TestID.Home.recentMessageButton, timeout: 8))
-        XCTAssertTrue(app.navigationBars["消息"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Messages"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.buttons[TestID.Me.messageAllReadButton].waitForExistence(timeout: 8))
     }
 
     func testCanSwitchMeTabAndBack() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.settings].waitForExistence(timeout: 8))
-        page.tapTab("首页")
+        page.tapTab("Home")
         XCTAssertTrue(app.buttons[TestID.Home.shortcutReceive].waitForExistence(timeout: 8))
     }
 
@@ -229,7 +229,7 @@ final class AppShelliOSFlowUITests: XCTestCase {
     func testAddReceiveHeaderContainsLimitCounter() {
         let page = launchApp()
         openAddReceiveAddress(page: page)
-        XCTAssertTrue(app.staticTexts["已添加地址"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["Added Addresses"].waitForExistence(timeout: 8))
         let counter = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^[0-9]+/[0-9]+$")).firstMatch
         XCTAssertTrue(counter.waitForExistence(timeout: 8))
     }
@@ -247,18 +247,18 @@ final class AppShelliOSFlowUITests: XCTestCase {
         let page = launchApp()
         openReceiveHome(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Receive.homeMenuButton, timeout: 8))
-        XCTAssertTrue(app.buttons["有效地址"].waitForExistence(timeout: 8))
-        app.buttons["有效地址"].tap()
-        XCTAssertTrue(app.navigationBars["有效地址"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Valid Addresses"].waitForExistence(timeout: 8))
+        app.buttons["Valid Addresses"].tap()
+        XCTAssertTrue(app.navigationBars["Valid Addresses"].waitForExistence(timeout: 8))
     }
 
     func testReceiveAddressListLogsActionCanOpenTxLogs() {
         let page = launchApp()
         openReceiveHome(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Receive.homeMenuButton, timeout: 8))
-        XCTAssertTrue(app.buttons["有效地址"].waitForExistence(timeout: 8))
-        app.buttons["有效地址"].tap()
-        XCTAssertTrue(app.navigationBars["有效地址"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Valid Addresses"].waitForExistence(timeout: 8))
+        app.buttons["Valid Addresses"].tap()
+        XCTAssertTrue(app.navigationBars["Valid Addresses"].waitForExistence(timeout: 8))
         let logsButton = app.buttons.matching(
             NSPredicate(
                 format: "identifier BEGINSWITH %@ AND identifier ENDSWITH %@",
@@ -268,16 +268,16 @@ final class AppShelliOSFlowUITests: XCTestCase {
         ).firstMatch
         XCTAssertTrue(logsButton.waitForExistence(timeout: 8))
         logsButton.tap()
-        XCTAssertTrue(app.navigationBars["收款记录"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Receive Records"].waitForExistence(timeout: 8))
     }
 
     func testReceiveAddressListShareActionCanOpenSharePage() {
         let page = launchApp()
         openReceiveHome(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Receive.homeMenuButton, timeout: 8))
-        XCTAssertTrue(app.buttons["有效地址"].waitForExistence(timeout: 8))
-        app.buttons["有效地址"].tap()
-        XCTAssertTrue(app.navigationBars["有效地址"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Valid Addresses"].waitForExistence(timeout: 8))
+        app.buttons["Valid Addresses"].tap()
+        XCTAssertTrue(app.navigationBars["Valid Addresses"].waitForExistence(timeout: 8))
         let shareButton = app.buttons.matching(
             NSPredicate(
                 format: "identifier BEGINSWITH %@ AND identifier ENDSWITH %@",
@@ -287,17 +287,17 @@ final class AppShelliOSFlowUITests: XCTestCase {
         ).firstMatch
         XCTAssertTrue(shareButton.waitForExistence(timeout: 8))
         shareButton.tap()
-        XCTAssertTrue(app.navigationBars["分享"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Share"].waitForExistence(timeout: 8))
     }
 
     func testReceiveHomeMenuCanOpenInvalidAddressPage() {
         let page = launchApp()
         openReceiveHome(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Receive.homeMenuButton, timeout: 8))
-        XCTAssertTrue(app.buttons["无效地址"].waitForExistence(timeout: 8))
-        app.buttons["无效地址"].tap()
-        let invalidShown = app.navigationBars["无效地址"].waitForExistence(timeout: 8)
-            || app.navigationBars["失效地址"].waitForExistence(timeout: 2)
+        XCTAssertTrue(app.buttons["Invalid Addresses"].waitForExistence(timeout: 8))
+        app.buttons["Invalid Addresses"].tap()
+        let invalidShown = app.navigationBars["Invalid Addresses"].waitForExistence(timeout: 8)
+            || app.navigationBars["Invalid Addresses"].waitForExistence(timeout: 2)
         XCTAssertTrue(invalidShown)
     }
 
@@ -305,8 +305,8 @@ final class AppShelliOSFlowUITests: XCTestCase {
         let page = launchApp()
         openReceiveHome(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Receive.homeMenuButton, timeout: 8))
-        XCTAssertTrue(app.buttons["地址有效期设置"].waitForExistence(timeout: 8))
-        app.buttons["地址有效期设置"].tap()
+        XCTAssertTrue(app.buttons["Address Validity Settings"].waitForExistence(timeout: 8))
+        app.buttons["Address Validity Settings"].tap()
         XCTAssertTrue(app.navigationBars["Expiry Date"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.buttons[TestID.Receive.expiryConfirmButton].waitForExistence(timeout: 8))
     }
@@ -315,9 +315,9 @@ final class AppShelliOSFlowUITests: XCTestCase {
         let page = launchApp()
         openReceiveHome(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Receive.homeMenuButton, timeout: 8))
-        XCTAssertTrue(app.buttons["删除地址"].waitForExistence(timeout: 8))
-        app.buttons["删除地址"].tap()
-        XCTAssertTrue(app.navigationBars["删除地址"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Delete Address"].waitForExistence(timeout: 8))
+        app.buttons["Delete Address"].tap()
+        XCTAssertTrue(app.navigationBars["Delete Address"].waitForExistence(timeout: 8))
     }
 
     func testTransferSelectNetworkShowsNormalRow() {
@@ -398,101 +398,101 @@ final class AppShelliOSFlowUITests: XCTestCase {
 
     func testMeTabShowsSettingsButton() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.settings].waitForExistence(timeout: 8))
     }
 
     func testMeTabShowsBillEntry() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.bill].waitForExistence(timeout: 8))
     }
 
     func testMeTabShowsAddressBookEntry() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.addressBook].waitForExistence(timeout: 8))
     }
 
     func testMeTabShowsPersonalAndTotalAssetsEntries() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertNotNil(page.waitForIdentifier(TestID.Me.personal, timeout: 8))
         XCTAssertTrue(app.buttons[TestID.Me.totalAssets].waitForExistence(timeout: 8))
     }
 
     func testMeCanOpenSettingsPage() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.settings].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.settings].tap()
-        XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 8))
     }
 
     func testMeCanOpenPersonalPage() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertNotNil(page.waitForIdentifier(TestID.Me.personal, timeout: 8))
         XCTAssertTrue(page.tapIdentifier(TestID.Me.personal, timeout: 8))
         let personalShown = page.waitForIdentifier(TestID.Me.personalPage, timeout: 8) != nil
-            || app.navigationBars["个人信息"].waitForExistence(timeout: 4)
+            || app.navigationBars["Profile"].waitForExistence(timeout: 4)
         XCTAssertTrue(personalShown)
         XCTAssertNotNil(page.waitForIdentifier(TestID.Me.personalNicknameLabel, timeout: 6))
     }
 
     func testMeCanOpenTotalAssetsPage() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.totalAssets].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.totalAssets].tap()
-        XCTAssertTrue(app.navigationBars["全部资产"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Total Assets"].waitForExistence(timeout: 8))
     }
 
     func testSettingsCurrencyRowCanOpenSettingUnitPage() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.settings].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.settings].tap()
-        XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 8))
         XCTAssertTrue(page.tapIdentifier(TestID.Me.settingsCurrencyRow, timeout: 8))
-        XCTAssertTrue(app.navigationBars["货币单位"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Currency Unit"].waitForExistence(timeout: 8))
     }
 
     func testAddressBookCanAddAndDeleteItem() {
         let page = launchApp()
-        page.tapTab("我的")
+        page.tapTab("Me")
         XCTAssertTrue(app.buttons[TestID.Me.addressBook].waitForExistence(timeout: 8))
         app.buttons[TestID.Me.addressBook].tap()
-        XCTAssertTrue(app.navigationBars["地址簿"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Address Book"].waitForExistence(timeout: 8))
 
         XCTAssertTrue(page.tapIdentifier(TestID.Me.addressBookAddButton, timeout: 8))
-        XCTAssertTrue(app.navigationBars["添加地址"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["AddAddress"].waitForExistence(timeout: 8))
         inputText("UI Test Contact", identifier: TestID.Me.addressBookNameInput, page: page)
         inputText("0xcccccccccccccccccccccccccccccccccccccccc", identifier: TestID.Me.addressBookWalletInput, page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Me.addressBookSaveButton, timeout: 8))
-        XCTAssertTrue(app.navigationBars["地址簿"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Address Book"].waitForExistence(timeout: 8))
 
         let firstRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", TestID.Me.addressBookRowPrefix)).firstMatch
         XCTAssertTrue(firstRow.waitForExistence(timeout: 8))
         firstRow.tap()
-        let editShown = app.navigationBars["编辑地址"].waitForExistence(timeout: 8)
-            || app.navigationBars["添加地址"].waitForExistence(timeout: 2)
+        let editShown = app.navigationBars["Edit Address"].waitForExistence(timeout: 8)
+            || app.navigationBars["AddAddress"].waitForExistence(timeout: 2)
         XCTAssertTrue(editShown)
         XCTAssertTrue(page.tapIdentifier(TestID.Me.addressBookDeleteButton, timeout: 8))
-        XCTAssertTrue(app.navigationBars["地址簿"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Address Book"].waitForExistence(timeout: 8))
     }
 
     func testBillFilterSheetCanOpenAndApply() {
         let page = launchApp()
         openMeBillList(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Me.billFilterButton, timeout: 8))
-        XCTAssertTrue(app.navigationBars["筛选"].waitForExistence(timeout: 8))
-        let completedToggle = app.switches["仅显示已完成"]
+        XCTAssertTrue(app.navigationBars["Filter"].waitForExistence(timeout: 8))
+        let completedToggle = app.switches["Show Completed Only"]
         if completedToggle.waitForExistence(timeout: 2) {
             completedToggle.tap()
         }
-        XCTAssertTrue(app.buttons["应用"].waitForExistence(timeout: 8))
-        app.buttons["应用"].tap()
+        XCTAssertTrue(app.buttons["Apply"].waitForExistence(timeout: 8))
+        app.buttons["Apply"].tap()
         XCTAssertTrue(app.buttons[TestID.Me.billFilterButton].waitForExistence(timeout: 8))
     }
 
@@ -500,9 +500,9 @@ final class AppShelliOSFlowUITests: XCTestCase {
         let page = launchApp()
         openMeBillList(page: page)
         XCTAssertTrue(page.tapIdentifier(TestID.Me.billMoreButton, timeout: 8))
-        XCTAssertTrue(app.buttons["统计"].waitForExistence(timeout: 8))
-        app.buttons["统计"].tap()
-        XCTAssertTrue(app.navigationBars["统计"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Statistics"].waitForExistence(timeout: 8))
+        app.buttons["Statistics"].tap()
+        XCTAssertTrue(app.navigationBars["Statistics"].waitForExistence(timeout: 8))
     }
 
     func testOrderDetailShowsSummaryAndGroupedSections() {

@@ -20,16 +20,16 @@ struct AddressBookEditView: View {
                         SectionCard {
                             VStack(spacing: 12) {
                                 input(
-                                    title: "名称",
+                                    title: "Name",
                                     text: $name,
-                                    placeholder: "请输入名称",
+                                    placeholder: "Please enter a name",
                                     identifier: A11yID.Me.addressBookNameInput
                                 )
                                 addressInput(widthClass: widthClass)
 
                                 if let chain = resolvedChainType {
                                     HStack(spacing: 10) {
-                                        Text("网络")
+                                        Text("Network")
                                             .font(.system(size: 14))
                                             .foregroundStyle(ThemeTokens.secondary)
                                         Spacer()
@@ -43,7 +43,7 @@ struct AddressBookEditView: View {
                                                     .font(.system(size: 14, weight: .semibold))
                                                     .foregroundStyle(ThemeTokens.title)
                                                 if chain == "EVM" {
-                                                    Text("包含 Layer2 与 EVM 网络")
+                                                    Text("Includes Layer2 and EVM networks")
                                                         .font(.system(size: 11))
                                                         .foregroundStyle(ThemeTokens.secondary)
                                                 }
@@ -53,7 +53,7 @@ struct AddressBookEditView: View {
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 6)
                                 } else {
-                                    Text("仅支持 TRON 与 EVM 网络地址")
+                                    Text("Only TRON and EVM network addresses are supported")
                                         .font(.system(size: 12))
                                         .foregroundStyle(invalidAddress ? ThemeTokens.danger : ThemeTokens.secondary)
                                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,7 +88,7 @@ struct AddressBookEditView: View {
                                 }
                             }
                         } label: {
-                            Text(editingId == nil ? "添加" : "保存")
+                            Text(editingId == nil ? "Add" : "Save")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity, minHeight: widthClass.metrics.buttonHeight)
@@ -106,7 +106,7 @@ struct AddressBookEditView: View {
                                     dismiss()
                                 }
                             } label: {
-                                Text("删除")
+                                Text("Delete")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(ThemeTokens.danger)
                                     .frame(maxWidth: .infinity, minHeight: widthClass.metrics.buttonHeight)
@@ -120,13 +120,13 @@ struct AddressBookEditView: View {
                     .padding(.vertical, 12)
                 }
             }
-            .navigationTitle(editingId == nil ? "添加地址" : "编辑地址")
+            .navigationTitle(editingId == nil ? "AddAddress" : "Edit Address")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $scannerPresented) {
                 QRCodeScannerSheet { value in
                     let normalized = normalizeScannedAddress(value)
                     guard !normalized.isEmpty else {
-                        uiStore.showInfoToast("未识别到有效地址")
+                        uiStore.showInfoToast("No valid address recognized")
                         return
                     }
                     walletAddress = normalized
@@ -171,11 +171,11 @@ struct AddressBookEditView: View {
 
     private func addressInput(widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("钱包地址")
+            Text("Wallet Address")
                 .font(.system(size: 13))
                 .foregroundStyle(ThemeTokens.secondary)
             HStack(alignment: .top, spacing: 8) {
-                TextField("请输入钱包地址", text: $walletAddress)
+                TextField("Please enter a wallet address", text: $walletAddress)
                     .lineLimit(1)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()

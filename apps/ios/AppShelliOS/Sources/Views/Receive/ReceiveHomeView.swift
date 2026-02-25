@@ -49,42 +49,42 @@ struct ReceiveHomeView: View {
                     .accessibilityIdentifier(A11yID.Receive.homeMenuButton)
                 }
             }
-            .confirmationDialog("更多操作", isPresented: $optionMenuVisible, titleVisibility: .visible) {
+            .confirmationDialog("More Actions", isPresented: $optionMenuVisible, titleVisibility: .visible) {
                 if !receiveStore.receiveDomainState.selectedIsNormalChannel {
-                    Button("地址有效期设置") {
+                    Button("Address Validity Settings") {
                         onNavigate(.expiry)
                     }
                     if let orderSN = receiveStore.receiveDomainState.individualOrderSN, !orderSN.isEmpty {
-                        Button("编辑个人收款地址") {
+                        Button("Edit Personal Receive Address") {
                             receiveStore.setReceiveActiveTab(.individuals)
                             expandedDrawer = .individuals
                             onNavigate(.editAddress(orderSN: orderSN))
                         }
-                        Button("个人收款记录") {
+                        Button("Personal Receive Records") {
                             receiveStore.setReceiveActiveTab(.individuals)
                             expandedDrawer = .individuals
                             onNavigate(.txLogs(orderSN: orderSN))
                         }
                     }
                     if let orderSN = receiveStore.receiveDomainState.businessOrderSN, !orderSN.isEmpty {
-                        Button("编辑经营收款地址") {
+                        Button("Edit Business Receive Address") {
                             receiveStore.setReceiveActiveTab(.business)
                             expandedDrawer = .business
                             onNavigate(.editAddress(orderSN: orderSN))
                         }
-                        Button("经营收款记录") {
+                        Button("Business Receive Records") {
                             receiveStore.setReceiveActiveTab(.business)
                             expandedDrawer = .business
                             onNavigate(.txLogs(orderSN: orderSN))
                         }
                     }
-                    Button("有效地址") {
+                    Button("Valid Addresses") {
                         onNavigate(.addressList(validity: .valid))
                     }
-                    Button("无效地址") {
+                    Button("Invalid Addresses") {
                         onNavigate(.invalidAddress)
                     }
-                    Button("删除地址") {
+                    Button("Delete Address") {
                         onNavigate(.deleteAddress)
                     }
                 }
@@ -205,7 +205,7 @@ struct ReceiveHomeView: View {
             if receiveStore.receiveDomainState.isPolling {
                 HStack(spacing: 8) {
                     ProgressView()
-                    Text("地址生成中...")
+                    Text("AddressGenerating...")
                         .font(.system(size: widthClass.footnoteSize, weight: .medium))
                         .foregroundStyle(ThemeTokens.secondary)
                 }
@@ -251,7 +251,7 @@ struct ReceiveHomeView: View {
                                 }
                             },
                             onCopyAddress: {
-                                uiStore.showInfoToast("地址已复制")
+                                uiStore.showInfoToast("Address copied")
                             },
                             addressTapA11yID: A11yID.Receive.cardAddressTapIndividuals,
                             onAddressTap: {
@@ -304,7 +304,7 @@ struct ReceiveHomeView: View {
                                     }
                                 },
                                 onCopyAddress: {
-                                    uiStore.showInfoToast("地址已复制")
+                                    uiStore.showInfoToast("Address copied")
                                 },
                                 addressTapA11yID: A11yID.Receive.cardAddressTapBusiness,
                                 onAddressTap: {
@@ -409,7 +409,7 @@ struct ReceiveHomeView: View {
             .accessibilityIdentifier(A11yID.Receive.cardAddressTap)
 
             HStack(spacing: 10) {
-                Button("分享") {
+                Button("Share") {
                     shareNormalQRCodeCard(widthClass: widthClass)
                 }
                 .frame(maxWidth: .infinity, minHeight: 48)
@@ -422,9 +422,9 @@ struct ReceiveHomeView: View {
                 .contentShape(Rectangle())
                 .disabled(normalShareBusy)
 
-                Button("复制") {
+                Button("Copy") {
                     UIPasteboard.general.string = receiveStore.activeAddress
-                    uiStore.showInfoToast("地址已复制")
+                    uiStore.showInfoToast("Address copied")
                 }
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 48)
@@ -451,7 +451,7 @@ struct ReceiveHomeView: View {
             .frame(width: 340, height: 620)
 
         guard let image = ViewImageRenderer.render(capture, size: CGSize(width: 340, height: 620)) else {
-            uiStore.showInfoToast("分享图片生成失败")
+            uiStore.showInfoToast("Failed to generate share image")
             return
         }
 

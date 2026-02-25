@@ -2,8 +2,8 @@ import BackendAPI
 import SwiftUI
 
 private enum TransferAddressTab: String, CaseIterable {
-    case recent = "最近"
-    case addressBook = "地址簿"
+    case recent = "Recent"
+    case addressBook = "Address Book"
 }
 
 struct TransferAddressView: View {
@@ -101,7 +101,7 @@ struct TransferAddressView: View {
                 QRCodeScannerSheet { scannedValue in
                     let normalized = normalizeScannedAddress(scannedValue)
                     guard !normalized.isEmpty else {
-                        transferStore.showInfoToast("未识别到有效地址")
+                        transferStore.showInfoToast("No valid address recognized")
                         return
                     }
                     addressInput = normalized
@@ -172,7 +172,7 @@ struct TransferAddressView: View {
                 .font(.system(size: widthClass.footnoteSize))
                 .foregroundStyle(ThemeTokens.danger)
         } else {
-            Text("请仔细核对地址与网络，错误网络可能导致资产丢失")
+            Text("Please verify the address and network carefully, the wrong network may cause asset loss")
                 .font(.system(size: widthClass.footnoteSize))
                 .foregroundStyle(ThemeTokens.secondary)
         }
@@ -182,12 +182,12 @@ struct TransferAddressView: View {
     private func addAddressBookSection(widthClass: DeviceWidthClass) -> some View {
         if shouldShowAddAddressBook {
             Button {
-                transferStore.showInfoToast("请前往“我的-地址簿”添加")
+                transferStore.showInfoToast("Please go to "Me - Address Book" to add one")
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "plus.circle")
                         .font(.system(size: 16))
-                    Text("添加到地址簿")
+                    Text("Add to Address Book")
                         .font(.system(size: widthClass.bodySize, weight: .medium))
                 }
                 .foregroundStyle(ThemeTokens.cpPrimary)
@@ -224,7 +224,7 @@ struct TransferAddressView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 80)
             } else if filteredRecentContacts.isEmpty {
-                EmptyStateView(asset: "bill_no_data", title: "暂无交易记录")
+                EmptyStateView(asset: "bill_no_data", title: "No transaction records")
                     .padding(.top, 16)
             } else {
                 VStack(spacing: 0) {
@@ -241,7 +241,7 @@ struct TransferAddressView: View {
             }
         case .addressBook:
             if filteredAddressBooks.isEmpty {
-                EmptyStateView(asset: "bill_no_data", title: "暂无地址簿")
+                EmptyStateView(asset: "bill_no_data", title: "No address book entries")
                     .padding(.top, 16)
             } else {
                 VStack(spacing: 0) {
@@ -437,9 +437,9 @@ struct TransferAddressView: View {
         let direction: String
         switch (item.direction ?? "").uppercased() {
         case "TRANSFER":
-            direction = "转账给对方"
+            direction = "Transfer to counterparty"
         case "RECEIVE":
-            direction = "从对方收款"
+            direction = "Receive from counterparty"
         default:
             direction = "-"
         }

@@ -10,10 +10,10 @@ struct AddressBookListView: View {
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
                     if meStore.isLoading(.meAddressbookList) {
-                        ProgressView("加载地址簿...")
+                        ProgressView("LoadAddress Book...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if meStore.addressBooks.isEmpty {
-                        EmptyStateView(asset: "bill_no_data", title: "还未添加任何地址簿")
+                        EmptyStateView(asset: "bill_no_data", title: "No address book entries yet")
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     } else {
@@ -59,13 +59,13 @@ struct AddressBookListView: View {
                     }
                 }
             }
-            .navigationTitle("地址簿")
+            .navigationTitle("Address Book")
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom) {
                 Button {
                     navigate(.addressBookEdit(id: nil))
                 } label: {
-                    Text("添加地址")
+                    Text("AddAddress")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(ThemeTokens.cpPrimary)
                         .frame(maxWidth: .infinity, minHeight: widthClass.metrics.buttonHeight)

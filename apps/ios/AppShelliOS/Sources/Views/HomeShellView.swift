@@ -62,12 +62,12 @@ struct HomeShellView: View {
         TabView(selection: $selectedTab) {
             homeTab
                 .accessibilityIdentifier(A11yID.Shell.tabHome)
-                .tabItem { Label("首页", systemImage: "house.fill") }
+                .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(HomeShellTab.home)
 
             meTab
                 .accessibilityIdentifier(A11yID.Shell.tabMe)
-                .tabItem { Label("我的", systemImage: "person.fill") }
+                .tabItem { Label("Me", systemImage: "person.fill") }
                 .tag(HomeShellTab.me)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -88,7 +88,7 @@ struct HomeShellView: View {
                 sessionStore: appStore.sessionStore,
                 homeStore: appStore.homeStore,
                 onShortcutTap: handleShortcutTap,
-                onBannerTap: { appStore.uiStore.showInfoToast("Banner 跳转功能开发中") },
+                onBannerTap: { appStore.uiStore.showInfoToast("Banner navigation feature in development") },
                 onRecentMessageTap: {
                     pushHomeRoute(.messageCenter)
                 }
@@ -270,9 +270,9 @@ struct HomeShellView: View {
                         meStore: appStore.meStore
                     ))
                 case .invite:
-                    hideTabBar(MePlaceholderView(title: "邀请好友", description: "邀请功能在下一批次继续对齐"))
+                    hideTabBar(MePlaceholderView(title: "Invite Friends", description: "Invite feature will be aligned in the next batch"))
                 case .inviteCode:
-                    hideTabBar(MePlaceholderView(title: "邀请码", description: "邀请码功能在下一批次继续对齐"))
+                    hideTabBar(MePlaceholderView(title: "Invite Code", description: "Invite code feature will be aligned in the next batch"))
                 case .about:
                     hideTabBar(AboutView())
                 case .userGuide:

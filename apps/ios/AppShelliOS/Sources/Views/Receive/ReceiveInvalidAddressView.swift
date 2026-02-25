@@ -5,7 +5,7 @@ struct ReceiveInvalidAddressView: View {
 
     var body: some View {
         ReceiveAddressListView(receiveStore: receiveStore, validity: .invalid)
-            .navigationTitle("无效地址")
+            .navigationTitle("Invalid Addresses")
             .navigationBarTitleDisplayMode(.inline)
     }
 }

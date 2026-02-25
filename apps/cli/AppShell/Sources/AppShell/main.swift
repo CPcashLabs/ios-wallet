@@ -31,19 +31,19 @@ func runAppShell() async throws {
 
     let context = try runtime.context(for: first.moduleId)
 
-    // Phase 1: 为示例模块授权其 manifest 声明能力
+    // Phase 1: Grant manifest-declared capabilities to demo modules
     for capability in first.capabilities {
         let grant = try await context.requestPermission(capability)
         print("Granted: \(grant.moduleId) -> \(grant.capability.rawValue)")
     }
 
-    // 读取地址与链配置
+    // Read address and chain configuration
     let address = try context.capabilities.readAddress()
     let chain = try context.capabilities.readChainConfig()
     print("Active address: \(address.value)")
     print("Chain config: chainId=\(chain.chainId), rpc=\(chain.rpcURL)")
 
-    // 显式申请高危能力并触发确认流（stub 自动通过）
+    // Explicitly request high-risk capabilities and trigger confirmation flow (stub auto-approves)
     _ = try await context.requestPermission(CapabilityRequest(id: .signMessage))
     let sig = try await context.capabilities.signMessage("hello phase1")
     print("Signature: \(sig.value)")
@@ -60,7 +60,7 @@ func runAppShell() async throws {
     let txHash = try await context.capabilities.sendTransaction(tx)
     print("TxHash: \(txHash.value)")
 
-    // WebDApp 容器请求演示
+    // WebDApp container request demo
     let bridge = WebDAppBridge(origin: "https://example-dapp.org", capabilities: context.capabilities)
     let dappSig = try await bridge.handle(
         WebDAppBridgeRequest(

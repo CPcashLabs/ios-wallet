@@ -15,7 +15,7 @@ struct ReceiveShareView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     if receiveStore.isLoading(.receiveShare) {
-                        ProgressView("生成分享卡片...")
+                        ProgressView("Generating share card...")
                             .padding(.top, 30)
                     } else {
                         sharePreviewCard
@@ -25,7 +25,7 @@ struct ReceiveShareView: View {
                 .padding(16)
             }
         }
-        .navigationTitle("分享")
+        .navigationTitle("Share")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $shareSheetPresented) {
             ActivityShareSheet(activityItems: shareItems)
@@ -54,7 +54,7 @@ struct ReceiveShareView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 10) {
-            Button("分享图片") {
+            Button("Share Image") {
                 shareCaptureCard()
             }
             .frame(maxWidth: .infinity, minHeight: 48)
@@ -64,9 +64,9 @@ struct ReceiveShareView: View {
             .buttonStyle(.pressFeedback)
             .disabled(shareBusy || !canShareAddress)
 
-            Button("复制地址") {
+            Button("Copy Address") {
                 UIPasteboard.general.string = shareAddress
-                uiStore.showInfoToast("地址已复制")
+                uiStore.showInfoToast("Address copied")
             }
             .frame(maxWidth: .infinity, minHeight: 48)
             .foregroundStyle(ThemeTokens.cpPrimary)
@@ -84,7 +84,7 @@ struct ReceiveShareView: View {
     private func shareCaptureCard() {
         guard !shareBusy else { return }
         guard canShareAddress else {
-            uiStore.showInfoToast("地址数据加载中")
+            uiStore.showInfoToast("Loading address data")
             return
         }
         shareBusy = true
@@ -92,7 +92,7 @@ struct ReceiveShareView: View {
         let capture = sharePreviewCard
             .frame(width: 340, height: 620)
         guard let image = ViewImageRenderer.render(capture, size: CGSize(width: 340, height: 620)) else {
-            uiStore.showInfoToast("分享图片生成失败")
+            uiStore.showInfoToast("Failed to generate share image")
             return
         }
         shareImage = image

@@ -129,13 +129,13 @@ final class TransferUseCase {
             if let first = appState.transferSelectNetworks.first {
                 configureTransferNetwork(first)
             }
-            appState.log("转账网络加载失败: \(error)")
+            appState.log("TransferNetworkLoadFailed: \(error)")
         }
     }
 
     func selectTransferNetwork(item: TransferNetworkItem) async {
         if !item.isAvailable {
-            appState.showToast("余额不足，请切换其他网络", theme: .error)
+            appState.showToast("Insufficient balance, please switch to another network", theme: .error)
             return
         }
         configureTransferNetwork(item)
@@ -166,7 +166,7 @@ final class TransferUseCase {
             let detail = try await appState.backend.receive.normalAllowCoinShow(coinCode: coinCode)
             applyTransferNormalCoin(detail)
         } catch {
-            appState.log("转账币种详情加载失败: \(error)")
+            appState.log("Transfer coin details load failed: \(error)")
         }
     }
 
@@ -185,7 +185,7 @@ final class TransferUseCase {
     func transferAddressValidationMessage(_ address: String) -> String? {
         let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        return isValidTransferAddress(trimmed) ? nil : "请输入正确地址"
+        return isValidTransferAddress(trimmed) ? nil : "Please enter a valid address"
     }
 
     func isValidTransferAddress(_ address: String) -> Bool {
@@ -241,23 +241,23 @@ final class TransferUseCase {
                 recvChainName: recvChain
             )
             appState.clearError(LoadKey.transferAddressCandidates)
-            appState.log("转账最近联系人加载成功: \(appState.transferRecentContacts.count)")
+            appState.log("Transfer recent contacts loaded successfully: \(appState.transferRecentContacts.count)")
         } catch {
             appState.setError(LoadKey.transferAddressCandidates, error)
             appState.transferRecentContacts = []
-            appState.log("转账最近联系人加载失败: \(error)")
+            appState.log("Transfer recent contacts load failed: \(error)")
         }
     }
 
     func prepareTransferPayment(amountText: String, note: String) async -> Bool {
         let address = appState.transferDraft.recipientAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         guard isValidTransferAddress(address) else {
-            appState.showToast("地址格式错误", theme: .error)
+            appState.showToast("Invalid address format", theme: .error)
             return false
         }
         let normalizedAmount = amountText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let amount = Decimal(string: normalizedAmount), amount > 0 else {
-            appState.showToast("请输入正确金额", theme: .error)
+            appState.showToast("Please enter a valid amount", theme: .error)
             return false
         }
 
@@ -273,11 +273,11 @@ final class TransferUseCase {
                 let detail = try await appState.backend.receive.normalAllowCoinShow(coinCode: appState.transferDomainState.selectedSendCoinCode)
                 applyTransferNormalCoin(detail)
             } catch {
-                appState.log("normal 币种详情加载失败，使用 allow-list 数据回退: \(error)")
+                appState.log("normal coin details load failed, using allow-list data fallback: \(error)")
             }
             let contract = appState.transferDomainState.selectedCoinContract ?? ""
             guard isValidEvmAddress(contract) else {
-                appState.showToast("币种配置异常，请重新选择网络后再试", theme: .error)
+                appState.showToast("Coin configuration is invalid, please reselect the network and try again", theme: .error)
                 return false
             }
             return true
@@ -300,18 +300,18 @@ final class TransferUseCase {
             appState.transferDraft.orderSN = orderSN
             appState.transferDraft.orderDetail = detail
             appState.lastCreatedPaymentOrderSN = orderSN
-            appState.log("转账订单创建成功: order_sn=\(orderSN)")
+            appState.log("Transfer order created successfully: order_sn=\(orderSN)")
             return true
         } catch {
-            appState.showToast("转账订单创建失败", theme: .error)
-            appState.log("转账订单创建失败: \(error)")
+            appState.showToast("Transfer order creation failed", theme: .error)
+            appState.log("Transfer order creation failed: \(error)")
             return false
         }
     }
 
     func executeTransferPayment() async -> Bool {
         guard case .unlocked = appState.approvalSessionState else {
-            appState.showToast("登录会话失效，请重新登录", theme: .error)
+            appState.showToast("Login session expired, please sign in again", theme: .error)
             return false
         }
         guard !appState.isLoading(LoadKey.transferPay) else { return false }
@@ -338,7 +338,7 @@ final class TransferUseCase {
                 )
             )
             appState.lastTxHash = txHash.value
-            appState.log("转账签名广播成功: tx=\(txHash.value), chain=\(payChainId)")
+            appState.log("Transfer signature broadcast succeeded: tx=\(txHash.value), chain=\(payChainId)")
 
             let confirmation = try await appState.securityService.waitForTransactionConfirmation(
                 WaitTxConfirmationRequest(
@@ -349,9 +349,9 @@ final class TransferUseCase {
                 )
             )
             if let status = confirmation.status, status == 0 {
-                throw BackendAPIError.serverError(code: -1, message: "链上确认失败")
+                throw BackendAPIError.serverError(code: -1, message: "On-chain confirmation failed")
             }
-            appState.log("链上确认成功: tx=\(confirmation.txHash), block=\(confirmation.blockNumber), status=\(confirmation.status ?? -1)")
+            appState.log("On-chain confirmation succeeded: tx=\(confirmation.txHash), block=\(confirmation.blockNumber), status=\(confirmation.status ?? -1)")
 
             var callbackError: Error?
             if payment.mode == .proxy, let orderSN = payment.orderSN {
@@ -360,7 +360,7 @@ final class TransferUseCase {
                     await appState.loadOrderDetail(orderSN: orderSN)
                 } catch {
                     callbackError = error
-                    appState.log("转账成功但订单回写失败(proxy): \(error)")
+                    appState.log("Transfer succeeded but order write-back failed(proxy): \(error)")
                 }
             } else {
                 do {
@@ -382,25 +382,25 @@ final class TransferUseCase {
                     }
                 } catch {
                     callbackError = error
-                    appState.log("转账成功但回执上报失败(normal): \(error)")
+                    appState.log("Transfer succeeded but receipt reporting failed(normal): \(error)")
                 }
             }
 
             await appState.refreshOrdersOnly()
             if callbackError != nil {
-                appState.showToast("支付已提交，回执同步失败，请稍后在账单查看", theme: .info)
+                appState.showToast("Payment submitted, receipt sync failed, please check bills later", theme: .info)
             } else {
-                appState.showToast("支付成功", theme: .success)
+                appState.showToast("Payment successful", theme: .success)
             }
             return true
         } catch {
-            appState.log("转账支付失败: \(error)")
+            appState.log("Transfer payment failed: \(error)")
             let failedMessage = transferPaymentFailureMessage(error)
             if appState.transferDraft.mode == .proxy, let orderSN = appState.transferDraft.orderSN {
                 do {
                     try await appState.backend.order.ship(orderSN: orderSN, txid: nil, message: failedMessage, success: false)
                 } catch {
-                    appState.log("转账失败回写订单失败: \(error)")
+                    appState.log("Transfer failed and order write-back failed: \(error)")
                 }
             } else {
                 do {
@@ -418,7 +418,7 @@ final class TransferUseCase {
                         )
                     )
                 } catch {
-                    appState.log("normal 转账失败回写失败: \(error)")
+                    appState.log("normal transfer failed write-back failed: \(error)")
                 }
             }
             appState.showToast(failedMessage, theme: .error)
@@ -454,7 +454,7 @@ final class TransferUseCase {
                 appState.transferDomainState.selectedCoinContract = nil
                 appState.transferDomainState.selectedCoinPrecision = 6
             }
-            appState.log("转账网络已选择: \(item.name) [In-App Channel]")
+            appState.log("Transfer network selected: \(item.name) [In-App Channel]")
             return
         }
 
@@ -469,7 +469,7 @@ final class TransferUseCase {
         } else {
             appState.transferDomainState.selectedPairLabel = "\(appState.transferDomainState.selectedSendCoinName)/\(appState.transferDomainState.selectedRecvCoinName)"
         }
-        appState.log("转账网络已选择: \(item.name) [Proxy Settlement]")
+        appState.log("Transfer network selected: \(item.name) [Proxy Settlement]")
     }
 
     private func preferredTransferPair(from chain: ReceiveAllowChainItem?) -> AllowExchangePair? {
@@ -753,14 +753,14 @@ final class TransferUseCase {
     private func transferPaymentFailureMessage(_ error: Error) -> String {
         let lowered = String(describing: error).lowercased()
         if lowered.contains("confirmation timeout") {
-            return "链上确认超时，请稍后在账单中核对结果"
+            return "On-chain confirmation timed out, please check the result in bills later"
         }
         if lowered.contains("execution failed") {
-            return "链上确认失败"
+            return "On-chain confirmation failed"
         }
         let message = appState.simplifyError(error)
-        if message == "操作失败，请稍后重试" {
-            return "支付失败，请稍后重试"
+        if message == "Operation failed, please try again later" {
+            return "Payment failed, please try again later"
         }
         return message
     }

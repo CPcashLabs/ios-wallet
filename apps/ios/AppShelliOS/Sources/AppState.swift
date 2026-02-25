@@ -337,9 +337,9 @@ final class AppState: ObservableObject {
             homeRecentMessages = Array(homeMessageResponse.data.prefix(3))
             receives = try await receiveTask
             orders = try await orderTask.data
-            log("基础数据刷新完成: allCoin=\(allCoins.count), currentCoin=\(coins.count), transfer=\(recentTransfers.count), message=\(homeRecentMessages.count)")
+            log("basedataRefreshDone: allCoin=\(allCoins.count), currentCoin=\(coins.count), transfer=\(recentTransfers.count), message=\(homeRecentMessages.count)")
         } catch {
-            log("刷新数据失败: \(error)")
+            log("RefreshdataFailed: \(error)")
         }
     }
 
@@ -416,11 +416,11 @@ final class AppState: ObservableObject {
             billTotal = response.total ?? billList.count
             billLastPage = computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
             clearError(LoadKey.meBillList)
-            log("账单列表加载成功: \(billList.count)")
+            log("BillslistLoadSucceeded: \(billList.count)")
         } catch {
             guard generation == billRequestGeneration else { return }
             setError(LoadKey.meBillList, error)
-            log("账单列表加载失败: \(error)")
+            log("BillslistLoadFailed: \(error)")
         }
     }
 
@@ -449,7 +449,7 @@ final class AppState: ObservableObject {
             clearError(LoadKey.meBillStat)
         } catch {
             setError(LoadKey.meBillStat, error)
-            log("账单统计加载失败: \(error)")
+            log("BillsStatisticsLoadFailed: \(error)")
         }
     }
 
@@ -464,10 +464,10 @@ final class AppState: ObservableObject {
             let response = try await backend.bill.statAllAddressPage(range: range, page: page, perPage: perPage)
             billAddressAggList = response.data
             clearError(LoadKey.meBillAggregate)
-            log("账单地址聚合加载成功: \(billAddressAggList.count)")
+            log("Bill address aggregate load succeeded: \(billAddressAggList.count)")
         } catch {
             setError(LoadKey.meBillAggregate, error)
-            log("账单地址聚合加载失败: \(error)")
+            log("Bill address aggregate load failed: \(error)")
         }
     }
 
@@ -517,7 +517,7 @@ final class AppState: ObservableObject {
             if let selected = networkOptions.first(where: { $0.chainId == selectedChainId }) {
                 selectedChainName = selected.chainName
             }
-            log("网络列表加载失败，使用默认配置: \(error)")
+            log("Network list load failed, using default configuration: \(error)")
         }
     }
 
@@ -665,9 +665,9 @@ final class AppState: ObservableObject {
         do {
             let response = try await backend.order.list(page: 1, perPage: 20, address: nil)
             orders = response.data
-            log("订单列表刷新成功: \(response.data.count)")
+            log("Order list refresh succeeded: \(response.data.count)")
         } catch {
-            log("订单列表刷新失败: \(error)")
+            log("Order list refresh failed: \(error)")
         }
     }
 
@@ -678,11 +678,11 @@ final class AppState: ObservableObject {
             let detail = try await backend.order.detail(orderSN: orderSN)
             guard activeOrderDetailRequestSN == orderSN else { return }
             selectedOrderDetail = detail
-            log("订单详情加载成功: \(detail.orderSn ?? orderSN)")
+            log("Order DetailsLoadSucceeded: \(detail.orderSn ?? orderSN)")
         } catch {
             guard activeOrderDetailRequestSN == orderSN else { return }
             selectedOrderDetail = nil
-            log("订单详情加载失败: \(error)")
+            log("Order DetailsLoadFailed: \(error)")
         }
     }
 
@@ -891,7 +891,7 @@ final class AppState: ObservableObject {
             receiveDomainState.selectedSendCoinCode = "USDT_\(option.chainName)"
             receiveDomainState.selectedRecvCoinCode = "USDT_\(option.chainName)"
         }
-        log("网络已切换: \(option.chainName) (\(option.chainId))")
+        log("Network switched: \(option.chainName) (\(option.chainId))")
     }
 
     func log(_ message: String) {

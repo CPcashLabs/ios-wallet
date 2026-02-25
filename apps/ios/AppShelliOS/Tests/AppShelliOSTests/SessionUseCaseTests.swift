@@ -71,7 +71,7 @@ final class SessionUseCaseTests: XCTestCase {
         await appState.loginWithPasskey(rawId: nil)
 
         XCTAssertEqual(appState.loginErrorKind, .rejectSign)
-        XCTAssertEqual(appState.toast?.message, "用户拒绝该请求")
+        XCTAssertEqual(appState.toast?.message, "User rejected this request")
     }
 
     func testLoginFailureClassifiesNetworkError() async {
@@ -89,7 +89,7 @@ final class SessionUseCaseTests: XCTestCase {
         await appState.loginWithPasskey(rawId: nil)
 
         XCTAssertEqual(appState.loginErrorKind, .networkFailed)
-        XCTAssertEqual(appState.toast?.message, "网络连接失败")
+        XCTAssertEqual(appState.toast?.message, "Network connection failed")
     }
 
     func testLoginFailureClassifiesAuthError() async {
@@ -107,7 +107,7 @@ final class SessionUseCaseTests: XCTestCase {
         await appState.loginWithPasskey(rawId: nil)
 
         XCTAssertEqual(appState.loginErrorKind, .authFailed)
-        XCTAssertEqual(appState.toast?.message, "身份验证失败")
+        XCTAssertEqual(appState.toast?.message, "Identity verification failed")
     }
 
     func testSignOutClearsSensitiveState() async {

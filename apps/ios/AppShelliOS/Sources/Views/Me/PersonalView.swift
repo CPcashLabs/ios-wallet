@@ -19,7 +19,7 @@ struct PersonalView: View {
                     VStack(spacing: 14) {
                         SectionCard {
                             HStack {
-                                Text("头像")
+                                Text("Avatar")
                                     .font(.system(size: widthClass.bodySize + 1))
                                 Spacer()
 
@@ -33,10 +33,10 @@ struct PersonalView: View {
                             Divider().padding(.leading, 14)
 
                             HStack {
-                                Text("昵称")
+                                Text("Nickname")
                                     .font(.system(size: widthClass.bodySize + 1))
                                     .accessibilityIdentifier(A11yID.Me.personalNicknameLabel)
-                                TextField("输入昵称", text: $nickname)
+                                TextField("Enter nickname", text: $nickname)
                                     .multilineTextAlignment(.trailing)
                                     .font(.system(size: widthClass.bodySize))
                             }
@@ -46,7 +46,7 @@ struct PersonalView: View {
                             Divider().padding(.leading, 14)
 
                             HStack {
-                                Text("地址")
+                                Text("Address")
                                     .font(.system(size: widthClass.bodySize + 1))
                                 Spacer()
                                 Text(shortAddress)
@@ -59,10 +59,10 @@ struct PersonalView: View {
                             Divider().padding(.leading, 14)
 
                             HStack {
-                                Text("邮箱")
+                                Text("Email")
                                     .font(.system(size: widthClass.bodySize + 1))
                                 Spacer()
-                                Text(meStore.profile?.email ?? "未绑定")
+                                Text(meStore.profile?.email ?? "Not linked")
                                     .font(.system(size: widthClass.footnoteSize))
                                     .foregroundStyle(ThemeTokens.secondary)
                             }
@@ -76,7 +76,7 @@ struct PersonalView: View {
                                 await meStore.updateNickname(nickname)
                             }
                         } label: {
-                            Text("保存")
+                            Text("Save")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity, minHeight: widthClass.metrics.buttonHeight)
@@ -89,7 +89,7 @@ struct PersonalView: View {
                 }
                 .accessibilityIdentifier(A11yID.Me.personalPage)
             }
-            .navigationTitle("个人信息")
+            .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 nickname = meStore.profile?.nickname ?? ""
@@ -108,7 +108,7 @@ struct PersonalView: View {
                         await meStore.updateAvatar(fileData: data, fileName: "avatar.jpg", mimeType: "image/jpeg")
                     } else {
                         guard !Task.isCancelled else { return }
-                        uiStore.showInfoToast("头像读取失败，请重试")
+                        uiStore.showInfoToast("Failed to read avatar, please retry")
                     }
                 }
             }

@@ -172,7 +172,7 @@ private struct ModuleRuntimeContext: RuntimeContext {
     }
 
     func requestPermission(_ req: CapabilityRequest) async throws -> PermissionGrant {
-        // Phase 1: 先用自动授权 stub 打通链路，Phase 2 再接 UI 确认。
+        // Phase 1: use an auto-approval stub to unblock the flow; Phase 2: connect UI confirmation.
         permissionManager.grant(moduleId: moduleId, capability: req.id)
     }
 

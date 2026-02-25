@@ -8,7 +8,7 @@ struct QRCodeScannerSheet: View {
 
     let onScan: (String) -> Void
 
-    @State private var inlineMessage = "请将二维码置于扫描框内"
+    @State private var inlineMessage = "Place the QR code inside the scan frame"
 
     var body: some View {
         NavigationStack {
@@ -28,11 +28,11 @@ struct QRCodeScannerSheet: View {
                     unsupportedView
                 }
             }
-            .navigationTitle("扫码")
+            .navigationTitle("Scan QR")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("关闭") {
+                    Button("Close") {
                         dismiss()
                     }
                 }
@@ -54,18 +54,18 @@ struct QRCodeScannerSheet: View {
             Image(systemName: "qrcode.viewfinder")
                 .font(.system(size: 42))
                 .foregroundStyle(Color.blue)
-            Text("当前设备不支持实时扫码")
+            Text("This device does not support real-time QR scanning")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(.primary)
             Button {
                 guard let text = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
-                    inlineMessage = "剪贴板没有可用地址"
+                    inlineMessage = "No valid address in clipboard"
                     return
                 }
                 onScan(text)
                 dismiss()
             } label: {
-                Text("从剪贴板粘贴")
+                Text("Paste from Clipboard")
                     .font(.system(size: 15, weight: .semibold))
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .foregroundStyle(.white)
@@ -132,12 +132,12 @@ private struct LiveScannerView: UIViewControllerRepresentable {
                 if granted {
                     startScanning()
                 } else {
-                    onError("未授予相机权限，无法扫码")
+                    onError("Camera permission not granted, cannot scan QR code")
                 }
             case .denied, .restricted:
-                onError("请在系统设置中打开相机权限")
+                onError("Enable camera permission in system settings")
             @unknown default:
-                onError("无法访问相机")
+                onError("Unable to access camera")
             }
         }
 
@@ -147,7 +147,7 @@ private struct LiveScannerView: UIViewControllerRepresentable {
             do {
                 try controller.startScanning()
             } catch {
-                onError("扫码启动失败，请重试")
+                onError("Failed to start QR scan, please retry")
             }
         }
 

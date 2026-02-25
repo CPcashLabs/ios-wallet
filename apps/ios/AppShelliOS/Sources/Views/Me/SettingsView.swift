@@ -29,7 +29,7 @@ struct SettingsView: View {
                                 Image(systemName: "moon.fill")
                                     .font(.system(size: 18))
                                     .foregroundStyle(ThemeTokens.cpPrimary)
-                                Text("深色模式")
+                                Text("Dark Mode")
                                     .font(.system(size: widthClass.bodySize))
                                     .foregroundStyle(ThemeTokens.title)
                                 Spacer()
@@ -41,23 +41,23 @@ struct SettingsView: View {
 
                             Divider().padding(.leading, 48)
 
-                            navRow(icon: "globe", title: "语言", note: "简体中文") { uiStore.showInfoToast("语言切换开发中") }
+                            navRow(icon: "globe", title: "Language", note: "Simplified Chinese") { uiStore.showInfoToast("Language switch in development") }
                             Divider().padding(.leading, 48)
-                            navRow(icon: "slider.horizontal.3", title: "节点") { uiStore.showInfoToast("节点设置开发中") }
+                            navRow(icon: "slider.horizontal.3", title: "Node") { uiStore.showInfoToast("Node settings in development") }
                             Divider().padding(.leading, 48)
-                            navRow(icon: "settings_network", title: "网络", note: sessionStore.selectedChainName) {
+                            navRow(icon: "settings_network", title: "Network", note: sessionStore.selectedChainName) {
                                 networkSheetVisible = true
                             }
                             Divider().padding(.leading, 48)
-                            toggleRow(icon: "settings_email_notify", title: "转账通知", isOn: $transferNotify)
+                            toggleRow(icon: "settings_email_notify", title: "Transfernotification", isOn: $transferNotify)
                             Divider().padding(.leading, 48)
-                            toggleRow(icon: "settings_email_notify", title: "奖励通知", isOn: $rewardNotify)
+                            toggleRow(icon: "settings_email_notify", title: "Reward notification", isOn: $rewardNotify)
                             Divider().padding(.leading, 48)
-                            toggleRow(icon: "settings_email_notify", title: "收款通知", isOn: $receiptNotify)
+                            toggleRow(icon: "settings_email_notify", title: "Receivenotification", isOn: $receiptNotify)
                             Divider().padding(.leading, 48)
-                            toggleRow(icon: "me_wallet_backup", title: "备份通知", isOn: $backupNotify)
+                            toggleRow(icon: "me_wallet_backup", title: "Backup notification", isOn: $backupNotify)
                             Divider().padding(.leading, 48)
-                            navRow(icon: "dollarsign.circle", title: "货币单位", note: meStore.selectedCurrency) { navigate(.settingUnit) }
+                            navRow(icon: "dollarsign.circle", title: "Currency Unit", note: meStore.selectedCurrency) { navigate(.settingUnit) }
                                 .accessibilityIdentifier(A11yID.Me.settingsCurrencyRow)
                         }
                     }
@@ -69,7 +69,7 @@ struct SettingsView: View {
                 Button {
                     sessionStore.signOutToLogin()
                 } label: {
-                    Text("退出登录")
+                    Text("Sign Out")
                         .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .foregroundStyle(ThemeTokens.cpPrimary)
@@ -139,7 +139,7 @@ struct SettingsView: View {
                 receiptNotifyTask?.cancel()
                 backupNotifyTask?.cancel()
             }
-            .navigationTitle("设置")
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -188,7 +188,7 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(ThemeTokens.groupBackground)
             .listStyle(.plain)
-            .navigationTitle("选择网络")
+            .navigationTitle("Select Network")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

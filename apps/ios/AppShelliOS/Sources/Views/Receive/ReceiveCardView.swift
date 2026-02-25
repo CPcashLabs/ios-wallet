@@ -54,10 +54,10 @@ struct ReceiveCardView: View {
         VStack(spacing: 12) {
             if showUpdateBanner {
                 HStack(spacing: 8) {
-                    Text("地址即将失效")
+                    Text("Address is about to expire")
                         .font(.system(size: 12))
                         .foregroundStyle(ThemeTokens.title)
-                    Button("生成地址") {
+                    Button("Generate Address") {
                         onGenerate()
                     }
                     .font(.system(size: 12, weight: .medium))
@@ -111,7 +111,7 @@ struct ReceiveCardView: View {
         } label: {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Text("地址")
+                    Text("Address")
                         .font(.system(size: 14))
                         .foregroundStyle(ThemeTokens.title)
                     Spacer()
@@ -119,7 +119,7 @@ struct ReceiveCardView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(ThemeTokens.tertiary)
                 }
-                Text(isPolling ? "生成中..." : formatAddress(address))
+                Text(isPolling ? "Generating..." : formatAddress(address))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(isPolling ? ThemeTokens.secondary : ThemeTokens.title)
                     .lineLimit(2)
@@ -136,11 +136,11 @@ struct ReceiveCardView: View {
 
     private func actionButtons(address: String) -> some View {
         HStack(spacing: 10) {
-            button(title: "分享", action: onShare)
+            button(title: "Share", action: onShare)
                 .disabled(isPolling)
                 .opacity(isPolling ? 0.6 : 1)
             
-            button(title: "复制") {
+            button(title: "Copy") {
                 UIPasteboard.general.string = address
                 onCopyAddress()
             }
@@ -153,7 +153,7 @@ struct ReceiveCardView: View {
         VStack(spacing: 8) {
             if let expiredAt = expiryTimestamp, isWithin30Days(expiredAt) {
                 HStack {
-                    Text("有效期")
+                    Text("Validity Period")
                         .font(.system(size: 14))
                         .foregroundStyle(ThemeTokens.secondary)
                     Spacer()
@@ -161,7 +161,7 @@ struct ReceiveCardView: View {
                 }
             }
             HStack {
-                Text("最低收款金额")
+                Text("Minimum Receive Amount")
                     .font(.system(size: 14))
                     .foregroundStyle(ThemeTokens.secondary)
                 Spacer()
@@ -277,7 +277,7 @@ struct ReceiveCardView: View {
             let seconds = Int(remaining) % 60
             
             if days > 0 {
-                return String(format: "%d天 %02d:%02d:%02d", days, hours, minutes, seconds)
+                return String(format: "%d days %02d:%02d:%02d", days, hours, minutes, seconds)
             } else {
                 return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
             }
@@ -286,10 +286,10 @@ struct ReceiveCardView: View {
 
     private var emptySection: some View {
         VStack(spacing: 12) {
-            Text("暂无收款地址")
+            Text("No receive address")
                 .font(.system(size: 14))
                 .foregroundStyle(ThemeTokens.secondary)
-            button(title: "生成地址", action: onGenerate)
+            button(title: "Generate Address", action: onGenerate)
                 .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)

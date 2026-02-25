@@ -10,10 +10,10 @@ struct ReceiveTxLogsView: View {
             SafeAreaScreen(backgroundStyle: .globalImage) {
                 Group {
                     if receiveStore.isLoading(.receiveChildren) && receiveStore.receiveTraceChildren.isEmpty {
-                        ProgressView("加载收款记录...")
+                        ProgressView("LoadReceive Records...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if receiveStore.receiveTraceChildren.isEmpty {
-                        EmptyStateView(asset: "bill_no_data", title: "暂无记录")
+                        EmptyStateView(asset: "bill_no_data", title: "No records")
                             .padding(.horizontal, widthClass.horizontalPadding)
                     } else {
                         ScrollView {
@@ -31,7 +31,7 @@ struct ReceiveTxLogsView: View {
                     }
                 }
             }
-            .navigationTitle("收款记录")
+            .navigationTitle("Receive Records")
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 await receiveStore.loadReceiveTraceChildren(orderSN: orderSN)
@@ -58,12 +58,12 @@ struct ReceiveTxLogsView: View {
             Text(item.orderSn ?? "-")
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundStyle(ThemeTokens.secondary)
-            Text("地址: \(item.receiveAddress ?? "-")")
+            Text("Address: \(item.receiveAddress ?? "-")")
                 .font(.system(size: 13))
                 .foregroundStyle(ThemeTokens.title)
                 .lineLimit(1)
                 .truncationMode(.middle)
-            Text("到账: \(item.recvActualAmount?.description ?? "-")")
+            Text("Received: \(item.recvActualAmount?.description ?? "-")")
                 .font(.system(size: 12))
                 .foregroundStyle(ThemeTokens.secondary)
         }

@@ -11,10 +11,10 @@ struct ReceiveAddressDeleteView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         SectionCard {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("地址删除说明")
+                                Text("Address Deletion Notes")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(ThemeTokens.title)
-                                Text("当前后端仅提供失效与重建机制，不提供物理删除。你可以在下方直接重建同类型收款地址。")
+                                Text("The backend currently supports invalidation and regeneration only, not physical deletion. You can regenerate the same address type below.")
                                     .font(.system(size: 13))
                                     .foregroundStyle(ThemeTokens.secondary)
                             }
@@ -22,7 +22,7 @@ struct ReceiveAddressDeleteView: View {
                         }
 
                         if filteredInvalidItems.isEmpty {
-                            EmptyStateView(asset: "bill_no_data", title: "暂无失效地址")
+                            EmptyStateView(asset: "bill_no_data", title: "No invalid addresses")
                         } else {
                             LazyVStack(spacing: 12) {
                                 ForEach(deleteRows) { row in
@@ -35,7 +35,7 @@ struct ReceiveAddressDeleteView: View {
                     .padding(.vertical, 12)
                 }
             }
-            .navigationTitle("删除地址")
+            .navigationTitle("Delete Address")
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 await receiveStore.loadReceiveAddresses(validity: .invalid)
@@ -83,11 +83,11 @@ struct ReceiveAddressDeleteView: View {
                 .foregroundStyle(ThemeTokens.title)
 
             HStack {
-                Text("状态: 失效")
+                Text("Status: Invalid")
                     .font(.system(size: 12))
                     .foregroundStyle(ThemeTokens.secondary)
                 Spacer()
-                Button("重新生成") {
+                Button("Regenerate") {
                     Task {
                         if (item.orderType ?? "").uppercased().contains("LONG") {
                             await receiveStore.createLongTraceOrder()

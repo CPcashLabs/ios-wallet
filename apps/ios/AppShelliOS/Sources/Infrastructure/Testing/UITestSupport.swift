@@ -395,9 +395,9 @@ private final class MockBackend: BackendServing,
         }
 
         if orderType.uppercased().contains("LONG") {
-            return [traceOrder(sn: "TRACE-BIZ-1", name: "经营地址", marked: false, longTerm: true)]
+            return [traceOrder(sn: "TRACE-BIZ-1", name: "Business Address", marked: false, longTerm: true)]
         }
-        return [traceOrder(sn: "TRACE-IND-1", name: "个人地址", marked: true, longTerm: false)]
+        return [traceOrder(sn: "TRACE-IND-1", name: "Personal Address", marked: true, longTerm: false)]
     }
 
     func recentInvalidTraces(page _: Int, perPage _: Int, orderType: String) async throws -> [TraceOrderItem] {
@@ -411,7 +411,7 @@ private final class MockBackend: BackendServing,
         if scenario == .empty {
             return []
         }
-        return [traceOrder(sn: "TRACE-INVALID-1", name: "失效地址", marked: false, longTerm: false)]
+        return [traceOrder(sn: "TRACE-INVALID-1", name: "Invalid Addresses", marked: false, longTerm: false)]
     }
 
     func traceChildren(orderSN _: String, page _: Int, perPage _: Int) async throws -> PagedResponse<TraceChildItem> {
@@ -612,8 +612,8 @@ private final class MockBackend: BackendServing,
                 [
                     "id": 1,
                     "type": "ORDER",
-                    "title": "订单已完成",
-                    "content": "你的订单已完成",
+                    "title": "Order completed",
+                    "content": "Your order is completed",
                     "is_read": false,
                     "order_sn": "ORDER-1",
                     "multisig_wallet_id": 0,
@@ -623,8 +623,8 @@ private final class MockBackend: BackendServing,
                 [
                     "id": 2,
                     "type": "SYSTEM",
-                    "title": "欢迎使用",
-                    "content": "欢迎来到 AppShell",
+                    "title": "Welcome",
+                    "content": "Welcome to AppShell",
                     "is_read": true,
                     "order_sn": "",
                     "multisig_wallet_id": 0,

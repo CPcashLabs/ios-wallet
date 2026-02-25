@@ -51,7 +51,7 @@ struct TransferAmountView: View {
                     noteText = transferStore.transferDraft.note
                 }
             }
-            .confirmationDialog("选择币种", isPresented: $showCoinPicker, titleVisibility: .visible) {
+            .confirmationDialog("Select Coin", isPresented: $showCoinPicker, titleVisibility: .visible) {
                 ForEach(transferStore.transferDomainState.availableNormalCoins, id: \.coinCode) { coin in
                     let title = coin.coinSymbol ?? coin.coinName ?? coin.coinCode ?? "-"
                     Button(title) {
@@ -61,7 +61,7 @@ struct TransferAmountView: View {
                     }
                 }
             }
-            .confirmationDialog("选择交易对", isPresented: $showPairPicker, titleVisibility: .visible) {
+            .confirmationDialog("Select Trading Pair", isPresented: $showPairPicker, titleVisibility: .visible) {
                 ForEach(pairOptions, id: \.id) { option in
                     Button(option.title) {
                         transferStore.selectTransferPair(sendCoinCode: option.sendCoinCode, recvCoinCode: option.recvCoinCode)
@@ -216,9 +216,9 @@ struct TransferAmountView: View {
     private var minimumHint: String {
         if let order = transferStore.transferDraft.orderDetail,
            let min = order.sendAmount?.stringValue, !min.isEmpty {
-            return "当前金额: \(min) \(transferStore.transferDomainState.selectedCoinSymbol)"
+            return "Current amount: \(min) \(transferStore.transferDomainState.selectedCoinSymbol)"
         }
-        return "请确认金额与网络一致"
+        return "Please confirm the amount matches the network"
     }
 
     private var canSubmit: Bool {

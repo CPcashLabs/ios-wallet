@@ -20,11 +20,11 @@ enum LocalPasskeyError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case .biometricUnavailable:
-            return "当前设备不可用生物识别或系统认证"
+            return "Biometric or system authentication is unavailable on this device"
         case .biometricFailed:
-            return "Passkey 认证失败"
+            return "Passkey authentication failed"
         case .accountNotFound:
-            return "未找到 Passkey 账户"
+            return "No Passkey account found"
         }
     }
 }
@@ -48,7 +48,7 @@ final class LocalPasskeyService {
     }
 
     func register(displayName: String) async throws -> LocalPasskeyAccount {
-        try await requireDeviceOwnerAuthentication(reason: "使用 Passkey 注册 CPCash")
+        try await requireDeviceOwnerAuthentication(reason: "Use Passkey to register CPCash")
 
         let privateKeyHex = Self.randomPrivateKeyHex()
         let account = LocalPasskeyAccount(
@@ -66,7 +66,7 @@ final class LocalPasskeyService {
     }
 
     func login(rawId: String?) async throws -> LocalPasskeyAccount {
-        try await requireDeviceOwnerAuthentication(reason: "使用 Passkey 登录 CPCash")
+        try await requireDeviceOwnerAuthentication(reason: "Use Passkey to sign in to CPCash")
         let all = accounts()
         guard !all.isEmpty else { throw LocalPasskeyError.accountNotFound }
 

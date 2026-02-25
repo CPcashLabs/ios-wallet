@@ -46,7 +46,7 @@ final class MeUseCaseTests: XCTestCase {
 
         await appState.markMessageRead(id: "1")
 
-        XCTAssertEqual(appState.toast?.message, "标记已读失败")
+        XCTAssertEqual(appState.toast?.message, "Failed to mark as read")
         XCTAssertNotNil(appState.errorMessage(.meMessageRead))
     }
 
@@ -55,7 +55,7 @@ final class MeUseCaseTests: XCTestCase {
 
         await appState.markAllMessagesRead()
 
-        XCTAssertEqual(appState.toast?.message, "已全部标记为已读")
+        XCTAssertEqual(appState.toast?.message, "Marked all as read")
         XCTAssertNil(appState.errorMessage(.meMessageReadAll))
     }
 
@@ -84,7 +84,7 @@ final class MeUseCaseTests: XCTestCase {
         )
 
         XCTAssertFalse(ok)
-        XCTAssertEqual(appState.toast?.message, "地址簿添加失败")
+        XCTAssertEqual(appState.toast?.message, "Address BookAddFailed")
         XCTAssertNotNil(appState.errorMessage(.meAddressbookCreate))
     }
 
@@ -103,7 +103,7 @@ final class MeUseCaseTests: XCTestCase {
         )
 
         XCTAssertTrue(ok)
-        XCTAssertEqual(appState.toast?.message, "地址簿更新成功")
+        XCTAssertEqual(appState.toast?.message, "Address book updated successfully")
     }
 
     func testDeleteAddressBookSuccessRemovesItem() async {
@@ -116,7 +116,7 @@ final class MeUseCaseTests: XCTestCase {
         await appState.deleteAddressBook(id: String(id))
 
         XCTAssertFalse(appState.addressBooks.contains(where: { $0.id == id }))
-        XCTAssertEqual(appState.toast?.message, "地址簿删除成功")
+        XCTAssertEqual(appState.toast?.message, "Address BookDeleteSucceeded")
     }
 
     func testUpdateAvatarFailureUsesSimplifiedError() async {

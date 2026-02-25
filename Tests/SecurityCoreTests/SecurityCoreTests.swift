@@ -25,7 +25,7 @@ final class SecurityCoreTests: XCTestCase {
         do {
             address = try keyStore.createAccount()
         } catch {
-            throw XCTSkip("Keychain 不可用，跳过该用例: \(error)")
+            throw XCTSkip("Keychain unavailable, skipping this test case: \(error)")
         }
         XCTAssertFalse(address.isEmpty, "Created address should not be empty")
         XCTAssertTrue(address.hasPrefix("0x"), "Address should start with 0x")

@@ -15,7 +15,7 @@ struct TransferReceiptView: View {
                         .font(.system(size: 62))
                         .foregroundStyle(ThemeTokens.success)
 
-                    Text("支付成功")
+                    Text("Payment successful")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(ThemeTokens.title)
 
@@ -28,7 +28,7 @@ struct TransferReceiptView: View {
                             if let orderSN = transferStore.transferDraft.orderSN, !orderSN.isEmpty {
                                 onViewOrder(orderSN)
                             } else {
-                                transferStore.showInfoToast("当前交易无订单号")
+                                transferStore.showInfoToast("Current transaction has no order number")
                             }
                         } label: {
                             Text("View Order")
@@ -61,7 +61,7 @@ struct TransferReceiptView: View {
                     .padding(.bottom, 20)
                 }
             }
-            .navigationTitle("转账回执")
+            .navigationTitle("Transfer Receipt")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

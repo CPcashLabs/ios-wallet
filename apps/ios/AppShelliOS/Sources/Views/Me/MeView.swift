@@ -20,26 +20,26 @@ struct MeView: View {
                         headerCard
 
                         SectionCard {
-                            menuButton(icon: "me_bill", title: "账单") { navigate(.billList) }
+                            menuButton(icon: "me_bill", title: "Bills") { navigate(.billList) }
                                 .accessibilityIdentifier(A11yID.Me.billEntry)
                             divider
-                            menuButton(icon: "me_addressbook", title: "地址簿") { navigate(.addressBookList) }
+                            menuButton(icon: "me_addressbook", title: "Address Book") { navigate(.addressBookList) }
                                 .accessibilityIdentifier(A11yID.Me.addressBookEntry)
                             divider
-                            menuButton(icon: "me_total_assets", title: "全部资产") { navigate(.totalAssets) }
+                            menuButton(icon: "me_total_assets", title: "Total Assets") { navigate(.totalAssets) }
                                 .accessibilityIdentifier(A11yID.Me.totalAssetsEntry)
                         }
 
                         SectionCard {
-                            menuButton(icon: "me_invite", title: "邀请好友") { navigate(.invite) }
+                            menuButton(icon: "me_invite", title: "Invite Friends") { navigate(.invite) }
                             divider
-                            menuButton(icon: "me_invite_code", title: "邀请码") { navigate(.inviteCode) }
+                            menuButton(icon: "me_invite_code", title: "Invite Code") { navigate(.inviteCode) }
                         }
 
                         SectionCard {
-                            menuButton(icon: "me_user_guide", title: "用户指南") { navigate(.userGuide) }
+                            menuButton(icon: "me_user_guide", title: "User Guide") { navigate(.userGuide) }
                             divider
-                            menuButton(icon: "me_about", title: "关于 CPcash") { navigate(.about) }
+                            menuButton(icon: "me_about", title: "About CPcash") { navigate(.about) }
                         }
                     }
                     .padding(.horizontal, widthClass.horizontalPadding)
@@ -59,7 +59,7 @@ struct MeView: View {
 
     private var topHeader: some View {
         ZStack {
-            Text("我的")
+            Text("Me")
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(ThemeTokens.title)
         }
@@ -110,7 +110,7 @@ struct MeView: View {
 
             Button {
                 UIPasteboard.general.string = sessionStore.activeAddress
-                uiStore.showInfoToast("地址已复制")
+                uiStore.showInfoToast("Address copied")
             } label: {
                 Image(systemName: "doc.on.doc")
                     .font(.system(size: 16, weight: .medium))
@@ -163,7 +163,7 @@ struct MeView: View {
         if let raw, !raw.isEmpty {
             return raw
         }
-        return "账户"
+        return "account"
     }
 
     private var shortAddress: String {

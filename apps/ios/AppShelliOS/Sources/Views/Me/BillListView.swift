@@ -2,9 +2,9 @@ import BackendAPI
 import SwiftUI
 
 private enum BillTab: String, CaseIterable {
-    case all = "全部"
-    case receipt = "收款"
-    case payment = "转账"
+    case all = "All"
+    case receipt = "Receive"
+    case payment = "Transfer"
 
     var orderType: String? {
         switch self {
@@ -44,7 +44,7 @@ struct BillListView: View {
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .padding(.top, 14)
                     } else if meStore.billList.isEmpty {
-                        EmptyStateView(asset: "bill_no_data", title: "暂无数据")
+                        EmptyStateView(asset: "bill_no_data", title: "No data")
                             .padding(.horizontal, widthClass.horizontalPadding)
                             .padding(.top, 30)
                         Spacer()
@@ -61,7 +61,7 @@ struct BillListView: View {
                                         if isLoadingMore {
                                             ProgressView()
                                         } else {
-                                            Text("上拉加载更多")
+                                            Text("Pull up to load more")
                                                 .font(.system(size: 12))
                                                 .foregroundStyle(ThemeTokens.secondary)
                                         }
@@ -72,7 +72,7 @@ struct BillListView: View {
                                         triggerLoadMoreIfNeeded()
                                     }
                                 } else {
-                                    Text("没有更多了")
+                                    Text("No more items")
                                         .font(.system(size: 12))
                                         .foregroundStyle(ThemeTokens.secondary)
                                         .padding(.vertical, 8)
@@ -85,7 +85,7 @@ struct BillListView: View {
                     }
                 }
             }
-            .navigationTitle("账单")
+            .navigationTitle("Bills")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -98,15 +98,15 @@ struct BillListView: View {
                     .accessibilityIdentifier(A11yID.Me.billMoreButton)
                 }
             }
-            .confirmationDialog("更多操作", isPresented: $showMoreSheet, titleVisibility: .visible) {
-                Button("统计") {
+            .confirmationDialog("More Actions", isPresented: $showMoreSheet, titleVisibility: .visible) {
+                Button("Statistics") {
                     onShowStatistics?()
                 }
-                Button("导出交易记录") {
-                    uiStore.showInfoToast("导出功能开发中")
+                Button("Export Transaction History") {
+                    uiStore.showInfoToast("Export feature in development")
                 }
-                Button("标签管理") {
-                    uiStore.showInfoToast("标签管理开发中")
+                Button("Tag Management") {
+                    uiStore.showInfoToast("Tag management in development")
                 }
             }
             .sheet(isPresented: $showFilterSheet) {
@@ -153,7 +153,7 @@ struct BillListView: View {
                 showFilterSheet = true
             } label: {
                 HStack(spacing: 4) {
-                    Text("筛选")
+                    Text("Filter")
                     Image(systemName: "line.3.horizontal.decrease.circle")
                 }
                 .font(.system(size: 13, weight: .medium))
@@ -196,10 +196,10 @@ struct BillListView: View {
                     .foregroundStyle(ThemeTokens.title)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("支出(USDT) \(formatSectionAmount(section.expense))")
+                    Text("Expense (USDT) \(formatSectionAmount(section.expense))")
                         .font(.system(size: widthClass.footnoteSize))
                         .foregroundStyle(ThemeTokens.secondary)
-                    Text("收入(USDT) \(formatSectionAmount(section.income))")
+                    Text("Income (USDT) \(formatSectionAmount(section.income))")
                         .font(.system(size: widthClass.footnoteSize))
                         .foregroundStyle(ThemeTokens.secondary)
                 }
@@ -359,7 +359,7 @@ struct BillListView: View {
     }
 
     private func monthKey(_ timestamp: Int?) -> String {
-        DateTextFormatter.yearMonth(fromTimestamp: timestamp, fallback: "未知月份")
+        DateTextFormatter.yearMonth(fromTimestamp: timestamp, fallback: "Unknown month")
     }
 
     private func timeText(_ timestamp: Int?) -> String {
@@ -369,11 +369,11 @@ struct BillListView: View {
     private func orderTypeTitle(_ orderType: String?) -> String {
         switch (orderType ?? "").uppercased() {
         case "RECEIPT", "RECEIPT_FIXED", "RECEIPT_NORMAL", "TRACE", "TRACE_CHILD", "TRACE_LONG_TERM":
-            return "收款"
+            return "Receive"
         case "PAYMENT", "PAYMENT_NORMAL":
-            return "转账"
+            return "Transfer"
         default:
-            return "交易"
+            return "Transaction"
         }
     }
 
@@ -423,11 +423,11 @@ struct BillListView: View {
         guard let status else { return nil }
         switch status {
         case 1:
-            return "待处理"
+            return "Pending"
         case 2:
-            return "处理中"
+            return "Processing"
         case -5, -4, -3, -2, -1, 0:
-            return "失败"
+            return "Failed"
         default:
             return nil
         }

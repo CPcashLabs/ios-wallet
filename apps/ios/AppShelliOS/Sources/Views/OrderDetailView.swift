@@ -27,7 +27,7 @@ struct OrderDetailView: View {
                             summaryCard(detail: detail, widthClass: widthClass)
 
                             detailSection(
-                                title: "交易信息",
+                                title: "Transaction Info",
                                 symbol: "doc.text.magnifyingglass",
                                 rows: transactionRows(detail),
                                 widthClass: widthClass,
@@ -35,7 +35,7 @@ struct OrderDetailView: View {
                             )
 
                             detailSection(
-                                title: "地址信息",
+                                title: "Address Info",
                                 symbol: "person.2",
                                 rows: addressRows(detail),
                                 widthClass: widthClass,
@@ -43,7 +43,7 @@ struct OrderDetailView: View {
                             )
 
                             detailSection(
-                                title: "链上信息",
+                                title: "On-chain Info",
                                 symbol: "link",
                                 rows: chainRows(detail),
                                 widthClass: widthClass,
@@ -51,7 +51,7 @@ struct OrderDetailView: View {
                             )
 
                             detailSection(
-                                title: "时间与备注",
+                                title: "Time and Notes",
                                 symbol: "clock",
                                 rows: timeRows(detail),
                                 widthClass: widthClass,
@@ -69,7 +69,7 @@ struct OrderDetailView: View {
                     await reload()
                 }
             }
-            .navigationTitle("订单详情")
+            .navigationTitle("Order Details")
             .navigationBarTitleDisplayMode(.inline)
             .task(id: orderSN) {
                 await reload()
@@ -118,8 +118,8 @@ struct OrderDetailView: View {
 
     private func emptyState(widthClass: DeviceWidthClass) -> some View {
         VStack(spacing: 14) {
-            EmptyStateView(asset: "bill_no_data", title: "暂无订单详情")
-            Button("重试") {
+            EmptyStateView(asset: "bill_no_data", title: "No order details")
+            Button("Retry") {
                 Task {
                     await reload()
                 }
@@ -170,8 +170,8 @@ struct OrderDetailView: View {
                 .lineLimit(2)
 
             HStack(spacing: 8) {
-                chip(title: "网络", value: networkText(detail))
-                chip(title: "订单号", value: shortOrderSN(detail.orderSn ?? orderSN))
+                chip(title: "Network", value: networkText(detail))
+                chip(title: "Order No.", value: shortOrderSN(detail.orderSn ?? orderSN))
             }
         }
         .padding(16)
@@ -226,7 +226,7 @@ struct OrderDetailView: View {
                 .padding(.bottom, 12)
 
                 if rows.isEmpty {
-                    Text("暂无数据")
+                    Text("No data")
                         .font(.system(size: 13))
                         .foregroundStyle(ThemeTokens.secondary)
                         .padding(.vertical, 4)
@@ -260,7 +260,7 @@ struct OrderDetailView: View {
                 if let copyValue = row.copyValue {
                     Button {
                         UIPasteboard.general.string = copyValue
-                        uiStore.showInfoToast("已复制")
+                        uiStore.showInfoToast("Copied")
                     } label: {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 13, weight: .semibold))
@@ -279,13 +279,13 @@ struct OrderDetailView: View {
 
     private func transactionRows(_ detail: OrderDetail) -> [OrderDetailLine] {
         var rows: [OrderDetailLine] = []
-        rows.append(line(title: "订单类型", value: directionTitle(detail)))
-        rows.append(line(title: "订单状态", value: statusTitle(detail.status)))
-        rows.append(line(title: "交易网络", value: networkText(detail)))
-        rows.append(line(title: "发送金额", value: amountText(detail.sendActualAmount ?? detail.sendAmount, detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")))
-        rows.append(line(title: "到账金额", value: amountText(detail.recvActualAmount ?? detail.recvAmount, detail.recvCoinName ?? detail.recvCoinCode ?? "USDT")))
+        rows.append(line(title: "Order Type", value: directionTitle(detail)))
+        rows.append(line(title: "Order Status", value: statusTitle(detail.status)))
+        rows.append(line(title: "Transaction Network", value: networkText(detail)))
+        rows.append(line(title: "Send Amount", value: amountText(detail.sendActualAmount ?? detail.sendAmount, detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")))
+        rows.append(line(title: "Received Amount", value: amountText(detail.recvActualAmount ?? detail.recvAmount, detail.recvCoinName ?? detail.recvCoinCode ?? "USDT")))
         if let fee = displayFee(detail) {
-            rows.append(line(title: "手续费", value: fee))
+            rows.append(line(title: "Fee", value: fee))
         }
         return rows
     }
@@ -294,10 +294,10 @@ struct OrderDetailView: View {
         var rows: [OrderDetailLine] = []
         var seen = Set<String>()
 
-        appendAddressRow(&rows, &seen, title: "我的地址", value: ownAddress(detail))
-        appendAddressRow(&rows, &seen, title: "对手地址", value: reciprocalAddress(detail))
-        appendAddressRow(&rows, &seen, title: "充值地址", value: detail.depositAddress)
-        appendAddressRow(&rows, &seen, title: "中转地址", value: detail.transferAddress)
+        appendAddressRow(&rows, &seen, title: "My Address", value: ownAddress(detail))
+        appendAddressRow(&rows, &seen, title: "Counterparty Address", value: reciprocalAddress(detail))
+        appendAddressRow(&rows, &seen, title: "Deposit Address", value: detail.depositAddress)
+        appendAddressRow(&rows, &seen, title: "Relay Address", value: detail.transferAddress)
 
         return rows
     }
@@ -308,13 +308,13 @@ struct OrderDetailView: View {
             rows.append(line(title: "TxID", value: txid, copyValue: txid))
         }
         if let contract = normalized(detail.sendCoinContract) {
-            rows.append(line(title: "代币合约", value: contract, copyValue: contract))
+            rows.append(line(title: "Token Contract", value: contract, copyValue: contract))
         }
         if let multisigAddress = normalized(detail.multisigWalletAddress) {
-            rows.append(line(title: "多签地址", value: multisigAddress, copyValue: multisigAddress))
+            rows.append(line(title: "Multisig Address", value: multisigAddress, copyValue: multisigAddress))
         }
         if let multisigName = normalized(detail.multisigWalletName) {
-            rows.append(line(title: "多签名称", value: multisigName))
+            rows.append(line(title: "Multisig Name", value: multisigName))
         }
         return rows
     }
@@ -322,14 +322,14 @@ struct OrderDetailView: View {
     private func timeRows(_ detail: OrderDetail) -> [OrderDetailLine] {
         var rows: [OrderDetailLine] = []
         if let createdAt = detail.createdAt {
-            rows.append(line(title: "创建时间", value: formatTimestamp(createdAt)))
+            rows.append(line(title: "Created At", value: formatTimestamp(createdAt)))
         }
         if let receivedAt = detail.recvActualReceivedAt, receivedAt > 0 {
-            rows.append(line(title: "完成时间", value: formatTimestamp(receivedAt)))
+            rows.append(line(title: "Completed At", value: formatTimestamp(receivedAt)))
         }
-        rows.append(line(title: "订单号", value: detail.orderSn ?? orderSN, copyValue: detail.orderSn ?? orderSN))
+        rows.append(line(title: "Order No.", value: detail.orderSn ?? orderSN, copyValue: detail.orderSn ?? orderSN))
         if let note = normalized(detail.note) {
-            rows.append(line(title: "备注", value: note))
+            rows.append(line(title: "Note", value: note))
         }
         return rows
     }
@@ -371,7 +371,7 @@ struct OrderDetailView: View {
     private func secondaryAmountText(_ detail: OrderDetail) -> String {
         let send = amountText(detail.sendActualAmount ?? detail.sendAmount, detail.sendCoinName ?? detail.sendCoinCode ?? "USDT")
         let receive = amountText(detail.recvActualAmount ?? detail.recvAmount, detail.recvCoinName ?? detail.recvCoinCode ?? "USDT")
-        return "发送 \(send) · 到账 \(receive)"
+        return "Sent \(send) · Received \(receive)"
     }
 
     private func amountText(_ value: JSONValue?, _ coin: String) -> String {
@@ -387,7 +387,7 @@ struct OrderDetailView: View {
     }
 
     private func directionTitle(_ detail: OrderDetail) -> String {
-        isReceiveType(detail.orderType) ? "收款订单" : "转账订单"
+        isReceiveType(detail.orderType) ? "Receive Order" : "Transfer Order"
     }
 
     private func shortOrderSN(_ value: String) -> String {
@@ -406,17 +406,17 @@ struct OrderDetailView: View {
     private func statusTitle(_ status: Int?) -> String {
         switch status {
         case 4:
-            return "已完成"
+            return "Completed"
         case 3:
-            return "待确认"
+            return "Pending Confirmation"
         case 2, 1, 5, 0:
-            return "处理中"
+            return "Processing"
         case -2:
-            return "已取消"
+            return "Cancelled"
         case -5:
-            return "失败"
+            return "Failed"
         default:
-            return "未知状态"
+            return "Unknown status"
         }
     }
 

@@ -138,7 +138,7 @@ struct HomeView: View {
     private func balanceCard(widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text("钱包余额")
+                Text("Wallet Balance")
                     .font(.system(size: widthClass.bodySize))
                     .foregroundStyle(Color.white.opacity(0.92))
                 Button {
@@ -156,7 +156,7 @@ struct HomeView: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
 
-            Text("单链单币：BTT + USDT")
+            Text("Single chain, single coin: BTT + USDT")
                 .font(.system(size: 12))
                 .foregroundStyle(Color.white.opacity(0.84))
         }
@@ -232,7 +232,7 @@ struct HomeView: View {
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("最近消息")
+                    Text("Recent Messages")
                         .font(.system(size: 14))
                         .foregroundStyle(ThemeTokens.title)
                     Spacer()
@@ -259,7 +259,7 @@ struct HomeView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 96, height: 72)
-                        Text("暂无数据")
+                        Text("No data")
                             .font(.system(size: 13))
                             .foregroundStyle(ThemeTokens.secondary)
                     }
@@ -334,7 +334,7 @@ struct HomeView: View {
 
     private func messageTitle(_ item: MessageItem) -> String {
         let title = item.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return title.isEmpty ? "消息通知" : title
+        return title.isEmpty ? "Message Notifications" : title
     }
 
     private func messageContent(_ item: MessageItem) -> String {

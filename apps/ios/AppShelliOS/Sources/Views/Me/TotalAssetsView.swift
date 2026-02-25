@@ -39,7 +39,7 @@ struct TotalAssetsView: View {
                         totalCard(widthClass: widthClass)
                         segmentBar
                         if filteredCoins.isEmpty {
-                            EmptyStateView(asset: "bill_no_data", title: "暂无资产")
+                            EmptyStateView(asset: "bill_no_data", title: "No assets")
                                 .padding(.vertical, 40)
                         } else {
                             VStack(spacing: 0) {
@@ -63,7 +63,7 @@ struct TotalAssetsView: View {
                 startPoint: .top,
                 endPoint: .center
             ))
-            .navigationTitle("全部资产")
+            .navigationTitle("Total Assets")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -93,7 +93,7 @@ struct TotalAssetsView: View {
     private func totalCard(widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text("钱包余额")
+                Text("Wallet Balance")
                     .font(.system(size: widthClass.bodySize))
                     .foregroundStyle(Color.white.opacity(0.92))
                 Button {

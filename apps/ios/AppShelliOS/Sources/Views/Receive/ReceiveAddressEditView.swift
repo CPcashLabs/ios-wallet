@@ -12,10 +12,10 @@ struct ReceiveAddressEditView: View {
             VStack(spacing: 14) {
                 SectionCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("地址设置")
+                        Text("Address Settings")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(ThemeTokens.title)
-                        Text("订单号")
+                        Text("Order No.")
                             .font(.system(size: 12))
                             .foregroundStyle(ThemeTokens.secondary)
                         Text(orderSN)
@@ -26,7 +26,7 @@ struct ReceiveAddressEditView: View {
                     .padding(14)
                 }
 
-                Text("将该地址设置为默认后，新收款会优先使用此地址。")
+                Text("After setting this address as default, new receipts will use it first.")
                     .font(.system(size: 13))
                     .foregroundStyle(ThemeTokens.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -39,7 +39,7 @@ struct ReceiveAddressEditView: View {
                         dismiss()
                     }
                 } label: {
-                    Text(submitting ? "提交中..." : "设为默认收款地址")
+                    Text(submitting ? "Submitting..." : "Set as default receive address")
                         .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .foregroundStyle(.white)
@@ -52,7 +52,7 @@ struct ReceiveAddressEditView: View {
             }
             .padding(16)
         }
-        .navigationTitle("编辑地址")
+        .navigationTitle("Edit Address")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

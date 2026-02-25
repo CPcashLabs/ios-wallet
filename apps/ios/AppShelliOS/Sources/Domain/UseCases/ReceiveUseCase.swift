@@ -127,7 +127,7 @@ final class ReceiveUseCase {
             if let first = appState.receiveSelectNetworks.first {
                 configureReceiveNetwork(first)
             }
-            appState.log("收款网络加载失败: \(error)")
+            appState.log("ReceiveNetworkLoadFailed: \(error)")
         }
     }
 
@@ -250,7 +250,7 @@ final class ReceiveUseCase {
             appState.clearError(LoadKey.receiveHome)
         } catch {
             appState.setError(LoadKey.receiveHome, error)
-            appState.log("收款主页加载失败: \(error)")
+            appState.log("Receive home load failed: \(error)")
         }
     }
 
@@ -288,7 +288,7 @@ final class ReceiveUseCase {
             appState.clearError(LoadKey.receiveDetail)
         } catch {
             appState.setError(LoadKey.receiveDetail, error)
-            appState.log("收款详情刷新失败: \(error)")
+            appState.log("ReceivedetailsRefreshFailed: \(error)")
         }
     }
 
@@ -313,7 +313,7 @@ final class ReceiveUseCase {
                 appState.clearError(LoadKey.receiveInvalid)
             } catch {
                 appState.setError(LoadKey.receiveInvalid, error)
-                appState.log("失效地址加载失败: \(error)")
+                appState.log("Invalid AddressesLoadFailed: \(error)")
             }
         }
     }
@@ -339,13 +339,13 @@ final class ReceiveUseCase {
                 recvCoinCode: resolvedRecvCoinCode,
                 orderType: resolvedOrderType
             )
-            appState.showToast("已更新默认收款地址", theme: .success)
+            appState.showToast("Default receive address updated", theme: .success)
             await loadReceiveHome(autoCreateIfMissing: true)
             appState.clearError(LoadKey.receiveMark)
         } catch {
             appState.setError(LoadKey.receiveMark, error)
-            appState.showToast("更新默认地址失败", theme: .error)
-            appState.log("更新默认收款地址失败: \(error)")
+            appState.showToast("Failed to update default address", theme: .error)
+            appState.log("Failed to update default receive address: \(error)")
         }
     }
 
@@ -358,7 +358,7 @@ final class ReceiveUseCase {
             appState.clearError(LoadKey.receiveChildren)
         } catch {
             appState.setError(LoadKey.receiveChildren, error)
-            appState.log("收款记录加载失败: \(error)")
+            appState.log("Receive RecordsLoadFailed: \(error)")
         }
     }
 
@@ -370,7 +370,7 @@ final class ReceiveUseCase {
             appState.clearError(LoadKey.receiveShare)
         } catch {
             appState.setError(LoadKey.receiveShare, error)
-            appState.log("收款分享数据加载失败: \(error)")
+            appState.log("ReceiveSharedataLoadFailed: \(error)")
         }
     }
 
@@ -383,7 +383,7 @@ final class ReceiveUseCase {
             appState.clearError(LoadKey.receiveExpiry)
         } catch {
             appState.setError(LoadKey.receiveExpiry, error)
-            appState.log("收款地址有效期配置加载失败: \(error)")
+            appState.log("Failed to load receive address validity configuration: \(error)")
         }
     }
 
@@ -394,12 +394,12 @@ final class ReceiveUseCase {
                 durations: appState.receiveExpiryConfig.durations,
                 selectedDuration: duration
             )
-            appState.showToast("有效期已更新", theme: .success)
+            appState.showToast("Validity period updated", theme: .success)
             appState.clearError(LoadKey.receiveExpiryUpdate)
         } catch {
             appState.setError(LoadKey.receiveExpiryUpdate, error)
-            appState.showToast("有效期更新失败", theme: .error)
-            appState.log("收款地址有效期更新失败: \(error)")
+            appState.showToast("Failed to update validity period", theme: .error)
+            appState.log("Failed to update receive address validity period: \(error)")
         }
     }
 
@@ -416,7 +416,7 @@ final class ReceiveUseCase {
         } catch {
             appState.receiveDomainState.receiveAddressLimit = 20
             appState.setError(LoadKey.receiveAddressLimit, error)
-            appState.log("收款地址上限获取失败: \(error)")
+            appState.log("Failed to fetch receive address limit: \(error)")
         }
     }
 
@@ -429,14 +429,14 @@ final class ReceiveUseCase {
                 remarkName: remarkName,
                 address: address
             )
-            appState.showToast("地址备注已更新", theme: .success)
+            appState.showToast("Address note updated", theme: .success)
             appState.clearError(LoadKey.receiveEditAddress)
             await loadReceiveHome(autoCreateIfMissing: false)
             return true
         } catch {
             appState.setError(LoadKey.receiveEditAddress, error)
-            appState.showToast("地址备注更新失败", theme: .error)
-            appState.log("地址备注更新失败: \(error)")
+            appState.showToast("Address note update failed", theme: .error)
+            appState.log("Address note update failed: \(error)")
             return false
         }
     }
@@ -462,7 +462,7 @@ final class ReceiveUseCase {
             appState.receiveDomainState.selectedPairLabel = "USDT/USDT"
             appState.receiveDomainState.availablePairs = []
             appState.receiveDomainState.selectedSellerId = nil
-            appState.log("收款网络已选择: \(item.name) [In-App Channel]")
+            appState.log("Receive network selected: \(item.name) [In-App Channel]")
             return
         }
 
@@ -475,7 +475,7 @@ final class ReceiveUseCase {
         } else {
             appState.receiveDomainState.selectedPairLabel = "\(appState.receiveDomainState.selectedSendCoinName)/\(appState.receiveDomainState.selectedRecvCoinName)"
         }
-        appState.log("收款网络已选择: \(item.name) [Proxy Settlement]")
+        appState.log("Receive network selected: \(item.name) [Proxy Settlement]")
     }
 
     private func applyReceivePair(_ pair: AllowExchangePair) {
@@ -516,9 +516,9 @@ final class ReceiveUseCase {
             if let firstPair = first.exchangePairs.first {
                 applyReceivePair(firstPair)
             }
-            appState.log("收款交易对已刷新: chain=\(appState.receiveDomainState.selectedPayChain), pairs=\(first.exchangePairs.count)")
+            appState.log("Receive trading pairs refreshed: chain=\(appState.receiveDomainState.selectedPayChain), pairs=\(first.exchangePairs.count)")
         } catch {
-            appState.log("收款交易对刷新失败: \(error)")
+            appState.log("Receive trading pair refresh failed: \(error)")
         }
     }
 
@@ -532,7 +532,7 @@ final class ReceiveUseCase {
     private func createTraceOrder(isLongTerm: Bool, note: String, silent: Bool = false) async {
         guard !appState.receiveDomainState.selectedIsNormalChannel else {
             if !silent {
-                appState.showToast("In-App Channel 无需创建收款订单", theme: .info)
+                appState.showToast("In-App Channel does not require creating a receive order", theme: .info)
             }
             return
         }
@@ -544,8 +544,8 @@ final class ReceiveUseCase {
         do {
             receiveAddress = try resolvedReceiveAddress()
         } catch {
-            appState.showToast("收款地址不可用，请重新登录后重试", theme: .error)
-            appState.log("收款地址不可用: \(error)")
+            appState.showToast("Receiving address unavailable, please sign in again and retry", theme: .error)
+            appState.log("Receive address unavailable: \(error)")
             return
         }
         let request = CreateTraceRequest(
@@ -583,25 +583,25 @@ final class ReceiveUseCase {
             }
             await loadReceiveHome(autoCreateIfMissing: false)
             if !silent {
-                appState.showToast("收款地址创建成功", theme: .success)
+                appState.showToast("ReceiveAddressCreateSucceeded", theme: .success)
             }
         } catch {
             if case let BackendAPIError.serverError(code, _) = error, code == 60018 {
-                appState.showToast("当前收款地址数量已达上限", theme: .error)
-                appState.log("收款地址创建失败: 命中地址数量上限")
+                appState.showToast("Current receive address count has reached the limit", theme: .error)
+                appState.log("Receiving address creation failed: address limit reached")
                 return
             }
             if case FlowError.traceOrderCreationFailed = error {
                 if !silent {
-                    appState.showToast("收款地址创建处理中，请稍后刷新", theme: .error)
+                    appState.showToast("Receiving address creation is in progress, please refresh later", theme: .error)
                 }
-                appState.log("收款地址创建失败: 轮询未拿到有效订单号")
+                appState.log("Receiving address creation failed: polling did not return a valid order ID")
                 return
             }
             if !silent {
-                appState.showToast("收款地址创建失败", theme: .error)
+                appState.showToast("ReceiveAddressCreateFailed", theme: .error)
             }
-            appState.log("收款地址创建失败: \(error)")
+            appState.log("ReceiveAddressCreateFailed: \(error)")
         }
     }
 

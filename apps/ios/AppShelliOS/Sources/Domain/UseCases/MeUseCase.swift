@@ -32,7 +32,7 @@ final class MeUseCase {
             appState.clearError(LoadKey.meRoot)
         } catch {
             appState.setError(LoadKey.meRoot, error)
-            appState.log("我的页面基础数据加载失败: \(error)")
+            appState.log("MepagebasedataLoadFailed: \(error)")
         }
     }
 
@@ -70,11 +70,11 @@ final class MeUseCase {
             appState.messagePage = response.page ?? requestedPage
             appState.messageLastPage = appState.computeLastPage(page: response.page, perPage: response.perPage, total: response.total)
             appState.clearError(LoadKey.meMessageList)
-            appState.log("消息列表加载成功: page=\(appState.messagePage), count=\(appState.messageList.count)")
+            appState.log("MessageslistLoadSucceeded: page=\(appState.messagePage), count=\(appState.messageList.count)")
         } catch {
             guard generation == appState.messageRequestGeneration else { return }
             appState.setError(LoadKey.meMessageList, error)
-            appState.log("消息列表加载失败: \(error)")
+            appState.log("MessageslistLoadFailed: \(error)")
         }
     }
 
@@ -85,8 +85,8 @@ final class MeUseCase {
             appState.clearError(LoadKey.meMessageRead)
         } catch {
             appState.setError(LoadKey.meMessageRead, error)
-            appState.showToast("标记已读失败", theme: .error)
-            appState.log("标记消息已读失败: \(error)")
+            appState.showToast("Failed to mark as read", theme: .error)
+            appState.log("Failed to mark message as read: \(error)")
         }
     }
 
@@ -94,12 +94,12 @@ final class MeUseCase {
         do {
             try await appState.backend.message.markAllRead()
             await loadMessages(page: 1, append: false)
-            appState.showToast("已全部标记为已读", theme: .success)
+            appState.showToast("Marked all as read", theme: .success)
             appState.clearError(LoadKey.meMessageReadAll)
         } catch {
             appState.setError(LoadKey.meMessageReadAll, error)
-            appState.showToast("全部已读失败", theme: .error)
-            appState.log("全部标记已读失败: \(error)")
+            appState.showToast("Mark all as readFailed", theme: .error)
+            appState.log("Failed to mark all as read: \(error)")
         }
     }
 
@@ -109,10 +109,10 @@ final class MeUseCase {
         do {
             appState.addressBooks = try await appState.backend.addressBook.list()
             appState.clearError(LoadKey.meAddressbookList)
-            appState.log("地址簿加载成功: \(appState.addressBooks.count)")
+            appState.log("Address BookLoadSucceeded: \(appState.addressBooks.count)")
         } catch {
             appState.setError(LoadKey.meAddressbookList, error)
-            appState.log("地址簿加载失败: \(error)")
+            appState.log("Address BookLoadFailed: \(error)")
         }
     }
 
@@ -121,14 +121,14 @@ final class MeUseCase {
             try await appState.backend.addressBook.create(
                 request: AddressBookUpsertRequest(name: name, walletAddress: walletAddress, chainType: chainType)
             )
-            appState.showToast("地址簿添加成功", theme: .success)
+            appState.showToast("Address BookAddSucceeded", theme: .success)
             await loadAddressBooks()
             appState.clearError(LoadKey.meAddressbookCreate)
             return true
         } catch {
             appState.setError(LoadKey.meAddressbookCreate, error)
-            appState.showToast("地址簿添加失败", theme: .error)
-            appState.log("地址簿新增失败: \(error)")
+            appState.showToast("Address BookAddFailed", theme: .error)
+            appState.log("Failed to add address book entry: \(error)")
             return false
         }
     }
@@ -139,14 +139,14 @@ final class MeUseCase {
                 id: id,
                 request: AddressBookUpsertRequest(name: name, walletAddress: walletAddress, chainType: chainType)
             )
-            appState.showToast("地址簿更新成功", theme: .success)
+            appState.showToast("Address book updated successfully", theme: .success)
             await loadAddressBooks()
             appState.clearError(LoadKey.meAddressbookUpdate)
             return true
         } catch {
             appState.setError(LoadKey.meAddressbookUpdate, error)
-            appState.showToast("地址簿更新失败", theme: .error)
-            appState.log("地址簿更新失败: \(error)")
+            appState.showToast("Address book update failed", theme: .error)
+            appState.log("Address book update failed: \(error)")
             return false
         }
     }
@@ -154,13 +154,13 @@ final class MeUseCase {
     func deleteAddressBook(id: String) async {
         do {
             try await appState.backend.addressBook.delete(id: id)
-            appState.showToast("地址簿删除成功", theme: .success)
+            appState.showToast("Address BookDeleteSucceeded", theme: .success)
             appState.addressBooks.removeAll { "\($0.id ?? -1)" == id }
             appState.clearError(LoadKey.meAddressbookDelete)
         } catch {
             appState.setError(LoadKey.meAddressbookDelete, error)
-            appState.showToast("地址簿删除失败", theme: .error)
-            appState.log("地址簿删除失败: \(error)")
+            appState.showToast("Address BookDeleteFailed", theme: .error)
+            appState.log("Address BookDeleteFailed: \(error)")
         }
     }
 
@@ -168,12 +168,12 @@ final class MeUseCase {
         do {
             try await appState.backend.profile.update(request: ProfileUpdateRequest(nickname: nickname, avatar: nil))
             appState.meProfile = try await appState.backend.auth.currentUser()
-            appState.showToast("昵称更新成功", theme: .success)
+            appState.showToast("Nickname updated successfully", theme: .success)
             appState.clearError(LoadKey.meProfileNickname)
         } catch {
             appState.setError(LoadKey.meProfileNickname, error)
-            appState.showToast("昵称更新失败", theme: .error)
-            appState.log("昵称更新失败: \(error)")
+            appState.showToast("Nickname update failed", theme: .error)
+            appState.log("Nickname update failed: \(error)")
         }
     }
 
@@ -184,17 +184,17 @@ final class MeUseCase {
             let upload = try await appState.backend.profile.uploadAvatar(fileData: fileData, fileName: fileName, mimeType: mimeType)
             let avatarURL = upload.url?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             guard !avatarURL.isEmpty else {
-                throw BackendAPIError.serverError(code: -1, message: "头像上传失败，请重试")
+                throw BackendAPIError.serverError(code: -1, message: "Avatar upload failed, please retry")
             }
             try await appState.backend.profile.update(request: ProfileUpdateRequest(nickname: nil, avatar: avatarURL))
             let profile = try await appState.backend.auth.currentUser()
             appState.meProfile = profile
-            appState.showToast("头像更新成功", theme: .success)
+            appState.showToast("Avatar updated successfully", theme: .success)
             appState.clearError(LoadKey.meProfileAvatar)
         } catch {
             appState.setError(LoadKey.meProfileAvatar, error)
             appState.showToast(appState.simplifyError(error), theme: .error)
-            appState.log("头像更新失败: \(error)")
+            appState.log("Avatar update failed: \(error)")
         }
     }
 
@@ -211,13 +211,13 @@ final class MeUseCase {
             appState.clearError(LoadKey.meSettingsRates)
         } catch {
             appState.setError(LoadKey.meSettingsRates, error)
-            appState.log("汇率列表加载失败: \(error)")
+            appState.log("Exchange rate list load failed: \(error)")
         }
     }
 
     func saveCurrencyUnit(currency: String) {
         appState.selectedCurrency = currency
-        appState.showToast("修改成功", theme: .success)
+        appState.showToast("Updated successfully", theme: .success)
     }
 
     func setTransferEmailNotify(_ enable: Bool) async {
@@ -227,7 +227,7 @@ final class MeUseCase {
             appState.clearError(LoadKey.meSettingsTransferNotify)
         } catch {
             appState.setError(LoadKey.meSettingsTransferNotify, error)
-            appState.showToast("转账通知更新失败", theme: .error)
+            appState.showToast("Transfer notification update failed", theme: .error)
         }
     }
 
@@ -238,7 +238,7 @@ final class MeUseCase {
             appState.clearError(LoadKey.meSettingsRewardNotify)
         } catch {
             appState.setError(LoadKey.meSettingsRewardNotify, error)
-            appState.showToast("奖励通知更新失败", theme: .error)
+            appState.showToast("Reward notification update failed", theme: .error)
         }
     }
 
@@ -249,7 +249,7 @@ final class MeUseCase {
             appState.clearError(LoadKey.meSettingsReceiptNotify)
         } catch {
             appState.setError(LoadKey.meSettingsReceiptNotify, error)
-            appState.showToast("收据通知更新失败", theme: .error)
+            appState.showToast("Receipt notification update failed", theme: .error)
         }
     }
 
@@ -260,7 +260,7 @@ final class MeUseCase {
             appState.clearError(LoadKey.meSettingsBackupNotify)
         } catch {
             appState.setError(LoadKey.meSettingsBackupNotify, error)
-            appState.showToast("备份通知更新失败", theme: .error)
+            appState.showToast("Backup notification update failed", theme: .error)
         }
     }
 }

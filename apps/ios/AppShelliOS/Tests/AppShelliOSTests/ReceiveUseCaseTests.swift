@@ -72,7 +72,7 @@ final class ReceiveUseCaseTests: XCTestCase {
 
         await appState.markTraceOrder(orderSN: orderSN)
 
-        XCTAssertEqual(appState.toast?.message, "已更新默认收款地址")
+        XCTAssertEqual(appState.toast?.message, "Default receive address updated")
         XCTAssertNil(appState.errorMessage(.receiveMark))
     }
 
@@ -121,7 +121,7 @@ final class ReceiveUseCaseTests: XCTestCase {
         let ok = await appState.editAddressInfo(orderSN: orderSN, remarkName: "new-name", address: address)
 
         XCTAssertTrue(ok)
-        XCTAssertEqual(appState.toast?.message, "地址备注已更新")
+        XCTAssertEqual(appState.toast?.message, "Address note updated")
     }
 
     func testCreateShortTraceOrderHandlesLimitExceeded() async {
@@ -134,6 +134,6 @@ final class ReceiveUseCaseTests: XCTestCase {
 
         await appState.createShortTraceOrder()
 
-        XCTAssertEqual(appState.toast?.message, "当前收款地址数量已达上限")
+        XCTAssertEqual(appState.toast?.message, "Current receive address count has reached the limit")
     }
 }

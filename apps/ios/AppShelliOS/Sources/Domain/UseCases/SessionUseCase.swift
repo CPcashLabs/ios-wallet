@@ -18,8 +18,8 @@ final class SessionUseCase {
             appState.activeAddress = address.value
             refreshPasskeyAccounts()
             appState.restoreSelectedChain()
-            appState.log("钱包已就绪: \(address.value)")
-            appState.log("当前后端环境: \(appState.environment.tag.rawValue) -> \(appState.environment.baseURL.absoluteString)")
+            appState.log("Wallet is ready: \(address.value)")
+            appState.log("Currentbackendenvironment: \(appState.environment.tag.rawValue) -> \(appState.environment.baseURL.absoluteString)")
             let state = appState
             Task {
                 await state.refreshNetworkOptions()
@@ -27,7 +27,7 @@ final class SessionUseCase {
                 await state.loadTransferSelectNetwork()
             }
         } catch {
-            appState.log("钱包初始化失败: \(error)")
+            appState.log("Wallet initialization failed: \(error)")
         }
     }
 
@@ -50,7 +50,7 @@ final class SessionUseCase {
             refreshPasskeyAccounts()
             appState.selectedPasskeyRawId = account.rawId
             appState.activeAddress = address.value
-            appState.log("Passkey 注册成功: \(account.displayName) / \(address.value)")
+            appState.log("Passkey RegisterSucceeded: \(account.displayName) / \(address.value)")
             try await performSignInFlow()
         } catch {
             handleLoginFailure(error)
@@ -68,7 +68,7 @@ final class SessionUseCase {
                 try? appState.passkeyService.updateAddress(rawId: account.rawId, address: importedAddress.value)
             }
             appState.activeAddress = importedAddress.value
-            appState.log("Passkey 认证成功: \(account.displayName) / \(importedAddress.value)")
+            appState.log("Passkey authenticationSucceeded: \(account.displayName) / \(importedAddress.value)")
             try await performSignInFlow()
         } catch {
             handleLoginFailure(error)
@@ -121,7 +121,7 @@ final class SessionUseCase {
         }
         appState.environment = next
         appState.backend = appState.backendFactory(next)
-        appState.log("Debug 环境切换完成: \(next.tag.rawValue) -> \(next.baseURL.absoluteString)")
+        appState.log("Debug environmentswitchDone: \(next.tag.rawValue) -> \(next.baseURL.absoluteString)")
     }
     #endif
 
@@ -144,22 +144,22 @@ final class SessionUseCase {
             address: address.value,
             message: message
         )
-        appState.log("登录成功，token 已更新")
+        appState.log("Sign in succeeded, token updated")
         appState.isAuthenticated = true
         appState.approvalSessionState = .unlocked(lastVerifiedAt: appState.clock.now)
         appState.loginErrorKind = nil
-        appState.showToast("登录成功", theme: .success)
+        appState.showToast("Sign InSucceeded", theme: .success)
         await appState.refreshHomeData()
     }
 
     private func beginLoginFlow() -> Bool {
         let now = appState.clock.now
         if appState.loginBusy {
-            appState.log("登录请求已忽略: 当前请求仍在执行")
+            appState.log("Sign Inrequestignored: Currentrequest is still running")
             return false
         }
         if let cooldown = appState.loginCooldownUntil, now < cooldown {
-            appState.log("登录请求已忽略: 2 秒防抖生效中")
+            appState.log("Sign Inrequestignored: 2  secondsdebounce active")
             return false
         }
         appState.loginBusy = true
@@ -178,7 +178,7 @@ final class SessionUseCase {
         appState.approvalSessionState = .locked
         appState.isAuthenticated = false
         appState.showToast(messageForLoginError(kind), theme: .error)
-        appState.log("登录失败[\(kind.rawValue)]: \(error)")
+        appState.log("Sign InFailed[\(kind.rawValue)]: \(error)")
     }
 
     private func classifyLoginError(_ error: Error) -> LoginErrorKind {
@@ -230,11 +230,11 @@ final class SessionUseCase {
     private func messageForLoginError(_ kind: LoginErrorKind) -> String {
         switch kind {
         case .rejectSign:
-            return "用户拒绝该请求"
+            return "User rejected this request"
         case .authFailed:
-            return "身份验证失败"
+            return "Identity verification failed"
         case .networkFailed:
-            return "网络连接失败"
+            return "Network connection failed"
         }
     }
 

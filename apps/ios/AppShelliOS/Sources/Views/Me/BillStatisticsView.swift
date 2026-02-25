@@ -38,7 +38,7 @@ struct BillStatisticsView: View {
                         VStack(alignment: .leading, spacing: 14) {
                             if preset == .monthly {
                                 DatePicker(
-                                    "月份",
+                                    " month",
                                     selection: $selectedMonth,
                                     displayedComponents: [.date]
                                 )
@@ -60,7 +60,7 @@ struct BillStatisticsView: View {
                     .padding(.vertical, 12)
                 }
             }
-            .navigationTitle("统计")
+            .navigationTitle("Statistics")
             .navigationBarTitleDisplayMode(.inline)
             .task(id: reloadTrigger) {
                 await reload()
@@ -90,17 +90,17 @@ struct BillStatisticsView: View {
 
     private func summaryMetrics(widthClass: DeviceWidthClass) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("仅统计已完成交易")
+            Text("Only completed transactions are counted")
                 .font(.system(size: widthClass.footnoteSize))
                 .foregroundStyle(ThemeTokens.secondary)
 
             HStack(spacing: 30) {
-                metricItem("支出(USDT)", valueText(meStore.billStats?.paymentAmount), widthClass: widthClass)
-                metricItem("收入(USDT)", valueText(meStore.billStats?.receiptAmount), widthClass: widthClass)
+                metricItem("Expense (USDT)", valueText(meStore.billStats?.paymentAmount), widthClass: widthClass)
+                metricItem("Income (USDT)", valueText(meStore.billStats?.receiptAmount), widthClass: widthClass)
             }
             HStack(spacing: 30) {
-                metricItem("手续费(USDT)", valueText(meStore.billStats?.fee), widthClass: widthClass)
-                metricItem("交易数", String(meStore.billStats?.transactions ?? 0), widthClass: widthClass)
+                metricItem("Fee(USDT)", valueText(meStore.billStats?.fee), widthClass: widthClass)
+                metricItem("Transaction Count", String(meStore.billStats?.transactions ?? 0), widthClass: widthClass)
             }
         }
     }
@@ -108,13 +108,13 @@ struct BillStatisticsView: View {
     private func addressTable(widthClass: DeviceWidthClass) -> some View {
         VStack(spacing: 0) {
             HStack {
-                Text("交易对象")
+                Text("Counterparty")
                     .font(.system(size: widthClass.footnoteSize, weight: .medium))
                 Spacer()
-                Text("支出")
+                Text("Expense")
                     .font(.system(size: widthClass.footnoteSize, weight: .medium))
                     .frame(width: 76, alignment: .trailing)
-                Text("收入")
+                Text("Income")
                     .font(.system(size: widthClass.footnoteSize, weight: .medium))
                     .frame(width: 76, alignment: .trailing)
             }
@@ -125,10 +125,10 @@ struct BillStatisticsView: View {
             Divider()
 
             if meStore.isLoading(.meBillAggregate) {
-                ProgressView("加载中")
+                ProgressView("Loading")
                     .padding(.vertical, 22)
             } else if meStore.billAddressAggList.isEmpty {
-                EmptyStateView(asset: "bill_no_data", title: "暂无数据")
+                EmptyStateView(asset: "bill_no_data", title: "No data")
                     .padding(.vertical, 16)
             } else {
                 ForEach(addressRows) { row in

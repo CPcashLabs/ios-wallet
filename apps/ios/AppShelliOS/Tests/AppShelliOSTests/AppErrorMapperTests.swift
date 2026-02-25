@@ -10,12 +10,12 @@ final class AppErrorMapperTests: XCTestCase {
     func testMapsUnauthorizedBackendError() {
         let message = AppErrorMapper.message(for: BackendAPIError.unauthorized)
 
-        XCTAssertEqual(message, "登录状态失效，请重新登录")
+        XCTAssertEqual(message, "Login session expired, please sign in again")
     }
 
     func testMapsUserCancelledErrorText() {
         let message = AppErrorMapper.message(for: TextError(description: "rpc request cancelled by user"))
 
-        XCTAssertEqual(message, "用户取消支付")
+        XCTAssertEqual(message, "Payment cancelled by user")
     }
 }
